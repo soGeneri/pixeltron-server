@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"slices"
+	"sort"
 	"strings"
 	"time"
 
@@ -29,7 +32,14 @@ type WSMessage struct {
 	Displaying *int        `json:"displaying"`
 	Counter    *int        `json:"counter"`
 	ClientInfo *ClientInfo `json:"client_info"`
+	// Pixeltron knob input. Brightness is a level the user dialled in on the
+	// device; Button is "previous" or "back" ("next" is handled on the device).
+	Brightness *int    `json:"brightness"`
+	Button     *string `json:"button"`
 }
+
+// maxDisplayHistory bounds the apps remembered per connection for "previous".
+const maxDisplayHistory = 20
 
 type ClientInfo struct {
 	FirmwareVersion    string  `json:"firmware_version"`
@@ -122,6 +132,7 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	defer s.Broadcaster.Unsubscribe(deviceID, ch)
 
 	ackCh := make(chan WSMessage, 10)
+	inputCh := make(chan WSMessage, 4)
 	stopCh := make(chan struct{})
 
 	// Read loop to handle ping/pong/close and client messages
@@ -227,16 +238,112 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 				default:
 				}
 			}
+
+			if msg.Brightness != nil {
+				level := min(100, max(0, *msg.Brightness))
+				if _, err := gorm.G[data.Device](s.DB).Where("id = ?", device.ID).Update(context.Background(), "brightness", level); err != nil {
+					slog.Error("Failed to save brightness from device", "device", deviceID, "error", err)
+				} else {
+					slog.Info("Brightness set on device", "device", deviceID, "brightness", level)
+					s.notifyDashboard(user.Username, WSEvent{Type: "refresh", DeviceID: device.ID})
+				}
+			}
+
+			if msg.Brightness != nil || msg.Button != nil {
+				select {
+				case inputCh <- msg:
+				default:
+				}
+			}
 		}
 	}()
 
-	s.wsWriteLoop(r.Context(), conn, device, &user, ackCh, ch, stopCh, s.GetBaseURL(r))
+	s.wsWriteLoop(r.Context(), conn, device, &user, ackCh, inputCh, ch, stopCh, s.GetBaseURL(r))
+}
+
+// rememberDisplayed records an app the device confirmed it is showing.
+func rememberDisplayed(history []string, iname string) []string {
+	if n := len(history); n > 0 && history[n-1] == iname {
+		return history
+	}
+	history = append(history, iname)
+	if len(history) > maxDisplayHistory {
+		history = history[len(history)-maxDisplayHistory:]
+	}
+	return history
+}
+
+// handleDeviceInput applies knob input from the device. For "previous" or
+// "back" it returns the image and app to show next, or nil when there is
+// nothing to go back to.
+func (s *Server) handleDeviceInput(ctx context.Context, msg WSMessage, device *data.Device, history *[]string, lastSentBrightness *int) ([]byte, *data.App) {
+	if msg.Brightness != nil {
+		// Already saved by the read loop; keep this copy in step so the next
+		// image doesn't send the old level back and undo the turn.
+		device.Brightness = data.Brightness(min(100, max(0, *msg.Brightness)))
+		*lastSentBrightness = device.GetEffectiveBrightness()
+	}
+	if msg.Button == nil {
+		return nil, nil
+	}
+	switch *msg.Button {
+	case "previous", "back":
+	default:
+		slog.Debug("Ignoring unknown button from device", "device", device.ID, "button", *msg.Button)
+		return nil, nil
+	}
+
+	h := *history
+	if len(h) < 2 {
+		return nil, nil
+	}
+	target := h[len(h)-2]
+	// Drop the current app and the target; the target's ACK adds it back.
+	*history = h[:len(h)-2]
+
+	var app *data.App
+	for _, a := range device.Apps {
+		if a.Iname == target {
+			app = a
+			break
+		}
+	}
+	if app == nil {
+		return nil, nil
+	}
+	dir, err := s.ensureDeviceImageDir(device.ID)
+	if err != nil {
+		slog.Error("Failed to get device webp directory for previous app", "device", device.ID, "error", err)
+		return nil, nil
+	}
+	img, err := os.ReadFile(s.getAppWebpPath(dir, app))
+	if err != nil {
+		slog.Warn("Previous app has no rendered image", "device", device.ID, "app", target, "error", err)
+		return nil, nil
+	}
+
+	// Carry on rotating from the app we went back to.
+	apps := slices.Clone(device.Apps)
+	sort.Slice(apps, func(i, j int) bool { return apps[i].Order < apps[j].Order })
+	for i, a := range createExpandedAppsList(device, apps) {
+		if a.Iname == target {
+			device.LastAppIndex = i
+			if _, err := gorm.G[data.Device](s.DB).Where("id = ?", device.ID).Update(ctx, "last_app_index", i); err != nil {
+				slog.Error("Failed to update last_app_index for previous app", "device", device.ID, "error", err)
+			}
+			break
+		}
+	}
+	slog.Info("Going back to previous app", "device", device.ID, "app", target)
+	return img, app
 }
 
 // baseURL is this server's address as the device connected to it, captured
 // when the socket opened — the write loop outlives the request that made it.
-func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialDevice *data.Device, user *data.User, ackCh <-chan WSMessage, broadcastCh <-chan any, stopCh <-chan struct{}, baseURL string) {
+func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialDevice *data.Device, user *data.User, ackCh <-chan WSMessage, inputCh <-chan WSMessage, broadcastCh <-chan any, stopCh <-chan struct{}, baseURL string) {
 	var pendingImage []byte
+	var pendingApp *data.App // app behind pendingImage, when it came from "previous"
+	var history []string     // apps the device confirmed showing, oldest first
 	var pendingPreview *DevicePreviewMessage
 	device := *initialDevice
 	lastSentBrightness := -1
@@ -463,7 +570,9 @@ func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialD
 
 		if pendingImage != nil {
 			imgData = pendingImage
+			app = pendingApp
 			pendingImage = nil
+			pendingApp = nil
 		} else {
 			imgData, app, err = s.GetNextAppImage(ctx, &device, user, baseURL)
 			if err != nil {
@@ -636,6 +745,7 @@ func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialD
 									if _, err := gorm.G[data.Device](s.DB).Where("id = ?", device.ID).Update(ctx, "displaying_app", app.Iname); err != nil {
 										slog.Error("Failed to update displaying_app", "device", device.ID, "error", err)
 									}
+									history = rememberDisplayed(history, app.Iname)
 									if user != nil {
 										s.notifyDashboard(user.Username, WSEvent{Type: "image_updated", DeviceID: device.ID})
 									}
@@ -644,6 +754,16 @@ func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialD
 								}
 								if device.Info.ProtocolVersion != nil {
 									waitingChunk = false
+								}
+							}
+						case in := <-inputCh:
+							if img, prev := s.handleDeviceInput(ctx, in, &device, &history, &lastSentBrightness); img != nil {
+								pendingImage, pendingApp = img, prev
+								interrupted = true
+								waitingChunk = false
+								sendImmediate = true
+								if timer != nil {
+									timer.Stop()
 								}
 							}
 						case val := <-broadcastCh:
@@ -847,6 +967,7 @@ func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialD
 						if _, err := gorm.G[data.Device](s.DB).Where("id = ?", device.ID).Update(ctx, "displaying_app", app.Iname); err != nil {
 							slog.Error("Failed to update displaying_app", "device", device.ID, "error", err)
 						}
+						history = rememberDisplayed(history, app.Iname)
 						// Notify Dashboard
 						s.notifyDashboard(user.Username, WSEvent{Type: "image_updated", DeviceID: device.ID})
 
@@ -872,6 +993,13 @@ func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialD
 					} else {
 						slog.Debug("Received ACK for default or pushed image (no app context)", "device", device.ID)
 					}
+				}
+			case in := <-inputCh:
+				if img, prev := s.handleDeviceInput(ctx, in, &device, &history, &lastSentBrightness); img != nil {
+					pendingImage, pendingApp = img, prev
+					interrupted = true
+					waiting = false
+					sendImmediate = true
 				}
 			case val := <-broadcastCh:
 				// Update available (Reload device first)
