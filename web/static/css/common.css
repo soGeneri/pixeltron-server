@@ -157,19 +157,15 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 16%, transparent);
 }
 
-[data-theme="dark"] .brightness-btn[data-brightness="0"] { background-color: #101418; color: #a4adb8; }
-[data-theme="dark"] .brightness-btn[data-brightness="1"] { background-color: #20262d; color: #ccd3dc; }
-[data-theme="dark"] .brightness-btn[data-brightness="2"] { background-color: #343c45; color: #e2e7ee; }
-[data-theme="dark"] .brightness-btn[data-brightness="3"] { background-color: #4b5560; color: #f5f7fa; }
-[data-theme="dark"] .brightness-btn[data-brightness="4"] { background-color: #7a8592; color: #111315; }
-[data-theme="dark"] .brightness-btn[data-brightness="5"] { background-color: #c8d0da; color: #111315; }
 
-[data-theme="dark"] .brightness-btn.active {
-  border-color: var(--primary-color);
-}
+
+
+
+
+
 
 /* Mobile responsive adjustments */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 760px) {
   .flex-container {
     flex-direction: column;
     align-items: stretch;

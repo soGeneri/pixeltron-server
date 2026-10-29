@@ -2,114 +2,177 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Add App" }}{{ end }}
-{{ define "header" }}
+{{ define "tone" }}pc-grape{{ end }}
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/addapp-simple.css">
+<script src="/static/js/catalog.js" defer></script>
 {{ end }}
 {{ define "content" }}
-<div id="addapp_page_identifier" class="addapp-shell settings-page">
-    <header class="settings-page-header">
+<div class="addapp-shell settings-page" data-catalog>
+    <header class="pxt-page-head">
         <div>
-            <p class="settings-eyebrow">{{ t .Localizer "Apps" }}</p>
+            <p class="pxt-eyebrow">{{ t .Localizer "Apps" }} · {{ .Device.Name }}</p>
             <h1>{{ t .Localizer "Add App" }}</h1>
-            <p class="settings-page-copy">
-                {{ t .Localizer "Choose an app to install on this device, then configure its timing and options." }}
-            </p>
+            <p class="pxt-lede">{{ t .Localizer "Find an app, check its preview, and install it on this device." }}</p>
         </div>
+        <a class="btn btn-ghost"
+           href="/devices/{{ .Device.ID }}/uploadapp">{{ pixelIcon "plus" }} {{ t .Localizer "Upload app" }}</a>
     </header>
-    <!-- Loading indicator -->
-    <div id="loading-indicator" class="loading-container">
-        <div class="loading-spinner"></div>
-        <p>{{ t .Localizer "Loading apps..." }}</p>
+    <!-- The catalog on the left; the chosen app plays on the stage beside it. -->
+    <div class="catalog-layout">
+    <div class="catalog-main">
+    <!-- One toolbar filters every group below it. -->
+    <div class="catalog-toolbar" role="search">
+        <div class="catalog-search">
+            {{ pixelIcon "search" }}
+            <label class="visually-hidden" for="catalog_search">{{ t .Localizer "Search apps" }}</label>
+            <input type="search"
+                   id="catalog_search"
+                   class="catalog-search-input"
+                   placeholder="{{ t .Localizer "Search by name, tag, or @author" }}"
+                   autocomplete="off"
+                   enterkeyhint="search"
+                   aria-keyshortcuts="/">
+            <kbd class="catalog-kbd" aria-hidden="true">/</kbd>
+        </div>
+        <div class="catalog-chips"
+             role="group"
+             aria-label="{{ t .Localizer "Category" }}"
+             data-category-chips>
+            <button type="button" class="catalog-cat" aria-pressed="true" data-category="">{{ t .Localizer "All" }}</button>
+        </div>
+        <div class="catalog-options">
+            <label class="catalog-option">
+                <span>{{ t .Localizer "Sort" }}</span>
+                <span class="select-wrap">
+                    <select id="catalog_sort">
+                        <option value="system">{{ t .Localizer "Default" }}</option>
+                        <option value="installs">{{ t .Localizer "Popularity" }}</option>
+                        <option value="newest">{{ t .Localizer "Newest" }}</option>
+                        <option value="last-updated">{{ t .Localizer "Last Updated" }}</option>
+                        <option value="alphabetical">{{ t .Localizer "Alphabetical (A-Z)" }}</option>
+                        <option value="rev-alphabetical">{{ t .Localizer "Alphabetical (Z-A)" }}</option>
+                    </select>
+                </span>
+            </label>
+            <label class="catalog-option">
+                <input type="checkbox" class="pxt-checkbox" id="catalog_hide_installed">
+                {{ t .Localizer "Hide installed apps" }}
+            </label>
+            <label class="catalog-option">
+                <input type="checkbox" class="pxt-checkbox" id="catalog_show_broken">
+                {{ t .Localizer "Show broken apps" }}
+            </label>
+            <p class="catalog-count" aria-live="polite" data-result-count></p>
+        </div>
     </div>
-    <div class="addapp-actions">
-        <a class="w3-button w3-purple"
-           href="/devices/{{ .Device.ID }}/uploadapp"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> {{ t .Localizer "Upload app" }}</a>
-    </div>
-    <form method="post" id="main_form" class="addapp-config">
-        <section class="settings-card">
-            <div class="settings-card-header">
-                <h2>{{ t .Localizer "App Selection" }}</h2>
-            </div>
-            {{ if .CustomApps }}
-            {{ template "app_list_grid" (dict
-            "Title" (t .Localizer "Custom Apps")
-            "SearchID" "custom_search"
-            "GridID" "custom_app_grid"
-            "Apps" .CustomApps
-            "ShowControls" true
-            "IsCustom" true
-            "DeviceID" .Device.ID
-            "Localizer" .Localizer
-            "ConfigProduction" .Config.Production
-            ) }}
-            <hr>
-            {{ end }}
-            {{ template "app_list_grid" (dict
-            "Title" (t .Localizer "System Apps")
-            "SearchID" "system_search"
-            "GridID" "system_app_grid"
-            "Apps" .SystemApps
-            "ShowControls" true
-            "ShowInstallSort" true
-            "ShowVersion" true
-            "IsCustom" false
-            "DeviceID" .Device.ID
-            "Localizer" .Localizer
-            "SystemRepoInfo" .SystemRepoInfo
-            "ConfigProduction" .Config.Production
-            ) }}
-        </section>
+    <form method="post" id="main_form" class="catalog-groups">
+        {{ if .CustomApps }}
+        {{ template "app_list_grid" (dict
+        "Title" (t .Localizer "Custom Apps")
+        "GridID" "custom_app_grid"
+        "Apps" .CustomApps
+        "IsCustom" true
+        "DeviceID" .Device.ID
+        "Localizer" .Localizer
+        "ConfigProduction" .Config.Production
+        ) }}
+        {{ end }}
+        {{ template "app_list_grid" (dict
+        "Title" (t .Localizer "System Apps")
+        "GridID" "system_app_grid"
+        "Apps" .SystemApps
+        "ShowVersion" true
+        "IsCustom" false
+        "DeviceID" .Device.ID
+        "Localizer" .Localizer
+        "SystemRepoInfo" .SystemRepoInfo
+        "ConfigProduction" .Config.Production
+        ) }}
+        <div class="pxt-empty catalog-empty" data-catalog-empty hidden>
+            <p class="pxt-empty-title">{{ t .Localizer "No apps match" }}</p>
+            <p class="pxt-help">{{ t .Localizer "Try a shorter search, another category, or turn on broken apps." }}</p>
+            <button type="button" class="btn btn-ghost" data-clear-filters>{{ t .Localizer "Clear filters" }}</button>
+        </div>
         <input type="hidden" name="name" id="selected_app">
         <input type="hidden" name="path" id="selected_app_path">
-        <section class="settings-card">
-            <div class="settings-card-header">
-                <h2>{{ t .Localizer "Configuration" }}</h2>
-                <p>{{ t .Localizer "Set timing and notes before opening the app configuration screen." }}</p>
+        <!-- Set from the chosen app's recommended interval; adjustable on the next screen. -->
+        <input type="hidden" name="uinterval" id="uinterval" value="-1">
+    </form>
+    </div>
+    <!-- The stage: the chosen app on a big always-dark screen, with the install
+         decision. A sticky column on wide screens, a bottom sheet on narrow ones. -->
+    <aside class="catalog-stage"
+           id="catalog_detail"
+           data-theme="dark"
+           aria-labelledby="catalog_stage_label"
+           data-delete-confirm="{{ t .Localizer "DeleteUploadConfirm" (dict "AppName" "__NAME__") }}"
+           data-mark-broken-confirm="{{ t .Localizer "MarkAppBrokenConfirm" (dict "AppName" "__NAME__") }}"
+           data-unmark-broken-confirm="{{ t .Localizer "UnmarkAppBrokenConfirm" (dict "AppName" "__NAME__") }}">
+        <div class="catalog-stage-bar">
+            <span class="catalog-stage-led" aria-hidden="true"></span>
+            <h2 class="catalog-stage-label" id="catalog_stage_label">{{ t .Localizer "On stage" }}</h2>
+            <button type="button"
+                    class="pxt-nav-iconbtn catalog-detail-close"
+                    data-detail-close
+                    aria-label="{{ t .Localizer "Close" }}">{{ pixelIcon "close" }}</button>
+        </div>
+        <div class="catalog-stage-bezel">
+            <div class="app-img catalog-detail-screen" data-detail-screen></div>
+        </div>
+        <p class="catalog-stage-empty" data-stage-empty>{{ t .Localizer "Pick an app to see it here." }}</p>
+        <div class="catalog-stage-content" data-stage-content hidden>
+            <div class="catalog-detail-body">
+                <h3 class="catalog-detail-name"
+                    id="catalog_detail_name"
+                    aria-live="polite"
+                    data-detail-name></h3>
+                <p class="catalog-detail-summary" data-detail-summary></p>
+                <div class="catalog-detail-chips" data-detail-chips></div>
+                <p class="catalog-detail-desc" data-detail-desc></p>
+                <dl class="pxt-specs catalog-detail-specs" data-detail-specs></dl>
+                <p class="catalog-detail-note" data-detail-installed hidden>
+                    {{ t .Localizer "Already on this device. Installing again adds a second copy with its own settings." }}
+                </p>
+                <p class="catalog-detail-note catalog-detail-note-broken" data-detail-broken hidden></p>
             </div>
-            <div class="settings-field-list">
-                <div class="settings-field-row">
-                    <div class="settings-field-label">
-                        <label for="uinterval">{{ t .Localizer "Render Interval (minutes)" }}</label>
-                    </div>
-                    <div class="settings-field-control">
-                        <input name="uinterval"
-                               type="number"
-                               id="uinterval"
-                               min="0"
-                               value="-1"
-                               required
-                               class="settings-input">
-                    </div>
-                </div>
-                <div class="settings-field-row">
-                    <div class="settings-field-label">
-                        <label for="display_time">{{ t .Localizer "Display Time (seconds)" }}</label>
-                    </div>
-                    <div class="settings-field-control">
-                        <input name="display_time"
-                               type="number"
-                               id="display_time"
-                               min="0"
-                               value="0"
-                               required
-                               class="settings-input">
-                    </div>
-                </div>
-                <div class="settings-field-row">
-                    <div class="settings-field-label">
-                        <label for="notes">{{ t .Localizer "Notes" }}</label>
-                    </div>
-                    <div class="settings-field-control">
-                        <textarea name="notes" id="notes" class="settings-input settings-input-wide"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="settings-actions">
-                <button type="submit" class="w3-button w3-green">
-                    <i class="fa-solid fa-sliders" aria-hidden="true"></i> {{ t .Localizer "Configure" }}
+            <div class="catalog-detail-actions">
+                <button type="button" class="btn btn-primary btn-lg" data-detail-install>
+                    {{ t .Localizer "Install on" }} {{ .Device.Name }} {{ pixelIcon "arrow-right" }}
                 </button>
             </div>
-        </section>
-    </form>
+            <div class="catalog-detail-admin" data-detail-admin hidden>
+                <button type="submit"
+                        form="main_form"
+                        class="btn btn-danger btn-sm"
+                        formmethod="post"
+                        formnovalidate
+                        data-detail-delete
+                        data-confirm-danger
+                        hidden>{{ t .Localizer "Delete uploaded app" }}</button>
+                {{ if not .Config.Production }}
+                <button type="button" class="btn btn-ghost btn-sm" data-detail-mark-broken hidden>{{ t .Localizer "Mark Broken" }}</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-detail-unmark-broken hidden>{{ t .Localizer "Unmark Broken" }}</button>
+                {{ end }}
+            </div>
+        </div>
+    </aside>
+    </div>
+    <!-- Behind the stage while it is a bottom sheet; a click closes it. -->
+    <div class="catalog-stage-scrim" data-detail-close hidden></div>
 </div>
+<!-- Labels catalog.js puts together at runtime. -->
+<div hidden
+     id="catalog_labels"
+     data-apps-one="{{ t .Localizer "CatalogCountOne" }}"
+     data-apps-many="{{ t .Localizer "CatalogCountMany" (dict "Count" "__N__") }}"
+     data-showing="{{ t .Localizer "CatalogShowing" (dict "Shown" "__SHOWN__" "Count" "__N__") }}"
+     data-show-more="{{ t .Localizer "CatalogShowMore" (dict "Count" "__N__") }}"
+     data-supports-2x="{{ t .Localizer "Sharper on 2x panels" }}"
+     data-square="{{ t .Localizer "Works on 64×64 panels" }}"
+     data-by="{{ t .Localizer "By" }}"
+     data-category="{{ t .Localizer "Category" }}"
+     data-installs="{{ t .Localizer "Installs" }}"
+     data-updated="{{ t .Localizer "Last Updated" }}"
+     data-tags="{{ t .Localizer "Tags" }}"></div>
 {{ end }}

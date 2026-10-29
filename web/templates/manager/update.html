@@ -2,8 +2,11 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Edit Device" }}: {{ .Device.Name }}{{ end }}
-{{ define "header" }}
+{{ define "tone" }}pc-sky{{ end }}
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/update-simple.css">
+{{ end }}
+{{ define "header" }}
 <script src="/static/js/location.js"></script>
 <script>
     // Show the time, or the offset and limits, that a schedule boundary uses.
@@ -76,7 +79,9 @@
         document.getElementById('brightness').value = brightness;
         const buttons = document.querySelectorAll('#brightness-panel .brightness-btn');
         buttons.forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.dataset.brightness) === parseInt(brightness));
+            const selected = parseInt(btn.dataset.brightness) === parseInt(brightness);
+            btn.classList.toggle('active', selected);
+            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
         sendBrightnessToDevice(getBrightnessScaleValues()[brightness]);
     }
@@ -85,7 +90,9 @@
         document.getElementById('night_brightness').value = brightness;
         const buttons = document.querySelectorAll('#night-brightness-panel .brightness-btn');
         buttons.forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.dataset.brightness) === parseInt(brightness));
+            const selected = parseInt(btn.dataset.brightness) === parseInt(brightness);
+            btn.classList.toggle('active', selected);
+            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
     }
 
@@ -93,7 +100,9 @@
         document.getElementById('dim_brightness').value = brightness;
         const buttons = document.querySelectorAll('#dim-brightness-panel .brightness-btn');
         buttons.forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.dataset.brightness) === parseInt(brightness));
+            const selected = parseInt(btn.dataset.brightness) === parseInt(brightness);
+            btn.classList.toggle('active', selected);
+            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
     }
 </script>
@@ -109,21 +118,11 @@
             </div>
             <div class="settings-actions">
                 {{ if .Device.Type.SupportsFirmware }}
-                <a href="/devices/{{ .Device.ID }}/firmware" class="w3-button w3-blue">
-                    <i class="fa-solid fa-microchip" aria-hidden="true"></i> {{ t .Localizer "Firmware" }}
-                </a>
+                <a href="/devices/{{ .Device.ID }}/firmware" class="btn btn-ghost">{{ t .Localizer "Firmware" }}</a>
                 {{ end }}
-                <button type="button" class="w3-button w3-green" onclick="saveDeviceForm()">
-                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
-                </button>
-                <button type="button"
-                        class="w3-button w3-red"
-                        onclick="if (confirm('{{ t .Localizer "Delete device and ALL apps? This action cannot be undone." }}')) { document.getElementById('device-form').action = '/devices/{{ .Device.ID }}/delete'; document.getElementById('device-form').submit(); }">
-                    <i class="fa-solid fa-trash" aria-hidden="true"></i> {{ t .Localizer "Delete" }}
-                </button>
             </div>
         </header>
-        <nav class="settings-subnav"
+        <nav class="settings-subnav pxt-jump"
              aria-label="{{ t .Localizer "Device Settings" }}">
             <a class="settings-subnav-link" href="#section-core-setup">{{ t .Localizer "Core Device Setup" }}</a>
             <a class="settings-subnav-link" href="#section-display">{{ t .Localizer "Display Behavior" }}</a>
@@ -131,6 +130,7 @@
             <a class="settings-subnav-link" href="#section-regional">{{ t .Localizer "Regional and App Context" }}</a>
             <a class="settings-subnav-link" href="#section-maintenance">{{ t .Localizer "Maintenance" }}</a>
             <a class="settings-subnav-link" href="#section-api">{{ t .Localizer "Advanced Device API" }}</a>
+            <a class="settings-subnav-link" href="#section-danger">{{ t .Localizer "Delete device" }}</a>
         </nav>
         <section class="settings-card" id="section-core-setup">
             <div class="settings-card-header">
@@ -222,14 +222,8 @@
                         <label for="test_sound_select">{{ t .Localizer "Test Sound" }}</label>
                     </div>
                     <div class="settings-field-control">
-                        <div class="test-sound-container"
-                             style="display: flex;
-                                    gap: 8px;
-                                    align-items: center;
-                                    flex-wrap: wrap">
-                            <select id="test_sound_select"
-                                    class="settings-input"
-                                    style="max-width: 200px">
+                        <div class="test-sound-container pxt-inline">
+                            <select id="test_sound_select" class="settings-input pxt-input-narrow">
                                 <option value="default:chime">{{ t .Localizer "Chime" }}</option>
                                 <option value="default:ding">{{ t .Localizer "Ding" }}</option>
                                 <option value="default:bell">{{ t .Localizer "Bell" }}</option>
@@ -238,11 +232,11 @@
                                 <option value="default:tron">{{ t .Localizer "Tron Bit" }}</option>
                             </select>
                             <button type="button"
-                                    class="w3-button w3-blue w3-round"
+                                    class="btn btn-sm"
                                     onclick="triggerDeviceTestSound('{{ .Device.ID }}')">
                                 <i class="fa-solid fa-volume-high"></i> {{ t .Localizer "Play on Device" }}
                             </button>
-                            <span id="test-sound-status" style="font-size: 0.9em; margin-left: 4px;"></span>
+                            <span id="test-sound-status" class="pxt-help" role="status"></span>
                         </div>
                         <p class="settings-help">
                             {{ t .Localizer "Send an instant test chime to verify speaker output and volume levels on this device." }}
@@ -271,11 +265,14 @@
                 <div class="settings-field-row">
                     <div class="settings-field-label">{{ t .Localizer "Connection Warning" }}</div>
                     <div class="settings-field-control">
-                        <div class="w3-panel w3-red w3-border w3-border-red">
-                            <strong><i class="fa-solid fa-triangle-exclamation"></i> {{ t .Localizer "Warning: Localhost URL Detected" }}</strong>
-                            <p>
+                        <div class="pxt-note pxt-note-danger" role="alert">
+                            {{ pixelIcon "info" }}
+                            <div>
+                            <strong>{{ t .Localizer "Warning: Localhost URL Detected" }}</strong>
+                            <p class="pxt-help">
                                 {{ t .Localizer "The firmware image URL uses localhost which will not work:" }} <strong>{{ .Device.ImgURL }}</strong>. {{ t .Localizer "Either replace localhost with the IP or hostname of this server, or connect to this server over its IP or hostname, edit the device and click the refresh buttons by the device's image URLs, then return here." }}
                             </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -292,7 +289,7 @@
                                    oninput="updateExampleCommands()"
                                    class="settings-input settings-input-wide">
                             <button type="button"
-                                    class="w3-button w3-gray"
+                                    class="btn btn-ghost btn-sm"
                                     onclick="resetImgUrl()"
                                     title="{{ t .Localizer "Reset to default" }}">
                                 <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> {{ t .Localizer "Reset" }}
@@ -311,7 +308,7 @@
                                    value="{{ .Device.WsURL }}"
                                    class="settings-input settings-input-wide">
                             <button type="button"
-                                    class="w3-button w3-gray"
+                                    class="btn btn-ghost btn-sm"
                                     onclick="resetWsUrl()"
                                     title="{{ t .Localizer "Reset to default" }}">
                                 <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> {{ t .Localizer "Reset" }}
@@ -369,6 +366,7 @@
                             {{ range seq 0 5 }}
                             <button type="button"
                                     class="brightness-btn {{ if eq $.BrightnessUI . }}active{{ end }}"
+                                    aria-pressed="{{ if eq $.BrightnessUI . }}true{{ else }}false{{ end }}"
                                     data-brightness="{{ . }}"
                                     onclick="setBrightnessUpdate({{ . }})">{{ . }}</button>
                             {{ end }}
@@ -389,8 +387,7 @@
                             <span>{{ t .Localizer "Use custom brightness scale" }}</span>
                         </label>
                         <div id="custom_brightness_inputs"
-                             class="{{ if eq .Device.CustomBrightnessScale "" }}settings-hidden{{ end }}"
-                             style="margin-top: 12px">
+                             class="pxt-mt {{ if eq .Device.CustomBrightnessScale "" }}settings-hidden{{ end }}">
                             <div class="settings-grid-compact">
                                 {{ $scaleValues := slice }}
                                 {{ if ne .Device.CustomBrightnessScale "" }}
@@ -528,6 +525,7 @@
                                 {{ range seq 0 5 }}
                                 <button type="button"
                                         class="brightness-btn {{ if eq $.NightBrightnessUI . }}active{{ end }}"
+                                    aria-pressed="{{ if eq $.NightBrightnessUI . }}true{{ else }}false{{ end }}"
                                         data-brightness="{{ . }}"
                                         onclick="setNightBrightnessUpdate({{ . }})">{{ . }}</button>
                                 {{ end }}
@@ -662,6 +660,7 @@
                                 {{ range seq 0 5 }}
                                 <button type="button"
                                         class="brightness-btn {{ if eq $.DimBrightnessUI . }}active{{ end }}"
+                                    aria-pressed="{{ if eq $.DimBrightnessUI . }}true{{ else }}false{{ end }}"
                                         data-brightness="{{ . }}"
                                         onclick="setDimBrightnessUpdate({{ . }})">{{ . }}</button>
                                 {{ end }}
@@ -793,12 +792,7 @@
                             <a href="{{ if .Device.Type.IsRaspberryPi }}https://github.com/tronbyt/tronberry/releases{{ else }}https://github.com/tronbyt/firmware-esp32/releases{{ end }}"
                                target="_blank"
                                rel="noopener noreferrer"
-                               style="color: inherit;
-                                      text-decoration: underline">
-                                {{ t .Localizer "Select Version" }} <i class="fa-solid fa-arrow-up-right-from-square"
-    style="font-size: 0.8em"
-    aria-hidden="true"></i>
-                            </a>
+                               class="pxt-label-link">{{ t .Localizer "Select Version" }} {{ pixelIcon "arrow-right" 1 }}</a>
                         </label>
                     </div>
                     <div class="settings-field-control">
@@ -826,13 +820,13 @@
             <div class="settings-actions">
                 {{ if .AvailableFirmwareVersions }}
                 <button type="button"
-                        class="w3-button w3-blue"
+                        class="btn"
                         onclick="triggerOTAWithVersion('{{ .Device.ID }}', '{{ t .Localizer "This will trigger an Over-The-Air update. The device will reboot. Continue?" }}')">
                     <i class="fa-solid fa-cloud-arrow-down"></i> {{ t .Localizer "Install Selected Firmware" }}
                 </button>
                 {{ end }}
                 <button type="button"
-                        class="w3-button w3-orange"
+                        class="btn btn-ghost"
                         onclick="document.getElementById('custom_firmware_file').click();">
                     <i class="fa-solid fa-file-arrow-up"></i> {{ t .Localizer "Install Custom Firmware" }}
                 </button>
@@ -852,7 +846,7 @@
                                    value="{{ .FirmwareImgURL }}"
                                    class="settings-input settings-input-wide">
                             <button type="button"
-                                    class="w3-button w3-deep-orange"
+                                    class="btn btn-danger"
                                     onclick="confirmImageURLAndReboot()">
                                 <i class="fa-solid fa-circle-check"></i> {{ t .Localizer "Confirm and Reboot" }}
                             </button>
@@ -872,7 +866,7 @@
                                    value="{{ derefOr .Device.Info.Hostname "" }}"
                                    class="settings-input">
                             <button type="button"
-                                    class="w3-button w3-green"
+                                    class="btn btn-sm"
                                     onclick="updateFirmwareSettings({hostname: document.getElementById('reported_hostname').value})">
                                 <i class="fa-solid fa-check"></i> {{ t .Localizer "Update" }}
                             </button>
@@ -888,7 +882,7 @@
                                    value="{{ derefOr .Device.Info.SNTPServer "" }}"
                                    class="settings-input">
                             <button type="button"
-                                    class="w3-button w3-green"
+                                    class="btn btn-sm"
                                     onclick="updateFirmwareSettings({sntp_server: document.getElementById('reported_sntp_server').value})">
                                 <i class="fa-solid fa-check"></i> {{ t .Localizer "Update" }}
                             </button>
@@ -904,7 +898,7 @@
                                    value="{{ derefOr .Device.Info.SyslogAddr "" }}"
                                    class="settings-input">
                             <button type="button"
-                                    class="w3-button w3-green"
+                                    class="btn btn-sm"
                                     onclick="updateFirmwareSettings({syslog_addr: document.getElementById('reported_syslog_addr').value})">
                                 <i class="fa-solid fa-check"></i> {{ t .Localizer "Update" }}
                             </button>
@@ -1056,7 +1050,7 @@
             </div>
             <div class="settings-actions">
                 <button type="button"
-                        class="w3-button w3-deep-orange"
+                        class="btn btn-danger"
                         onclick="rebootDevice()">
                     <i class="fa-solid fa-power-off"></i> {{ t .Localizer "Reboot Device" }}
                 </button>
@@ -1078,7 +1072,7 @@
                                    value="{{ .FirmwareImgURL }}"
                                    class="settings-input settings-input-wide">
                             <button type="button"
-                                    class="w3-button w3-deep-orange"
+                                    class="btn btn-danger"
                                     onclick="confirmImageURLAndReboot()">
                                 <i class="fa-solid fa-circle-check"></i> {{ t .Localizer "Confirm and Reboot" }}
                             </button>
@@ -1092,7 +1086,7 @@
             </div>
             <div class="settings-actions">
                 <button type="button"
-                        class="w3-button w3-deep-orange"
+                        class="btn btn-danger"
                         onclick="rebootDevice()">
                     <i class="fa-solid fa-power-off"></i> {{ t .Localizer "Reboot Device" }}
                 </button>
@@ -1103,12 +1097,12 @@
             <h3>{{ t .Localizer "Configuration Management" }}</h3>
             <div class="settings-actions">
                 <button type="button"
-                        class="w3-button w3-blue"
+                        class="btn btn-ghost"
                         onclick="window.location.href='/devices/{{ .Device.ID }}/export_config'">
                     <i class="fa-solid fa-download" aria-hidden="true"></i> {{ t .Localizer "Export Configuration" }}
                 </button>
                 <button type="button"
-                        class="w3-button w3-orange"
+                        class="btn btn-ghost"
                         onclick="document.getElementById('import_config_file').click();">
                     <i class="fa-solid fa-upload" aria-hidden="true"></i> {{ t .Localizer "Import Configuration" }}
                 </button>
@@ -1167,27 +1161,51 @@
             </div>
         </div>
     </section>
+    <section class="settings-card pxt-danger-zone" id="section-danger">
+        <div class="settings-card-header">
+            <h2>{{ t .Localizer "Delete device" }}</h2>
+            <p>{{ t .Localizer "Removes this device and every app installed on it. This can't be undone." }}</p>
+        </div>
+        <div class="settings-actions">
+            <button type="submit"
+                    class="btn btn-danger"
+                    formaction="/devices/{{ .Device.ID }}/delete"
+                    formnovalidate
+                    data-confirm="{{ t .Localizer "DeleteDeviceConfirm" (dict "DeviceName" .Device.Name) }}"
+                    data-confirm-label="{{ t .Localizer "Delete device" }}"
+                    data-confirm-danger>
+                {{ t .Localizer "Delete device" }}
+            </button>
+        </div>
+    </section>
     <input type="hidden" name="notes" value="{{ .Device.Notes }}">
+    <!-- Stays in view while scrolling the form. -->
+    <div class="pxt-savebar">
+        <p class="pxt-help">{{ t .Localizer "Changes on this page apply when you save." }}</p>
+        <button type="button" class="btn btn-primary" onclick="saveDeviceForm()">
+            {{ t .Localizer "Save" }} {{ pixelIcon "check" }}
+        </button>
+    </div>
 </div>
 </form>
 <form action="/devices/{{ .Device.ID }}/import_config"
       method="post"
       enctype="multipart/form-data"
-      style="display: none">
+      hidden>
     <input type="file"
            name="file"
            id="import_config_file"
-           onchange="if(confirm('{{ t .Localizer "This will overwrite all current settings and apps. Continue?" }}')) { this.form.submit(); } else { this.value = ''; }"
+           onchange="const input = this; pxtConfirm({{ t .Localizer "This will overwrite all current settings and apps. Continue?" | json }}, { confirmLabel: {{ t .Localizer "Import" | json }} }).then(yes => { if (yes) { input.form.submit(); } else { input.value = ''; } })"
            accept=".json">
 </form>
 <form action="/devices/{{ .Device.ID }}/ota"
       method="post"
       enctype="multipart/form-data"
-      style="display: none">
+      hidden>
     <input type="file"
            name="firmware_file"
            id="custom_firmware_file"
-           onchange="if(confirm('{{ t .Localizer "Install custom firmware? The device will reboot." }}')) { this.form.submit(); } else { this.value = ''; }"
+           onchange="const input = this; pxtConfirm({{ t .Localizer "Install custom firmware? The device will reboot." | json }}).then(yes => { if (yes) { input.form.submit(); } else { input.value = ''; } })"
            accept=".bin">
 </form>
 <script>
@@ -1299,16 +1317,16 @@
             body: params.toString()
         }).then(response => {
             if (!response.ok) {
-                alert("Failed to update settings");
+                pxtError();
                 throw new Error("Failed to update settings");
             }
             return response;
         });
     }
 
-    function confirmImageURLAndReboot() {
+    async function confirmImageURLAndReboot() {
         const imageUrl = document.getElementById('reported_img_url').value;
-        if (!confirm('{{ t .Localizer "Send the current Image URL to the device and reboot? Continue?" }}')) {
+        if (!(await pxtConfirm('{{ t .Localizer "Send the current Image URL to the device and reboot? Continue?" }}'))) {
             return;
         }
         updateFirmwareSettings({image_url: imageUrl}).then(() => {
@@ -1322,8 +1340,8 @@
         });
     }
 
-    function rebootDevice() {
-        if (confirm('{{ t .Localizer "Are you sure you want to reboot the device?" }}')) {
+    async function rebootDevice() {
+        if (await pxtConfirm('{{ t .Localizer "Are you sure you want to reboot the device?" }}')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/devices/{{ .Device.ID }}/reboot';
@@ -1400,20 +1418,20 @@
             if (resp.ok) {
                 if (statusSpan) {
                     statusSpan.innerText = "✓ {{ t .Localizer "Sent to device" }}";
-                    statusSpan.style.color = "var(--color-success, #28a745)";
+                    statusSpan.style.color = "var(--success)";
                     setTimeout(() => { if (statusSpan.innerText.includes("Sent")) statusSpan.innerText = ""; }, 3000);
                 }
             } else {
                 const errText = await resp.text();
                 if (statusSpan) {
                     statusSpan.innerText = "✗ " + (errText || "Error");
-                    statusSpan.style.color = "var(--color-danger, #dc3545)";
+                    statusSpan.style.color = "var(--signal)";
                 }
             }
         } catch (err) {
             if (statusSpan) {
                 statusSpan.innerText = "✗ Network error";
-                statusSpan.style.color = "var(--color-danger, #dc3545)";
+                statusSpan.style.color = "var(--signal)";
             }
         }
     }

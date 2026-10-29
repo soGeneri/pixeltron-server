@@ -98,14 +98,15 @@ func TestHandleAddAppGet_CustomAppFilters(t *testing.T) {
 	require.Equal(t, http.StatusOK, rr.Code)
 	body := rr.Body.String()
 
-	// The custom section gets the same filter controls as the system section...
-	for _, id := range []string{`id="custom_search"`, `id="category_custom_search"`, `id="hide_installed_custom_search"`, `id="show_broken_custom_search"`, `id="sort_custom_search"`} {
+	// One shared toolbar filters the custom and system groups alike...
+	for _, id := range []string{`id="catalog_search"`, `data-category-chips`, `id="catalog_hide_installed"`, `id="catalog_show_broken"`, `id="catalog_sort"`} {
 		assert.Contains(t, body, id)
 	}
-	// ...and its manifest metadata reaches the card for filtering.
+	assert.Contains(t, body, `id="custom_app_grid"`)
+	// ...and the custom app's manifest metadata reaches its card for filtering.
 	assert.Contains(t, body, `data-category="time"`)
 	assert.Contains(t, body, `data-tags="retro"`)
-	// Custom apps have no install counts, so only the system sort offers Popularity.
+	// The single sort menu offers Popularity once.
 	assert.Equal(t, 1, strings.Count(body, `value="installs"`))
 }
 

@@ -1,11 +1,15 @@
-// tronbyt_server/static/js/theme.js
+// Theme: Bright (data-theme="light") and Night (data-theme="dark").
+// The floating "Dark mode / Light mode" button flips between the two; the
+// Account settings select also offers "system", which follows the OS.
 (function() {
     const THEME_STORAGE_KEY = 'theme_preference';
     const themeSelect = document.getElementById('theme-select');
-    const mobileThemeSelect = document.getElementById('mobile-theme-select');
+    const themeToggle = document.getElementById('theme-toggle');
     const docElement = document.documentElement; // Usually <html>
+    const loggedIn = Boolean(window.pxtLoggedIn);
 
     let mediaQueryListener = null;
+    let preference = 'system';
 
     function applyTheme(theme) {
         if (theme === 'system') {
@@ -17,7 +21,19 @@
     }
 
     function storePreference(theme) {
-        localStorage.setItem(THEME_STORAGE_KEY, theme);
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, theme);
+        } catch (e) {
+            // Private mode or blocked storage: the theme still applies for this page.
+        }
+    }
+
+    function readStoredPreference() {
+        try {
+            return localStorage.getItem(THEME_STORAGE_KEY);
+        } catch (e) {
+            return null;
+        }
     }
 
     function savePreferenceToServer(theme) {
@@ -104,19 +120,9 @@
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    function handleSystemThemeChange(e) {
-        // This function is called when system theme changes.
-        // It should only re-apply the theme if 'system' is currently selected.
-        const currentTheme = (themeSelect && themeSelect.value) || (mobileThemeSelect && mobileThemeSelect.value);
-        if (currentTheme === 'system') {
+    function handleSystemThemeChange() {
+        if (preference === 'system') {
             applyTheme('system');
-        } else if (!themeSelect && !mobileThemeSelect) {
-            // For pages without the selector (e.g. login page for anonymous users)
-            // If a theme is in local storage, respect it. Otherwise, follow system.
-            const localTheme = localStorage.getItem(THEME_STORAGE_KEY);
-            if (!localTheme || localTheme === 'system') {
-                applyTheme('system');
-            }
         }
     }
 
@@ -135,67 +141,42 @@
         }
     }
 
-    function initTheme() {
-        const localPreference = localStorage.getItem(THEME_STORAGE_KEY);
-        // window.currentUserThemePreference should be set in base.html if user is logged in
-        const serverUserPreference = window.currentUserThemePreference;
-
-        let effectiveTheme = 'system'; // Default
-
-        if (themeSelect || mobileThemeSelect) { // User is logged in and on a page with the theme selector
-            if (localPreference) {
-                effectiveTheme = localPreference;
-            } else if (serverUserPreference) {
-                effectiveTheme = serverUserPreference;
-            }
-            if (themeSelect) themeSelect.value = effectiveTheme;
-            if (mobileThemeSelect) mobileThemeSelect.value = effectiveTheme;
-        } else { // User is not logged in or on a page without selector (e.g. login page)
-            if (localPreference) {
-                effectiveTheme = localPreference;
-            }
-            // No serverUserPreference to check here
+    // setPreference applies a new choice everywhere: page, storage, server, controls.
+    function setPreference(theme) {
+        preference = theme;
+        applyTheme(theme);
+        storePreference(theme);
+        if (loggedIn) {
+            savePreferenceToServer(theme); // Save to backend for logged-in user
         }
-
-        applyTheme(effectiveTheme);
-        if (effectiveTheme === 'system') {
+        if (themeSelect) themeSelect.value = theme;
+        if (theme === 'system') {
             setupSystemThemeListener();
         } else {
-            removeSystemThemeListener(); // Ensure no listener if not 'system'
+            removeSystemThemeListener();
         }
-        // For logged-in users, ensure localStorage is updated if server preference was used
-        if ((themeSelect || mobileThemeSelect) && serverUserPreference && !localPreference) {
-            storePreference(serverUserPreference);
+    }
+
+    function initTheme() {
+        // window.currentUserThemePreference is set in base.html
+        preference = readStoredPreference() || window.currentUserThemePreference || 'system';
+        applyTheme(preference);
+        if (preference === 'system') {
+            setupSystemThemeListener();
         }
-
-        function setupThemeChangeHandler(selector) {
-            if (selector) {
-                selector.addEventListener('change', function() {
-                    const selectedTheme = this.value;
-                    applyTheme(selectedTheme);
-                    storePreference(selectedTheme);
-                    savePreferenceToServer(selectedTheme); // Save to backend for logged-in user
-
-                    // Sync both selectors
-                    if (themeSelect && mobileThemeSelect) {
-                        if (this === themeSelect) {
-                            mobileThemeSelect.value = selectedTheme;
-                        } else {
-                            themeSelect.value = selectedTheme;
-                        }
-                    }
-
-                    if (selectedTheme === 'system') {
-                        setupSystemThemeListener();
-                    } else {
-                        removeSystemThemeListener();
-                    }
-                });
-            }
+        if (themeSelect) {
+            themeSelect.value = preference;
+            themeSelect.addEventListener('change', function() {
+                setPreference(this.value);
+            });
         }
-
-        setupThemeChangeHandler(themeSelect);
-        setupThemeChangeHandler(mobileThemeSelect);
+        if (themeToggle) {
+            // The pill always flips what is on screen now, which ends "system".
+            themeToggle.addEventListener('click', function() {
+                const night = docElement.getAttribute('data-theme') === 'dark';
+                setPreference(night ? 'light' : 'dark');
+            });
+        }
         handleAppImageGeometry();
     }
 

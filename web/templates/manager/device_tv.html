@@ -5,6 +5,12 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{{ .Device.Name }} - TV Mode</title>
+        <link rel="icon" href="/static/favicon.ico" sizes="32x32">
+        <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="/static/css/fonts.css">
+        <link rel="stylesheet" href="/static/css/tokens.css">
+        <link rel="stylesheet" href="/static/css/fontawesome.min.css">
+        <link rel="stylesheet" href="/static/css/solid.min.css">
         <script>
         // Wait for the HTML to be fully loaded
         document.addEventListener('DOMContentLoaded', () => {
@@ -37,8 +43,9 @@
         </script>
         <style>
         body, html {
-            background-color: black !important;
-            color: white;
+            /* TV mode is an always-dark stage in both themes. */
+            background-color: var(--stage) !important;
+            color: var(--cream);
             margin: 0;
             padding: 0;
             width: 100%;
@@ -46,7 +53,7 @@
             /* Changed to auto so you can scroll if apps overflow,
             but we hide the scrollbar visuals below */
             overflow-y: auto;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-sans);
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none;  /* IE and Edge */
         }
@@ -65,10 +72,10 @@
         }
 
         .device-header {
-            font-size: 2.5rem;
-            font-weight: bold;
+            font: 800 2.5rem/1.1 var(--font-sans);
+            letter-spacing: -0.02em;
             margin-top: 30px;        /* Changed from margin-bottom to margin-top */
-            border-top: 2px solid #333; /* Changed from border-bottom to border-top */
+            border-top: var(--border-pixel) solid var(--on-stage-muted); /* Changed from border-bottom to border-top */
             padding-top: 15px;       /* Changed from padding-bottom to padding-top */
             display: flex;
             justify-content: space-between;
@@ -93,20 +100,69 @@
             /* Ensures pixels stay sharp regardless of scaling */
         }
 
+        .app-card img {
+            background: var(--screen);
+        }
+
         .status-pill {
-            font-size: 1rem;
-            background: #2e7d32;
-            padding: 5px 15px;
-            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            vertical-align: middle;
+            font: 500 13px/16px var(--font-mono);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--cream);
+            padding: 4px 10px;
+            border-radius: var(--radius-1);
+            box-shadow: inset 0 0 0 1px var(--on-stage-muted);
+        }
+
+        /* The live dot blinks, like the design system's live badge. */
+        .status-pill::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            animation: tv-blink var(--dur-idle) var(--ease-step) infinite;
+        }
+
+        @keyframes tv-blink {
+            0%, 70% { opacity: 1; }
+            71%, 100% { opacity: 0; }
         }
 
         /* Style for your new Fullscreen button to match the theme */
         #fullscreen-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: var(--control-height);
+            padding: 0 var(--space-2);
+            background: transparent;
+            color: var(--cream);
+            border: var(--border-pixel) solid var(--on-stage-muted);
+            border-radius: var(--radius-2);
+            font: 500 13px/16px var(--font-mono);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step);
         }
         #fullscreen-btn:hover {
-            opacity: 0.8;
+            border-color: var(--cream);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 0 var(--cherry);
+        }
+        #fullscreen-btn:focus-visible {
+            outline: 2px solid var(--cherry);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .status-pill::before { animation: none; }
+            #fullscreen-btn { transition: none; }
+            #fullscreen-btn:hover { transform: none; }
         }
         </style>
     </head>
@@ -133,8 +189,7 @@
                     {{ .Device.Name }} <span class="status-pill">Live Monitor</span>
                 </div>
                 <button id="fullscreen-btn"
-                        class="w3-button w3-teal w3-round"
-                        style="font-size: 1rem">
+                        type="button">
                     <i class="fa-solid fa-expand"></i> Fullscreen
                 </button>
             </div>

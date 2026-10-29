@@ -44,6 +44,7 @@ func getFuncMap() template.FuncMap {
 		"panelAspect":    tmplPanelAspect,
 		"thousands":      tmplThousands,
 		"installCount":   tmplInstallCount,
+		"pixelIcon":      tmplPixelIcon,
 	}
 }
 

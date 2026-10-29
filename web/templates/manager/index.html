@@ -2,34 +2,42 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Home" }}{{ end }}
-{{ define "header" }}
+{{ define "tone" }}pc-sun{{ end }}
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/manager.css">
 {{ end }}
 {{ define "content" }}
-<div class="settings-page">
-    <header class="settings-page-header">
-        <div>
-            <p class="settings-eyebrow">{{ t .Localizer "Home" }}</p>
-            <h1>{{ t .Localizer "App Management" }}</h1>
-            <p class="settings-page-copy">{{ t .Localizer "Choose a device, then manage the apps it shows." }}</p>
-        </div>
-        {{ if .User }}
-        <div class="settings-actions">
-            <a class="w3-button w3-purple" href="/devices/create">
-                <i class="fa-solid fa-circle-plus" aria-hidden="true"></i> {{ t .Localizer "New Tronbyt" }}
-            </a>
-        </div>
-        {{ end }}
-    </header>
-    {{ if gt (len .Devices) 1 }}
-    <nav class="settings-subnav" aria-label="{{ t .Localizer "Devices" }}">
-        {{ range .Devices }}
-        <a class="settings-subnav-link" href="#device-card-{{ .ID }}">{{ .Name }}</a>
-        {{ end }}
-    </nav>
+<header class="pxt-page-head">
+    <div>
+        <p class="pxt-eyebrow">{{ t .Localizer "Devices" }}</p>
+        <h1>{{ t .Localizer "Your Pixeltrons" }}</h1>
+        <p class="pxt-lede">{{ t .Localizer "Choose a device, then manage the apps it shows." }}</p>
+    </div>
+    {{ if .User }}
+    <a class="btn" href="/devices/create">{{ pixelIcon "plus" }} {{ t .Localizer "New Tronbyt" }}</a>
     {{ end }}
+</header>
+{{ if gt (len .Devices) 1 }}
+<nav class="settings-subnav pxt-jump" aria-label="{{ t .Localizer "Devices" }}">
     {{ range .Devices }}
-    {{ template "device_card" (dict "Item" . "Localizer" $.Localizer "Devices" $.Devices "AllDevices" $.AllDevices) }}
+    <a class="settings-subnav-link" href="#device-card-{{ .ID }}">{{ .Name }}</a>
     {{ end }}
+</nav>
+{{ end }}
+{{ if not .Devices }}
+<!-- First run: no devices yet -->
+<div class="pxt-stage">
+    <div class="pxt-stage-copy">
+        <span class="pxt-sticker">{{ t .Localizer "New" }}</span>
+        <h2 class="pxt-stage-title">{{ t .Localizer "No Pixeltrons yet" }}</h2>
+        <p>{{ t .Localizer "Add your first device to start sending it apps." }}</p>
+        <div class="pxt-actions">
+            <a class="btn btn-primary" href="/devices/create">{{ pixelIcon "plus" }} {{ t .Localizer "New Tronbyt" }}</a>
+        </div>
+    </div>
 </div>
+{{ end }}
+{{ range .Devices }}
+{{ template "device_card" (dict "Item" . "Localizer" $.Localizer "Devices" $.Devices "AllDevices" $.AllDevices) }}
+{{ end }}
 {{ end }}

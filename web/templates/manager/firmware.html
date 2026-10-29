@@ -2,8 +2,11 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Firmware" }}{{ end }}
-{{ define "content" }}
+{{ define "tone" }}pc-sky{{ end }}
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/firmware-simple.css">
+{{ end }}
+{{ define "content" }}
 <div class="settings-page">
     <header class="settings-page-header">
         <div>
@@ -13,20 +16,16 @@
         </div>
         <div class="settings-actions">
             {{ if .User.IsAdmin }}
-            <a href="/settings/content" class="w3-button w3-gray">
-                <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> {{ t .Localizer "Manage Firmware" }}
-            </a>
+            <a href="/settings/content#firmware" class="btn btn-ghost">{{ t .Localizer "Manage Firmware" }}</a>
             {{ end }}
-            <a href="/devices/{{ .Device.ID }}/update" class="w3-button w3-blue">
-                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> {{ t .Localizer "Edit Device" }}
-            </a>
+            <a href="/devices/{{ .Device.ID }}/update" class="btn">{{ t .Localizer "Edit Device" }}</a>
         </div>
     </header>
     {{ if not .FirmwareBinsAvailable }}
-    <section class="settings-card w3-panel w3-yellow w3-border w3-border-amber">
+    <section class="settings-card pxt-callout" role="note">
         <div class="settings-card-header">
             <h2>
-                <i class="fa-solid fa-triangle-exclamation"></i> {{ t .Localizer "Firmware Files Not Available" }}
+                {{ pixelIcon "info" 3 }} {{ t .Localizer "Firmware Files Not Available" }}
             </h2>
             <p>
                 {{ t .Localizer "Firmware binary files have not been downloaded yet. Firmware generation will not work until the files are downloaded." }}
@@ -34,7 +33,7 @@
         </div>
         {{ if .User.IsAdmin }}
         <p>
-            {{ t .Localizer "Please go to the" }} <a href="/settings/content" class="w3-text-blue">{{ t .Localizer "Content and Firmware" }}</a> {{ t .Localizer "page to download the latest firmware files." }}
+            {{ t .Localizer "Please go to the" }} <a href="/settings/content#firmware">{{ t .Localizer "Apps & Firmware" }}</a> {{ t .Localizer "page to download the latest firmware files." }}
         </p>
     {{ else }}
         <p>{{ t .Localizer "Please contact your administrator to download the firmware files." }}</p>
@@ -42,10 +41,10 @@
     </section>
     {{ end }}
     {{ if .URLWarning }}
-    <section class="settings-card w3-panel w3-red w3-border w3-border-red">
+    <section class="settings-card pxt-callout pxt-callout-danger" role="alert">
         <div class="settings-card-header">
             <h2>
-                <i class="fa-solid fa-triangle-exclamation"></i> {{ t .Localizer "Warning: Localhost URL Detected" }}
+                {{ pixelIcon "info" 3 }} {{ t .Localizer "Warning: Localhost URL Detected" }}
             </h2>
             <p>
                 {{ t .Localizer "The firmware image URL uses localhost which will not work:" }} <strong>{{ .Device.ImgURL }}</strong>. {{ t .Localizer "Either replace localhost with the IP or hostname of this server, or connect to this server over its IP or hostname, edit the device and click the refresh buttons by the device's image URLs, then return here." }}
@@ -67,12 +66,7 @@
                             <a href="{{ .FirmwareReleasesURL }}"
                                target="_blank"
                                rel="noopener noreferrer"
-                               style="color: inherit;
-                                      text-decoration: underline">
-                                {{ t .Localizer "Firmware Image Version" }} <i class="fa-solid fa-arrow-up-right-from-square"
-    style="font-size: 0.8em"
-    aria-hidden="true"></i>
-                            </a>
+                               class="pxt-label-link">{{ t .Localizer "Firmware Image Version" }} {{ pixelIcon "arrow-right" 1 }}</a>
                         </label>
                     </div>
                     <div class="settings-field-control">
@@ -179,8 +173,8 @@
                 </div>
             </div>
             <div class="settings-actions">
-                <button class="w3-button w3-blue" type="submit">
-                    <i class="fa-solid fa-microchip" aria-hidden="true"></i> {{ t .Localizer "Generate Firmware File" }}
+                <button class="btn btn-primary" type="submit">
+                    {{ t .Localizer "Generate Firmware File" }} {{ pixelIcon "arrow-right" }}
                 </button>
             </div>
         </section>
@@ -190,7 +184,7 @@
             <h2>{{ t .Localizer "Flashing Instructions" }}</h2>
             <p>{{ t .Localizer "After generating and downloading the firmware file, use one of these web-based flashers:" }}</p>
         </div>
-        <ul>
+        <ul class="pxt-list">
             <li>
                 <a href="https://espressif.github.io/esptool-js/" target="_blank">Espressif Web Flasher</a>
             </li>
@@ -199,7 +193,7 @@
                    target="_blank">ESPConnect Web Flasher</a>
             </li>
         </ul>
-        <ol>
+        <ol class="pxt-steps">
             <li>{{ t .Localizer "Connect your device to your computer with a data USB cable" }}</li>
             <li>{{ t .Localizer "Open one of the web flashers above in Chrome or Edge" }}</li>
             <li>{{ t .Localizer "Click Connect and select your device's serial port" }}</li>
@@ -216,13 +210,10 @@
             <h2>{{ t .Localizer "Troubleshooting" }}</h2>
         </div>
         <p class="settings-help">
-            <i class="fa-solid fa-circle-info"></i>
             {{ t .Localizer "If you are changing WiFi credentials or the image URL on a previously flashed device, select \"Full Erase\" or \"Erase All Flash\" before flashing. Otherwise the old settings stored on the device will be used instead of the new ones." }}
         </p>
-        <p>
-            <i>{{ t .Localizer "macOS and Windows users may need to install a serial driver:" }}</i>
-        </p>
-        <ul>
+        <p class="pxt-help">{{ t .Localizer "macOS and Windows users may need to install a serial driver:" }}</p>
+        <ul class="pxt-list">
             <li>
                 <a href="https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads"
                    target="_blank">CP210x Drivers</a>

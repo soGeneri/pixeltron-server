@@ -2,14 +2,17 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Edit User" }}{{ end }}
+{{ define "tone" }}pc-bubble{{ end }}
 {{ define "content" }}
 {{ if .User.IsAdmin }}
-<h1>{{ t .Localizer "System Administration" }}</h1>
+<header class="pxt-page-head">
+    <div>
+        <p class="pxt-eyebrow">{{ t .Localizer "Account" }}</p>
+        <h1>{{ t .Localizer "System Administration" }}</h1>
+    </div>
+</header>
 <h2>{{ t .Localizer "System Apps Repository" }}</h2>
-<div style="border: 1px solid #333;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px">
+<div class="settings-card pxt-legacy-card">
     <div style="display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
@@ -21,20 +24,16 @@
                 <div style="margin-bottom: 5px;">
                     <a href="{{ .SystemRepoInfo.URL }}"
                        target="_blank"
-                       style="color: var(--primary-color);
-                              text-decoration: none"
                        id="system-repo-url-link">{{ .SystemRepoInfo.URL }}</a>
                 </div>
                 <div style="margin-bottom: 5px;
-                            color: #888;
+                            color: var(--ink-muted);
                             font-size: 0.9em"
                      id="system-repo-branch">{{ t .Localizer "Branch" }}: {{ .SystemRepoInfo.Branch }}</div>
-                <div style="color: #888; font-size: 0.9em;">
+                <div style="color: var(--ink-muted); font-size: 0.9em;">
                     {{ t .Localizer "Commit" }}:
                     <a href="{{ .SystemRepoInfo.CommitURL }}"
                        target="_blank"
-                       style="color: var(--primary-color);
-                              text-decoration: none"
                        title="{{ .SystemRepoInfo.CommitHash }}"
                        id="system-repo-commit-link">
                         {{ if .SystemRepoInfo.CommitMessage }}
@@ -44,12 +43,12 @@
                         {{ end }}
                     </a>
                     {{ if .SystemRepoInfo.CommitDate }}
-                    <span style="margin-left: 8px; color: #666;" id="system-repo-commit-date">{{ .SystemRepoInfo.CommitDate }}</span>
+                    <span style="margin-left: 8px; color: var(--ink-muted);" id="system-repo-commit-date">{{ .SystemRepoInfo.CommitDate }}</span>
                     {{ end }}
                 </div>
             </div>
         {{ else }}
-            <div style="margin-top: 8px; color: #888;">{{ t .Localizer "No system repository configured." }}</div>
+            <div style="margin-top: 8px; color: var(--ink-muted);">{{ t .Localizer "No system repository configured." }}</div>
             {{ end }}
         </div>
         <form method="post"
@@ -57,14 +56,12 @@
               style="margin-left: 15px"
               onsubmit="event.preventDefault(); refreshSystemRepo(this);">
             <button type="submit"
-                    class="w3-button w3-blue"
-                    style="padding: 8px 16px;
-                           font-size: 14px">
+                    class="btn">
                 <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> {{ t .Localizer "Refresh" }}
             </button>
         </form>
     </div>
-    <div style="border-top: 1px solid #333; padding-top: 15px;">
+    <div style="border-top: 1px solid var(--line-strong); padding-top: 15px;">
         <strong>{{ t .Localizer "Change Repository" }}</strong>
         <form method="post" action="/set_system_repo" style="margin-top: 10px;">
             <div style="display: flex;
@@ -85,24 +82,21 @@
                                   margin: 0">
                 </div>
                 <button type="submit"
-                        class="w3-button w3-green"
+                        class="btn btn-primary"
                         style="padding: 8px 16px;
                                font-size: 14px;
                                margin: 0">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                 </button>
             </div>
-            <p style="color: #888; font-size: 0.8em; margin-top: 8px;">
+            <p style="color: var(--ink-muted); font-size: 0.8em; margin-top: 8px;">
                 {{ t .Localizer "Replacing the existing system repo will delete the previous repo and break any apps using that repo." }}
             </p>
         </form>
     </div>
 </div>
 <h2>{{ t .Localizer "Firmware Management" }}</h2>
-<div style="border: 1px solid #333;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px">
+<div class="settings-card pxt-legacy-card">
     <div style="display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
@@ -113,12 +107,12 @@
                 <div style="margin-bottom: 5px;" id="firmware-version">
                     <strong>{{ t .Localizer "Downloaded firmware version" }}:</strong> {{ .FirmwareVersion }}
                 </div>
-                <div style="color: #888; font-size: 0.9em;">
+                <div style="color: var(--ink-muted); font-size: 0.9em;">
                     {{ t .Localizer "Firmware is automatically updated when the server starts." }}
                 </div>
             </div>
         {{ else }}
-            <div style="margin-top: 8px; color: #888;">{{ t .Localizer "No firmware version information available" }}</div>
+            <div style="margin-top: 8px; color: var(--ink-muted);">{{ t .Localizer "No firmware version information available" }}</div>
             {{ end }}
         </div>
         <form method="post"
@@ -126,36 +120,31 @@
               style="margin-left: 15px"
               onsubmit="event.preventDefault(); updateFirmware(this);">
             <button type="submit"
-                    class="w3-button w3-blue"
-                    style="padding: 8px 16px;
-                           font-size: 14px">
+                    class="btn">
                 <i class="fa-solid {{ if .FirmwareVersion }}fa-arrows-rotate{{ else }}fa-download{{ end }}"
                    aria-hidden="true"></i> {{ if .FirmwareVersion }}{{ t .Localizer "Update" }}{{ else }}{{ t .Localizer "Download" }}{{ end }}
             </button>
         </form>
     </div>
-    <div style="border-top: 1px solid #333; padding-top: 15px;">
-        <p style="color: #888; font-size: 0.8em; margin: 0;">
+    <div style="border-top: 1px solid var(--line-strong); padding-top: 15px;">
+        <p style="color: var(--ink-muted); font-size: 0.8em; margin: 0;">
             <i class="fa-solid fa-circle-info" aria-hidden="true"></i> {{ t .Localizer "Note: This updates the firmware files available for flashing, not the firmware on existing devices. Devices must be manually reflashed to use the new firmware." }}
         </p>
     </div>
 </div>
 <h2>{{ t .Localizer "OIDC Support" }}</h2>
-<div style="border: 1px solid #333;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px">
+<div class="settings-card pxt-legacy-card">
     <div style="display: flex;
                 justify-content: space-between;
                 align-items: flex-start">
         <div style="flex: 1;">
             <strong>{{ t .Localizer "OIDC Configuration" }}</strong>
-            <div style="margin-top: 8px; color: #888; font-size: 0.9em;">
+            <div style="margin-top: 8px; color: var(--ink-muted); font-size: 0.9em;">
                 {{ t .Localizer "Configure OpenID Connect support for single sign-on." }}
             </div>
         </div>
         <a href="/admin/settings"
-           class="w3-button w3-teal"
+           class="btn btn-ghost"
            style="padding: 8px 16px;
                   font-size: 14px;
                   margin-left: 15px">
@@ -164,12 +153,14 @@
     </div>
 </div>
 {{ end }}
-<h1>{{ t .Localizer "User Settings" }}</h1>
+<header class="pxt-page-head">
+    <div>
+        <p class="pxt-eyebrow">{{ t .Localizer "Account" }}</p>
+        <h1>{{ t .Localizer "User Settings" }}</h1>
+    </div>
+</header>
 <h2>{{ t .Localizer "Custom Apps Repository" }}</h2>
-<div style="border: 1px solid #333;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px">
+<div class="settings-card pxt-legacy-card">
     <div style="display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
@@ -180,19 +171,15 @@
             <div style="margin-top: 8px;">
                 <div style="margin-bottom: 5px;">
                     <a href="{{ .UserRepoInfo.URL }}"
-                       target="_blank"
-                       style="color: var(--primary-color);
-                              text-decoration: none">{{ .UserRepoInfo.URL }}</a>
+                       target="_blank">{{ .UserRepoInfo.URL }}</a>
                 </div>
-                <div style="margin-bottom: 5px; color: #888; font-size: 0.9em;">
+                <div style="margin-bottom: 5px; color: var(--ink-muted); font-size: 0.9em;">
                     {{ t .Localizer "Branch" }}: {{ .UserRepoInfo.Branch }}
                 </div>
-                <div style="color: #888; font-size: 0.9em;">
+                <div style="color: var(--ink-muted); font-size: 0.9em;">
                     {{ t .Localizer "Commit" }}:
                     <a href="{{ .UserRepoInfo.CommitURL }}"
                        target="_blank"
-                       style="color: var(--primary-color);
-                              text-decoration: none"
                        title="{{ .UserRepoInfo.CommitHash }}">
                         {{ if .UserRepoInfo.CommitMessage }}
                         {{ .UserRepoInfo.CommitMessage }}
@@ -201,12 +188,12 @@
                         {{ end }}
                     </a>
                     {{ if .UserRepoInfo.CommitDate }}
-                    <span style="margin-left: 8px; color: #666;">{{ .UserRepoInfo.CommitDate }}</span>
+                    <span style="margin-left: 8px; color: var(--ink-muted);">{{ .UserRepoInfo.CommitDate }}</span>
                     {{ end }}
                 </div>
             </div>
         {{ else }}
-            <div style="margin-top: 8px; color: #888;">{{ t .Localizer "No custom repository configured." }}</div>
+            <div style="margin-top: 8px; color: var(--ink-muted);">{{ t .Localizer "No custom repository configured." }}</div>
             {{ end }}
         </div>
         {{ if .User.AppRepoURL }}
@@ -215,7 +202,7 @@
                   action="/refresh_user_repo"
                   onsubmit="var btn = this.querySelector('button'); btn.disabled = true; btn.style.opacity = '0.6'; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin\'></i> {{ t .Localizer "Refreshing..." }}';">
                 <button type="submit"
-                        class="w3-button w3-blue"
+                        class="btn"
                         style="padding: 8px 16px;
                                font-size: 14px;
                                margin: 0">
@@ -224,10 +211,11 @@
             </form>
             <form method="post"
                   action="/set_user_repo"
-                  onsubmit="return confirm('{{ t .Localizer "Remove custom repository? This will delete the repo and break any apps using it." }}');">
+                  data-confirm="{{ t .Localizer "Remove custom repository? This will delete the repo and break any apps using it." }}"
+                  data-confirm-danger>
                 <input type="hidden" name="app_repo_url" value="">
                 <button type="submit"
-                        class="w3-button w3-red"
+                        class="btn btn-danger"
                         style="padding: 8px 16px;
                                font-size: 14px;
                                margin: 0">
@@ -237,7 +225,7 @@
         </div>
         {{ end }}
     </div>
-    <div style="border-top: 1px solid #333; padding-top: 15px;">
+    <div style="border-top: 1px solid var(--line-strong); padding-top: 15px;">
         <strong>{{ t .Localizer "Change Repository" }}</strong>
         <form method="post" action="/set_user_repo" style="margin-top: 10px;">
             <div style="display: flex;
@@ -258,24 +246,21 @@
                                   margin: 0">
                 </div>
                 <button type="submit"
-                        class="w3-button w3-green"
+                        class="btn btn-primary"
                         style="padding: 8px 16px;
                                font-size: 14px;
                                margin: 0">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                 </button>
             </div>
-            <p style="color: #888; font-size: 0.8em; margin-top: 8px;">
+            <p style="color: var(--ink-muted); font-size: 0.8em; margin-top: 8px;">
                 {{ t .Localizer "Replacing an existing custom repo will delete the previous repo and break any apps using that repo." }}
             </p>
         </form>
     </div>
 </div>
 <h2>{{ t .Localizer "Security Settings" }}</h2>
-<div style="border: 1px solid #333;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px">
+<div class="settings-card pxt-legacy-card">
     <div style="margin-bottom: 20px;">
         <strong>{{ t .Localizer "Profile Information" }}</strong>
         <form method="post" style="margin-top: 10px;">
@@ -305,14 +290,14 @@
                                   height: 18px">
                     <label for="add_apps_to_top" style="margin: 0;">{{ t .Localizer "Add new apps to top of list" }}</label>
                 </div>
-                <p style="color: #888;
+                <p style="color: var(--ink-muted);
                           font-size: 0.8em;
                           margin-top: 5px;
                           margin-bottom: 0">
                     {{ t .Localizer "When enabled, newly added apps will appear at position #1 instead of at the end." }}
                 </p>
             </div>
-            <div style="border-top: 1px solid #333;
+            <div style="border-top: 1px solid var(--line-strong);
                         padding-top: 15px;
                         margin-top: 15px;
                         margin-bottom: 20px">
@@ -349,7 +334,7 @@
                 </div>
             </div>
             <button type="submit"
-                    class="w3-button w3-green"
+                    class="btn btn-primary"
                     style="padding: 8px 16px;
                            font-size: 14px;
                            margin: 0">
@@ -357,7 +342,7 @@
             </button>
         </form>
     </div>
-    <div style="border-top: 1px solid #333; padding-top: 15px;">
+    <div style="border-top: 1px solid var(--line-strong); padding-top: 15px;">
         <form method="post" action="/auth/set_api_key">
             <div style="display: flex; gap: 10px; align-items: flex-end;">
                 <div style="width: 100%; max-width: 400px;">
@@ -375,11 +360,11 @@
                                   margin: 0">
                 </div>
                 <button type="submit"
-                        class="w3-button w3-green"
+                        class="btn btn-primary"
                         style="padding: 8px 16px;
                                font-size: 14px;
                                margin: 0"
-                        onclick="return confirm('{{ t .Localizer "Update API key?" }}');">
+                        data-confirm="{{ t .Localizer "Update API key?" }}">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                 </button>
             </div>
@@ -388,24 +373,24 @@
               action="/auth/generate_api_key"
               style="margin-top: 10px">
             <button type="submit"
-                    class="w3-button w3-blue"
+                    class="btn"
                     style="padding: 8px 16px;
                            font-size: 14px;
                            margin-left: 0"
-                    onclick="return confirm('{{ t .Localizer "Generate a new API key? This will replace your current API key." }}');">
+                    data-confirm="{{ t .Localizer "Generate a new API key? This will replace your current API key." }}">
                 <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> {{ t .Localizer "Generate New" }}
             </button>
         </form>
     </div>
     <!-- Passkeys Section -->
     <div id="webauthn-settings-container"
-         style="border-top: 1px solid #333;
+         style="border-top: 1px solid var(--line-strong);
                 padding-top: 15px;
                 margin-top: 15px">
         <strong>{{ t .Localizer "Sign in with Passkey" }}</strong>
         <div style="margin-top: 10px;">
-            <ul class="w3-ul w3-hoverable"
-                style="border: 1px solid #ccc;
+            <ul class="pxt-list-plain"
+                style="border: 1px solid var(--line-strong);
                        border-radius: 4px;
                        margin-bottom: 10px">
                 {{ range .User.Credentials }}
@@ -436,19 +421,17 @@
                         <span>{{ or .Name .Authenticator }}{{ if ne .AttestationType "none" }} ({{ .AttestationType }}){{ end }}</span>
                     </div>
                     <button onclick="deletePasskey('{{ .ID }}')"
-                            class="w3-button w3-tiny w3-red w3-round"
+                            class="btn btn-danger btn-sm"
                             title="{{ t $.Localizer "Delete Passkey" }}">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </li>
             {{ else }}
-                <li style="padding: 8px; color: #888;">{{ t .Localizer "No passkeys registered." }}</li>
+                <li style="padding: 8px; color: var(--ink-muted);">{{ t .Localizer "No passkeys registered." }}</li>
                 {{ end }}
             </ul>
             <button onclick="registerPasskey()"
-                    class="w3-button w3-blue"
-                    style="padding: 8px 16px;
-                           font-size: 14px"
+                    class="btn"
                     {{ if gt (len .User.Credentials) 0 }}
                     disabled
                     title="{{ t .Localizer "Only one passkey allowed" }}"
@@ -456,19 +439,19 @@
                 <i class="fa-solid fa-fingerprint"></i> {{ t .Localizer "Register New Passkey" }}
             </button>
             {{ if gt (len .User.Credentials) 0 }}
-            <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
+            <div style="margin-top: 5px; font-size: 0.9em; color: var(--ink-muted);">
                 <i class="fa-solid fa-circle-info"></i> {{ t .Localizer "Only one passkey can be registered at a time. Delete the existing one to add a new device." }}
             </div>
             {{ end }}
         </div>
     </div>
-    <div style="border-top: 1px solid #333;
+    <div style="border-top: 1px solid var(--line-strong);
                 padding-top: 15px;
                 margin-top: 15px;
                 margin-bottom: 20px">
         <strong>{{ t .Localizer "OIDC Identities" }}</strong>
         {{ if gt (len .User.OIDCIdentities) 0 }}
-        <table class="w3-table w3-bordered w3-margin-top"
+        <table class="pxt-table"
                style="background: transparent;
                       color: inherit">
             <thead>
@@ -489,9 +472,10 @@
                         <form method="post"
                               action="/auth/oidc/unlink/{{ .ID }}"
                               style="display: inline"
-                              onsubmit="return confirm('{{ t $.Localizer "Are you sure you want to unlink this OIDC identity?" }}');">
+                              data-confirm="{{ t $.Localizer "Are you sure you want to unlink this OIDC identity?" }}"
+                  data-confirm-danger>
                             <button type="submit"
-                                    class="w3-button w3-red"
+                                    class="btn btn-danger"
                                     style="padding: 4px 8px;
                                            font-size: 12px">
                                 <i class="fa-solid fa-trash"></i> {{ t $.Localizer "Unlink" }}
@@ -503,12 +487,12 @@
             </tbody>
         </table>
     {{ else }}
-        <div style="margin-top: 10px; color: #888; font-size: 0.9em;">
+        <div style="margin-top: 10px; color: var(--ink-muted); font-size: 0.9em;">
             {{ t .Localizer "No OIDC identities linked to this account." }}
         </div>
         {{ end }}
         <div style="margin-top: 15px;">
-            <a href="/auth/oidc/link" class="w3-button w3-blue">
+            <a href="/auth/oidc/link" class="btn">
                 <i class="fa-solid fa-link"></i> {{ t .Localizer "Link OIDC Account" }}
             </a>
         </div>
@@ -534,7 +518,7 @@
     }
 
     async function deletePasskey(id) {
-        if (!confirm('{{ t .Localizer "Delete this passkey?" }}')) return;
+        if (!(await pxtConfirm('{{ t .Localizer "Delete this passkey?" }}', { danger: true }))) return;
         try {
             const resp = await fetch('/auth/webauthn/delete/' + encodeURIComponent(id), {
                 method: 'POST'
@@ -542,17 +526,17 @@
             if (resp.ok) {
                 location.reload();
             } else {
-                alert("{{ t .Localizer "Failed to delete passkey" }}");
+                pxtError("{{ t .Localizer "Failed to delete passkey" }}");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 
     async function registerPasskey() {
         if (!window.PublicKeyCredential || !navigator.credentials) {
-            alert("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
+            pxtError("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
             return;
         }
         try {
@@ -595,41 +579,38 @@
             if (finishResp.ok) {
                 location.reload();
             } else {
-                alert("Registration failed");
+                pxtError("Registration failed");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 </script>
 <h2>{{ t .Localizer "Data Management" }}</h2>
-<div style="border: 1px solid #333;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px">
+<div class="settings-card pxt-legacy-card">
     <div style="display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
                 margin-bottom: 15px">
         <div style="flex: 1;">
             <strong>{{ t .Localizer "Export Configuration" }}</strong>
-            <div style="margin-top: 8px; color: #888; font-size: 0.9em;">
+            <div style="margin-top: 8px; color: var(--ink-muted); font-size: 0.9em;">
                 {{ t .Localizer "Download your entire user configuration as a JSON file." }}
             </div>
         </div>
         <a href="/export_user_config"
-           class="w3-button w3-blue"
+           class="btn"
            style="padding: 8px 16px;
                   font-size: 14px;
                   margin-left: 15px">
             <i class="fa-solid fa-download" aria-hidden="true"></i> {{ t .Localizer "Export" }}
         </a>
     </div>
-    <div style="border-top: 1px solid #333; padding-top: 15px;">
+    <div style="border-top: 1px solid var(--line-strong); padding-top: 15px;">
         <strong>{{ t .Localizer "Import Configuration" }}</strong>
         <div style="margin-top: 8px;
-                    color: #888;
+                    color: var(--ink-muted);
                     font-size: 0.9em;
                     margin-bottom: 10px">
             {{ t .Localizer "Import your user configuration from a JSON file. This will replace your current configuration, but preserve your username and password." }}
@@ -656,7 +637,7 @@
                                   margin: 0">
                 </div>
                 <button type="submit"
-                        class="w3-button w3-blue"
+                        class="btn"
                         style="padding: 8px 16px;
                                font-size: 14px;
                                margin: 0">

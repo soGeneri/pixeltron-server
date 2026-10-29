@@ -2,69 +2,82 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Register" }}{{ end }}
+{{ define "tone" }}pc-bubble{{ end }}
 {{ define "content" }}
-<h1>{{ t .Localizer "Register" }}</h1>
-{{ if .Config.SingleUserAutoLogin }}
-<div class="w3-panel w3-orange w3-border w3-border-orange w3-round-large"
-     style="margin-bottom: 20px">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 24px;">⚠️</span>
-        <div style="flex: 1;">
-            <strong>{{ t .Localizer "SINGLE-USER AUTO-LOGIN MODE ACTIVE" }}</strong>
-            <div style="font-size: 0.9em;">{{ t .Localizer "Authentication is disabled for private network access" }}</div>
+<div class="pxt-auth">
+    <div class="pxt-auth-side">
+        <header class="pxt-page-head">
+            <div>
+                <p class="pxt-eyebrow">{{ t .Localizer "Tronbyt Manager" }}</p>
+                <h1>{{ if eq .UserCount 0 }}{{ t .Localizer "Create Admin User" }}{{ else }}{{ t .Localizer "Register" }}{{ end }}</h1>
+                <p class="pxt-lede">
+                    {{ if eq .UserCount 0 }}
+                    {{ t .Localizer "The first account runs this server. You can add more people later." }}
+                {{ else }}
+                    {{ t .Localizer "Make an account to set up your own Pixeltrons." }}
+                    {{ end }}
+                </p>
+            </div>
+        </header>
+        {{ if .Config.SingleUserAutoLogin }}
+        <div class="pxt-note pxt-note-danger" role="alert">
+            {{ pixelIcon "info" }}
+            <div>
+                <strong>{{ t .Localizer "SINGLE-USER AUTO-LOGIN MODE ACTIVE" }}</strong>
+                <p class="pxt-help">{{ t .Localizer "Authentication is disabled for private network access" }}</p>
+            </div>
         </div>
-        <span style="font-size: 24px;">⚠️</span>
+        {{ end }}
+    </div>
+    <div class="pxt-auth-card">
+        <form method="post" class="pxt-form">
+            <div class="pxt-field">
+                <label class="pxt-field-label" for="username">{{ t .Localizer "Username" }}</label>
+                <input class="pxt-input"
+                       name="username"
+                       id="username"
+                       autocomplete="username"
+                       aria-describedby="username-help"
+                       required>
+                <p class="pxt-help" id="username-help">{{ t .Localizer "Letters and numbers only." }}</p>
+            </div>
+            <div class="pxt-field">
+                <label class="pxt-field-label" for="password">{{ t .Localizer "Password" }}</label>
+                <input class="pxt-input"
+                       type="password"
+                       name="password"
+                       id="password"
+                       autocomplete="new-password"
+                       required>
+            </div>
+            <div class="pxt-field">
+                <label class="pxt-field-label" for="email">{{ t .Localizer "Email Address (optional)" }}</label>
+                <input class="pxt-input"
+                       type="email"
+                       name="email"
+                       id="email"
+                       autocomplete="email">
+            </div>
+            {{ if and .User .User.IsAdmin }}
+            <label class="pxt-check" for="is_admin">
+                <input type="checkbox" name="is_admin" id="is_admin">
+                {{ t .Localizer "Administrator" }}
+            </label>
+            {{ end }}
+            {{ if and (eq .UserCount 0) .UsageSharingAvailable }}
+            <label class="usage-sharing-option">
+                <input type="checkbox" name="usage_sharing" value="true" checked>
+                <span>
+                    <strong>{{ t .Localizer "Show stats from Niblet community" }}</strong>
+                    <span class="usage-sharing-help">{{ t .Localizer "Community app stats description" }}</span>
+                </span>
+            </label>
+            {{ end }}
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                {{ if eq .UserCount 0 }}{{ t .Localizer "Create Admin User" }}{{ else }}{{ t .Localizer "Register" }}{{ end }}
+                {{ pixelIcon "arrow-right" }}
+            </button>
+        </form>
     </div>
 </div>
-{{ end }}
-{{ if .Flashes }}
-<div class="w3-panel w3-red">
-    {{ range .Flashes }}
-    <p>{{ . }}</p>
-    {{ end }}
-</div>
-{{ end }}
-<form method="post">
-    <label for="username">{{ t .Localizer "Username (alpha-numeric only, no symbols please.)" }}</label>
-    <input class="w3-input w3-border" name="username" id="username" required>
-    <br>
-    <label for="password">{{ t .Localizer "Password" }}</label>
-    <input class="w3-input w3-border"
-           type="password"
-           name="password"
-           id="password"
-           required>
-    <br>
-    <label for="email">{{ t .Localizer "Email Address (optional)" }}</label>
-    <input class="w3-input w3-border" type="email" name="email" id="email">
-    <br>
-    {{ if and .User .User.IsAdmin }}
-    <label for="is_admin">{{ t .Localizer "Administrator" }}</label>
-    <input class="w3-check" type="checkbox" name="is_admin" id="is_admin">
-    <br>
-    {{ end }}
-    {{ if and (eq .UserCount 0) .UsageSharingAvailable }}
-    <label class="usage-sharing-option">
-        <input class="w3-check"
-               type="checkbox"
-               name="usage_sharing"
-               value="true"
-               checked>
-        <span>
-            <strong>{{ t .Localizer "Show stats from Niblet community" }}</strong>
-            <span class="usage-sharing-help">{{ t .Localizer "Community app stats description" }}</span>
-        </span>
-    </label>
-    <br>
-    {{ end }}
-    {{ if eq .UserCount 0 }}
-    <button type="submit" class="w3-button w3-green">
-        <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {{ t .Localizer "Create Admin User" }}
-    </button>
-{{ else }}
-    <button type="submit" class="w3-button w3-green">
-        <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {{ t .Localizer "Register" }}
-    </button>
-    {{ end }}
-</form>
 {{ end }}

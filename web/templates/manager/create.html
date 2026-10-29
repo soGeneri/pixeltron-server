@@ -2,12 +2,12 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "New Tronbyt Device" }}{{ end }}
-{{ define "header" }}
+{{ define "tone" }}pc-sky{{ end }}
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/update-simple.css">
+{{ end }}
+{{ define "header" }}
 <script src="/static/js/location.js"></script>
-<div class="header-container">
-    <h1 class="page-title">{{ t .Localizer "New Tronbyt Device" }}</h1>
-</div>
 <script>
     function setBrightnessCreate(brightness) {
         document.getElementById('brightness').value = brightness;
@@ -24,22 +24,37 @@
 </script>
 {{ end }}
 {{ define "content" }}
-<form method="post" id="create-device-form">
-    <div class="device-settings-section">
-        <h2>{{ t .Localizer "Basic Information" }}</h2>
-        <div class="device-settings-row">
-            <div>
-                <label for="name" class="device-settings-label">{{ t .Localizer "Name" }}</label>
+<header class="pxt-page-head">
+    <div>
+        <p class="pxt-eyebrow">{{ t .Localizer "Devices" }}</p>
+        <h1>{{ t .Localizer "New Tronbyt Device" }}</h1>
+        <p class="pxt-lede">{{ t .Localizer "Name it, pick its type, and tell it where it lives." }}</p>
+    </div>
+    <button type="button"
+            class="btn btn-ghost"
+            onclick="document.getElementById('import-file').click();">
+        {{ t .Localizer "Import Configuration" }}
+    </button>
+</header>
+<form method="post" id="create-device-form" class="pxt-form">
+    <section class="settings-card">
+        <div class="settings-card-header">
+            <h2>{{ t .Localizer "Basic Information" }}</h2>
+        </div>
+        <div class="pxt-grid-2">
+            <div class="pxt-field">
+                <label for="name" class="pxt-field-label">{{ t .Localizer "Name" }}</label>
                 <input name="name"
                        id="name"
                        value="{{ .Form.Name }}"
                        required
-                       class="device-settings-input">
-                <small class="small-text">{{ t .Localizer "Descriptive name for this Tronbyt device" }}</small>
+                       class="pxt-input"
+                       aria-describedby="name-help">
+                <p class="pxt-help" id="name-help">{{ t .Localizer "Descriptive name for this Tronbyt device" }}</p>
             </div>
-            <div>
-                <label for="device_type" class="device-settings-label">{{ t .Localizer "Device Type" }}</label>
-                <select name="device_type" id="device_type" class="device-settings-input">
+            <div class="pxt-field">
+                <label for="device_type" class="pxt-field-label">{{ t .Localizer "Device Type" }}</label>
+                <select name="device_type" id="device_type" class="pxt-input">
                     {{ $deviceType := .Form.DeviceType }}
                     {{ range .DeviceTypeChoices }}
                     <optgroup label="{{ .Label }}">
@@ -54,123 +69,116 @@
                 </select>
             </div>
         </div>
-        <div class="device-settings-row">
-            <div>
-                <label class="device-settings-label">{{ t .Localizer "Device ID Mode" }}</label>
-                <div style="display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap">
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-                        <input type="radio"
-                               name="device_id_mode"
-                               value="from_name"
-                               {{ if eq .Form.DeviceIDMode "from_name" }}
-                               checked
-                               {{ end }}
-                               onchange="updateDeviceIDMode()">
-                        {{ t .Localizer "From Name" }}
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-                        <input type="radio"
-                               name="device_id_mode"
-                               value="hex8"
-                               {{ if or (eq .Form.DeviceIDMode "hex8") (eq .Form.DeviceIDMode "") }}
-                               checked
-                               {{ end }}
-                               onchange="updateDeviceIDMode()">
-                        {{ t .Localizer "8-char hex" }}
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-                        <input type="radio"
-                               name="device_id_mode"
-                               value="hex16"
-                               {{ if eq .Form.DeviceIDMode "hex16" }}
-                               checked
-                               {{ end }}
-                               onchange="updateDeviceIDMode()">
-                        {{ t .Localizer "16-char hex" }}
-                    </label>
-                </div>
-                <label for="device_id" class="device-settings-label">
-                    {{ t .Localizer "Device ID" }} ({{ t .Localizer "Optional" }})
+        <fieldset class="pxt-fieldset">
+            <legend class="pxt-field-label">{{ t .Localizer "Device ID Mode" }}</legend>
+            <div class="pxt-choice-row">
+                <label class="pxt-check">
+                    <input type="radio"
+                           name="device_id_mode"
+                           value="from_name"
+                           {{ if eq .Form.DeviceIDMode "from_name" }}
+                           checked
+                           {{ end }}
+                           onchange="updateDeviceIDMode()">
+                    {{ t .Localizer "From Name" }}
                 </label>
-                <input name="device_id"
-                       id="device_id"
-                       value="{{ .Form.DeviceID }}"
-                       class="device-settings-input"
-                       placeholder="{{ if eq .Form.DeviceIDMode "from_name" }}{{ t .Localizer "Auto-generated from name" }}{{ else }}{{ t .Localizer "Leave blank to auto-generate" }}{{ end }}">
-                <small class="small-text">{{ t .Localizer "Leave blank to auto-generate." }}</small>
+                <label class="pxt-check">
+                    <input type="radio"
+                           name="device_id_mode"
+                           value="hex8"
+                           {{ if or (eq .Form.DeviceIDMode "hex8") (eq .Form.DeviceIDMode "") }}
+                           checked
+                           {{ end }}
+                           onchange="updateDeviceIDMode()">
+                    {{ t .Localizer "8-char hex" }}
+                </label>
+                <label class="pxt-check">
+                    <input type="radio"
+                           name="device_id_mode"
+                           value="hex16"
+                           {{ if eq .Form.DeviceIDMode "hex16" }}
+                           checked
+                           {{ end }}
+                           onchange="updateDeviceIDMode()">
+                    {{ t .Localizer "16-char hex" }}
+                </label>
+            </div>
+        </fieldset>
+        <div class="pxt-field">
+            <label for="device_id" class="pxt-field-label">{{ t .Localizer "Device ID" }} ({{ t .Localizer "Optional" }})</label>
+            <input name="device_id"
+                   id="device_id"
+                   value="{{ .Form.DeviceID }}"
+                   class="pxt-input"
+                   aria-describedby="device-id-help"
+                   placeholder="{{ if eq .Form.DeviceIDMode "from_name" }}{{ t .Localizer "Auto-generated from name" }}{{ else }}{{ t .Localizer "Leave blank to auto-generate" }}{{ end }}">
+            <p class="pxt-help" id="device-id-help">{{ t .Localizer "Leave blank to auto-generate." }}</p>
+        </div>
+    </section>
+    <section class="settings-card">
+        <div class="settings-card-header">
+            <h2>{{ t .Localizer "Connection URLs" }}</h2>
+            <p>{{ t .Localizer "Leave blank unless advanced user." }}</p>
+        </div>
+        <div class="pxt-grid-2">
+            <div class="pxt-field">
+                <label for="img_url" class="pxt-field-label">{{ t .Localizer "Image URL" }}</label>
+                <input name="img_url" id="img_url" value="{{ .Form.ImgURL }}" class="pxt-input">
+            </div>
+            <div class="pxt-field">
+                <label for="ws_url" class="pxt-field-label">{{ t .Localizer "WebSocket URL" }}</label>
+                <input name="ws_url" id="ws_url" value="{{ .Form.WsURL }}" class="pxt-input">
             </div>
         </div>
-    </div>
-    <div class="device-settings-section">
-        <h2>{{ t .Localizer "Connection URLs" }}</h2>
-        <div class="device-settings-row">
-            <div>
-                <label for="img_url" class="device-settings-label">{{ t .Localizer "Image URL" }}</label>
-                <input name="img_url"
-                       id="img_url"
-                       value="{{ .Form.ImgURL }}"
-                       class="device-settings-input">
-                <small class="small-text">{{ t .Localizer "Leave blank unless advanced user." }}</small>
-            </div>
-            <div>
-                <label for="ws_url" class="device-settings-label">{{ t .Localizer "WebSocket URL" }}</label>
-                <input name="ws_url"
-                       id="ws_url"
-                       value="{{ .Form.WsURL }}"
-                       class="device-settings-input">
-                <small class="small-text">{{ t .Localizer "Leave blank unless advanced user." }}</small>
-            </div>
-        </div>
-        <div class="device-settings-row">
-            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px">
+        <div class="pxt-field">
+            <label class="pxt-check" for="require_api_key">
                 <input type="checkbox"
                        name="require_api_key"
                        id="require_api_key"
                        {{ if .Form.RequireAPIKey }}
                        checked
                        {{ end }}>
-                <label for="require_api_key" class="device-settings-label" style="margin: 0">
-                    {{ t .Localizer "Require API Key" }}
-                </label>
-                <small class="small-text">{{ t .Localizer "RequireAPIKeyHelp" }}</small>
+                {{ t .Localizer "Require API Key" }}
+            </label>
+            <p class="pxt-help">{{ t .Localizer "RequireAPIKeyHelp" }}</p>
+        </div>
+    </section>
+    <section class="settings-card">
+        <div class="settings-card-header">
+            <h2>{{ t .Localizer "Display Settings" }}</h2>
+        </div>
+        <div class="pxt-control">
+            <div class="pxt-control-head">
+                <span class="pxt-field-label">{{ t .Localizer "Brightness Level (0 - 5)" }}</span>
+                <output class="pxt-control-value" id="brightness-output">{{ if .Form.Brightness }}{{ .Form.Brightness }}{{ else }}3{{ end }}</output>
+            </div>
+            <input type="hidden"
+                   name="brightness"
+                   id="brightness"
+                   value="{{ if .Form.Brightness }}{{ .Form.Brightness }}{{ else }}3{{ end }}">
+            <div class="brightness-panel" id="brightness-panel">
+                {{ range $i := seq 0 5 }}
+                <button type="button"
+                        class="brightness-btn {{ if eq $.Form.Brightness $i }}active{{ end }}"
+                        data-brightness="{{ $i }}"
+                        aria-label="{{ t $.Localizer "Brightness" }} {{ $i }}"
+                        onclick="setBrightnessCreate({{ $i }})">{{ $i }}</button>
+                {{ end }}
             </div>
         </div>
-    </div>
-    <div class="device-settings-section">
-        <h2>{{ t .Localizer "Display Settings" }}</h2>
-        <table class="device-settings-table">
-            <tr>
-                <td>
-                    <label class="device-settings-label">{{ t .Localizer "Brightness Level (0 - 5)" }}</label>
-                </td>
-                <td>
-                    <output id="brightness-output">{{ if .Form.Brightness }}{{ .Form.Brightness }}{{ else }}3{{ end }}</output>
-                    <input type="hidden"
-                           name="brightness"
-                           id="brightness"
-                           value="{{ if .Form.Brightness }}{{ .Form.Brightness }}{{ else }}3{{ end }}">
-                    <div class="brightness-panel" id="brightness-panel">
-                        {{ range $i := seq 0 5 }}
-                        <button type="button"
-                                class="brightness-btn {{ if eq $.Form.Brightness $i }}active{{ end }}"
-                                data-brightness="{{ $i }}"
-                                onclick="setBrightnessCreate({{ $i }})">{{ $i }}</button>
-                        {{ end }}
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-    <div class="device-settings-section">
-        <h2>{{ t .Localizer "Location & Notes" }}</h2>
-        <div class="device-settings-row">
-            <div>
-                <label for="location_search" class="device-settings-label">{{ t .Localizer "Location" }}</label>
+    </section>
+    <section class="settings-card">
+        <div class="settings-card-header">
+            <h2>{{ t .Localizer "Location & Notes" }}</h2>
+        </div>
+        <div class="pxt-grid-2">
+            <div class="pxt-field">
+                <label for="location_search" class="pxt-field-label">{{ t .Localizer "Location" }}</label>
                 <input type="text"
                        id="location_search"
                        placeholder="{{ t .Localizer "Enter a location" }}"
                        value="{{ .Form.LocationSearch }}"
-                       class="device-settings-input">
+                       class="pxt-input">
                 <ul id="location_results">
                 </ul>
                 <input type="hidden"
@@ -178,38 +186,26 @@
                        id="location"
                        value='{{ .Form.LocationJSON }}'>
             </div>
-            <div>
-                <label for="notes" class="device-settings-label">{{ t .Localizer "Notes" }}</label>
+            <div class="pxt-field">
+                <label for="notes" class="pxt-field-label">{{ t .Localizer "Notes" }}</label>
                 <input name="notes"
                        id="notes"
                        value="{{ .Form.Notes }}"
-                       class="device-settings-input"
+                       class="pxt-input"
                        placeholder="{{ t .Localizer "Optional notes about this device" }}">
             </div>
         </div>
-    </div>
+    </section>
     <input type="hidden" name="api_key" id="api_key">
-    <div class="device-settings-section">
-        <div class="config-management-container"
-             style="display:flex;
-                    align-items:center;
-                    gap:8px">
-            <button type="submit" class="w3-button w3-green config-management-btn">
-                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
-            </button>
-            <button type="button"
-                    class="w3-button w3-orange config-management-btn"
-                    onclick="document.getElementById('import-file').click();">
-                <i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ t .Localizer "Import Configuration" }}
-            </button>
-        </div>
+    <div class="pxt-actions">
+        <button type="submit" class="btn btn-primary btn-lg">{{ t .Localizer "Save" }} {{ pixelIcon "arrow-right" }}</button>
     </div>
 </form>
 <form id="import-device-form"
       method="post"
       action="/devices/import"
       enctype="multipart/form-data"
-      style="display: none">
+      hidden>
     <input type="file"
            name="file"
            id="import-file"

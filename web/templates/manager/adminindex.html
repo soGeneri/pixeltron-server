@@ -2,43 +2,44 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Tronbyt Manager" }}{{ end }}
-{{ define "header" }}
-<!-- Add viewport meta tag -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Include external CSS and JS -->
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/manager.css">
 {{ end }}
+{{ define "tone" }}pc-sky{{ end }}
 {{ define "content" }}
-{{ if .User }}
-<br>
-<a class="w3-button w3-purple w3-round w3-padding"
-   href="/devices/create"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> {{ t .Localizer "New Tronbyt" }}</a>
-<hr>
-{{ end }}
-{{ range .Users }}
-<div class="w3-container w3-blue-grey w3-padding w3-round user-header">
-    <h2 class="user-header-title">{{ .Username }}</h2>
-    {{ if ne .Username $.User.Username }}
-    <button class="w3-button w3-red w3-round"
-            onclick="deleteUser('{{ .Username }}')">
-        <i class="fa-solid fa-trash"></i> {{ t $.Localizer "Delete User" }}
-    </button>
+<header class="pxt-page-head">
+    <div>
+        <p class="pxt-eyebrow">{{ t .Localizer "Admin" }}</p>
+        <h1>{{ t .Localizer "All devices" }}</h1>
+        <p class="pxt-lede">{{ t .Localizer "Every user on this server and the Pixeltrons they run." }}</p>
+    </div>
+    {{ if .User }}
+    <a class="btn" href="/devices/create">{{ pixelIcon "plus" }} {{ t .Localizer "New Tronbyt" }}</a>
     {{ end }}
-</div>
-{{ if .Devices }}
-{{ $userDevices := .Devices }}
-{{ range .Devices }}
-{{ template "device_card" (dict "Item" . "Localizer" $.Localizer "Devices" $userDevices "ReadOnly" true) }}
-<hr>
-{{ end }}
-{{ else }}
-<p class="no-devices-message">{{ t $.Localizer "No devices found for this user." }}</p>
-<hr>
-{{ end }}
+</header>
+{{ range .Users }}
+<section class="pxt-user-group">
+    <div class="pxt-user-head">
+        <h2 class="pxt-section-title">{{ .Username }}</h2>
+        {{ if ne .Username $.User.Username }}
+        <button type="button"
+                class="btn btn-danger btn-sm"
+                onclick="deleteUser('{{ .Username }}')">{{ t $.Localizer "Delete User" }}</button>
+        {{ end }}
+    </div>
+    {{ if .Devices }}
+    {{ $userDevices := .Devices }}
+    {{ range .Devices }}
+    {{ template "device_card" (dict "Item" . "Localizer" $.Localizer "Devices" $userDevices "ReadOnly" true) }}
+    {{ end }}
+    {{ else }}
+    <p class="no-devices-message pxt-help">{{ t $.Localizer "No devices found for this user." }}</p>
+    {{ end }}
+</section>
 {{ end }}
 <script>
-    function deleteUser(username) {
-        if (!confirm('{{ t .Localizer "Delete User?" }}')) return;
+    async function deleteUser(username) {
+        if (!(await pxtConfirm('{{ t .Localizer "Delete User?" }}', { danger: true }))) return;
 
         fetch('/admin/users/' + username, {
             method: 'DELETE'
@@ -46,11 +47,11 @@
             if (response.ok || response.redirected) {
                 window.location.reload();
             } else {
-                alert('{{ t .Localizer "Failed to delete user" }}');
+                pxtError('{{ t .Localizer "Failed to delete user" }}');
             }
         }).catch(err => {
             console.error(err);
-            alert('{{ t .Localizer "Error deleting user" }}');
+            pxtError('{{ t .Localizer "Error deleting user" }}');
         });
     }
 </script>

@@ -1,311 +1,273 @@
 {{ define "device_card" }}
-<div id="device-card-{{ .Item.ID }}"
-     class="w3-card-4 w3-padding device-container">
-    <article class="settings-page">
-        <header class="settings-page-header">
-            <div>
-                <h1>
-                    <a href="{{ .Item.ImgURL }}" target="_blank" class="device-link">{{ .Item.Name }}</a>
-                    {{ if and .Item.PinnedApp (ne (deref .Item.PinnedApp) "") }}
-                    <span class="pinned-badge">
-                        <i class="fa-solid fa-thumbtack" aria-hidden="true"></i> {{ t .Localizer "Pinned:" }}
-                        {{ $pinned := deref .Item.PinnedApp }}
-                        {{ $pinnedName := "" }}
-                        {{ range .Item.Apps }}
-                        {{ if eq .Iname $pinned }}{{ $pinnedName = printf "%s-%s" .Name .Iname }}{{ end }}
-                        {{ end }}
-                    {{ if ne $pinnedName "" }}{{ $pinnedName }}{{ else }}{{ $pinned }}{{ end }}
-                    </span>
-                    {{ end }}
-                    {{ if .Item.GetNightModeIsActive }}
-                    <span class="night-mode-badge"
-                          title="{{ t .Localizer "Night Mode Active" }}">
-                        <i class="fa-solid fa-moon" aria-hidden="true"></i> {{ t .Localizer "Night Mode" }}
-                    </span>
-                    {{ else if .Item.GetDimModeIsActive }}
-                    <span class="dim-mode-badge" title="{{ t .Localizer "Dim Mode Active" }}">
-                        <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i> {{ t .Localizer "Dim Mode" }}
-                    </span>
-                    {{ end }}
-                    {{ if and .Item.HasSpeaker .Item.IsMuted }}
-                    <span class="muted-badge" title="{{ t .Localizer "Sounds Muted" }}">
-                        <i class="fa-solid fa-volume-xmark" aria-hidden="true"></i> {{ t .Localizer "Muted" }}
-                    </span>
-                    {{ end }}
-                </h1>
-                <p class="settings-page-copy">
+<section id="device-card-{{ .Item.ID }}"
+         class="pxt-device"
+         aria-labelledby="device-title-{{ .Item.ID }}">
+    <!-- The stage: name, live states and actions beside the live LED screen. -->
+    <div class="pxt-stage">
+        <div class="pxt-stage-copy">
+            <p class="pxt-stage-meta">
+                {{ .Item.Type.String }} ·
                 {{ len .Item.Apps }} {{ if eq (len .Item.Apps) 1 }}{{ t .Localizer "app" }}{{ else }}{{ t .Localizer "apps" }}{{ end }}
-                </p>
+                {{ if .Item.LastSeen }}· {{ t .Localizer "Last Seen:" }} {{ timeago .Localizer .Item.LastSeen }}{{ end }}
+            </p>
+            <h2 class="pxt-stage-title" id="device-title-{{ .Item.ID }}">
+                {{ if .ReadOnly }}{{ .Item.Name }}{{ else }}<a href="/devices/{{ .Item.ID }}/update" class="device-link">{{ .Item.Name }}</a>{{ end }}
+            </h2>
+            {{ $pinnedSet := and .Item.PinnedApp (ne (deref .Item.PinnedApp) "") }}
+            {{ if or $pinnedSet .Item.GetNightModeIsActive .Item.GetDimModeIsActive (and .Item.HasSpeaker .Item.IsMuted) }}
+            <div class="pxt-stage-badges">
+                {{ if $pinnedSet }}
+                <span class="pxt-sticker">
+                    {{ pixelIcon "pin" }} {{ t .Localizer "Pinned:" }}
+                    {{ $pinned := deref .Item.PinnedApp }}
+                    {{ $pinnedName := "" }}
+                    {{ range .Item.Apps }}
+                    {{ if eq .Iname $pinned }}{{ $pinnedName = .Name }}{{ end }}
+                    {{ end }}
+                {{ if ne $pinnedName "" }}{{ $pinnedName }}{{ else }}{{ $pinned }}{{ end }}
+                </span>
+                {{ end }}
+                {{ if .Item.GetNightModeIsActive }}
+                <span class="pxt-sticker" title="{{ t .Localizer "Night Mode Active" }}">{{ pixelIcon "moon" }} {{ t .Localizer "Night Mode" }}</span>
+                {{ else if .Item.GetDimModeIsActive }}
+                <span class="pxt-sticker" title="{{ t .Localizer "Dim Mode Active" }}">{{ pixelIcon "sun" }} {{ t .Localizer "Dim Mode" }}</span>
+                {{ end }}
+                {{ if and .Item.HasSpeaker .Item.IsMuted }}
+                <span class="pxt-sticker" title="{{ t .Localizer "Sounds Muted" }}">{{ pixelIcon "minus" }} {{ t .Localizer "Muted" }}</span>
+                {{ end }}
             </div>
-            <div class="settings-actions">
-                {{ if not .ReadOnly }}
-                <a class="w3-button w3-teal" href="/devices/{{ .Item.ID }}/addapp"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> {{ t .Localizer "Add App" }}</a>
-                <a class="w3-button w3-teal" href="/devices/{{ .Item.ID }}/update"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> {{ t .Localizer "Edit Device" }}</a>
+            {{ end }}
+            {{ if not .ReadOnly }}
+            <div class="pxt-actions">
+                <a class="btn btn-primary" href="/devices/{{ .Item.ID }}/addapp">{{ pixelIcon "plus" }} {{ t .Localizer "Add App" }}</a>
+                <a class="btn" href="/devices/{{ .Item.ID }}/update">{{ t .Localizer "Edit Device" }}</a>
                 {{ if .Item.Type.SupportsFirmware }}
-                <a class="w3-button w3-teal" href="/devices/{{ .Item.ID }}/firmware"><i class="fa-solid fa-microchip" aria-hidden="true"></i> {{ t .Localizer "Firmware" }}</a>
+                <a class="btn" href="/devices/{{ .Item.ID }}/firmware">{{ t .Localizer "Firmware" }}</a>
                 {{ end }}
-                <a class="w3-button w3-teal"
+                <a class="btn"
                    href="/devices/{{ .Item.ID }}/tv"
-                   target="_blank"><i class="fa-solid fa-tv" aria-hidden="true"></i> {{ t .Localizer "TV Mode" }}</a>
-                {{ end }}
+                   target="_blank"
+                   title="{{ t .Localizer "Shows this device's screen full-size in a new tab, for a TV or spare monitor" }}">{{ t .Localizer "Full-screen view" }}</a>
             </div>
-        </header>
-        <section class="settings-card">
+            {{ end }}
+        </div>
+        <div class="pxt-stage-art">
+            <div class="app-img">
+                <img id="currentWebp-{{ .Item.ID }}"
+                     data-src="/devices/{{ .Item.ID }}/current"
+                     src="/devices/{{ .Item.ID }}/current"
+                     alt="{{ t .Localizer "Currently Displaying App" }}: {{ .Item.Name }}"
+                     width="128"
+                     height="64">
+            </div>
+            <p class="pxt-stage-caption">{{ t .Localizer "On screen now" }}</p>
+        </div>
+    </div>
+    <div class="pxt-device-panels">
+        <!-- Controls -->
+        <section class="settings-card" aria-labelledby="controls-title-{{ .Item.ID }}">
             <div class="settings-card-header">
-                <h2>{{ t .Localizer "Device Info and Controls" }}</h2>
+                <h3 id="controls-title-{{ .Item.ID }}">{{ t .Localizer "Controls" }}</h3>
             </div>
-            <div class="settings-two-pane">
-                <div class="settings-preview-block">
-                    <div class="app-img">
-                        <img id="currentWebp-{{ .Item.ID }}"
-                             data-src="/devices/{{ .Item.ID }}/current"
-                             src="/devices/{{ .Item.ID }}/current"
-                             alt="{{ t .Localizer "Preview" }}"
-                             width="128"
-                             height="64">
-                    </div>
-                    <p class="settings-caption">{{ t .Localizer "Currently Displaying App" }}</p>
-                </div>
-                <div class="settings-field-list">
-                    <div class="settings-field-row">
-                        <div class="settings-field-label">{{ t .Localizer "Brightness" }}</div>
-                        <div class="settings-field-control">
-                            <span id="brightnessValue-{{ .Item.ID }}">{{ .Item.BrightnessUIScale }}</span>
-                            {{ if not .ReadOnly }}
-                            <div class="brightness-panel" id="brightness-panel-{{ .Item.ID }}">
-                                {{ range $i := seq 0 5 }}
-                                <button type="button"
-                                        class="brightness-btn {{ if eq $.Item.BrightnessUIScale $i }}active{{ end }}"
-                                        data-brightness="{{ $i }}"
-                                        onclick="setBrightness('{{ $.Item.ID }}', {{ $i }})">{{ $i }}</button>
-                                {{ end }}
-                            </div>
-                            {{ end }}
-                        </div>
-                    </div>
-                    <div class="settings-field-row">
-                        <div class="settings-field-label">
-                            <label for="default_interval-{{ .Item.ID }}">{{ t .Localizer "App Cycle Time (Seconds)" }}</label>
-                        </div>
-                        <div class="settings-field-control">
-                            <span id="intervalValue-{{ .Item.ID }}">{{ .Item.DefaultInterval }}</span> s
-                            <br>
-                            <input type="range"
-                                   name="default_interval"
-                                   id="default_interval-{{ .Item.ID }}"
-                                   min="1"
-                                   max="30"
-                                   value="{{ .Item.DefaultInterval }}"
-                                   {{ if .ReadOnly }}
-                                   disabled
-                                   {{ else }}
-                                   oninput="updateIntervalValue('{{ .Item.ID }}', this.value)"
-                                   onmouseup="updateInterval('{{ .Item.ID }}', this.value)"
-                                   {{ end }}>
-                        </div>
-                    </div>
-                    {{ if .Item.NightModeEnabled }}
-                    <div class="settings-field-row">
-                        <div class="settings-field-label">
-                            <label for="night-mode-toggle-{{ .Item.ID }}">{{ t .Localizer "Night Mode" }}</label>
-                        </div>
-                        <div class="settings-field-control">
-                            <label class="settings-inline-option settings-toggle-row"
-                                   for="night-mode-toggle-{{ .Item.ID }}">
-                                <input type="checkbox"
-                                       id="night-mode-toggle-{{ .Item.ID }}"
-                                       {{ if .Item.GetNightModeIsActive }}
-                                       checked
-                                       {{ end }}
-                                       {{ if .ReadOnly }}
-                                       disabled
-                                       {{ else }}
-                                       onchange="setNightModeOverride('{{ .Item.ID }}', this.checked, this)"
-                                       {{ end }}>
-                                <span>{{ t .Localizer "Night mode on" }}</span>
-                            </label>
-                            <p class="settings-caption settings-toggle-hint">
-                                {{ t .Localizer "Persists until the next scheduled night mode change." }}
-                            </p>
-                        </div>
-                    </div>
-                    {{ end }}
-                    {{ if .Item.DimModeEnabled }}
-                    <div class="settings-field-row">
-                        <div class="settings-field-label">
-                            <label for="dim-mode-toggle-{{ .Item.ID }}">{{ t .Localizer "Dim Mode" }}</label>
-                        </div>
-                        <div class="settings-field-control">
-                            <label class="settings-inline-option settings-toggle-row"
-                                   for="dim-mode-toggle-{{ .Item.ID }}">
-                                <input type="checkbox"
-                                       id="dim-mode-toggle-{{ .Item.ID }}"
-                                       {{ if .Item.GetDimModeIsActive }}
-                                       checked
-                                       {{ end }}
-                                       {{ if .ReadOnly }}
-                                       disabled
-                                       {{ else }}
-                                       onchange="setDimModeOverride('{{ .Item.ID }}', this.checked, this)"
-                                       {{ end }}>
-                                <span>{{ t .Localizer "Dim mode on" }}</span>
-                            </label>
-                            <p class="settings-caption settings-toggle-hint">
-                                {{ t .Localizer "Persists until the next scheduled dim mode change." }}
-                            </p>
-                        </div>
-                    </div>
-                    {{ end }}
-                    {{ if .Item.HasSpeaker }}
-                    <div class="settings-field-row">
-                        <div class="settings-field-label">
-                            <label for="volume-{{ .Item.ID }}">{{ t .Localizer "Volume" }}</label>
-                        </div>
-                        <div class="settings-field-control">
-                            <div class="settings-inline-group"
-                                 style="align-items: center;
-                                        gap: 8px;
-                                        margin-bottom: 6px">
-                                <input type="range"
-                                       name="volume"
-                                       id="volume-{{ .Item.ID }}"
-                                       min="0"
-                                       max="100"
-                                       step="5"
-                                       value="{{ .Item.GetVolume }}"
-                                       {{ if .ReadOnly }}
-                                       disabled
-                                       {{ else }}
-                                       oninput="updateVolumeValue('{{ .Item.ID }}', this.value)"
-                                       onchange="updateVolume('{{ .Item.ID }}', this.value)"
-                                       {{ end }}>
-                                <span id="volumeValue-{{ .Item.ID }}">{{ .Item.GetVolume }}%</span>
-                            </div>
-                            <label class="settings-inline-option settings-toggle-row"
-                                   for="mute-toggle-{{ .Item.ID }}">
-                                <input type="checkbox"
-                                       id="mute-toggle-{{ .Item.ID }}"
-                                       {{ if .Item.Muted }}
-                                       checked
-                                       {{ end }}
-                                       {{ if .ReadOnly }}
-                                       disabled
-                                       {{ else }}
-                                       onchange="setMute('{{ .Item.ID }}', this.checked, this)"
-                                       {{ end }}>
-                                <span>{{ t .Localizer "Mute all sounds" }}</span>
-                            </label>
-                        </div>
-                    </div>
-                    {{ end }}
-                    <div class="device-info-box">
-                        <button class="device-info-toggle"
-                                aria-expanded="false"
-                                aria-controls="device-info-content-{{ .Item.ID }}">
-                            <i class="fas fa-chevron-down"></i> {{ t .Localizer "Device Info" }}
-                        </button>
-                        <div id="device-info-content-{{ .Item.ID }}" class="device-info-content">
-                            <table class="device-info-table">
-                                {{ if .Item.Info.FirmwareVersion }}
-                                <tr>
-                                    <td>{{ t $.Localizer "Firmware Version:" }}</td>
-                                    <td>{{ .Item.Info.FirmwareVersion }}</td>
-                                </tr>
-                                {{ end }}
-                                {{ if .Item.Info.FirmwareType }}
-                                <tr>
-                                    <td>{{ t $.Localizer "Firmware Type:" }}</td>
-                                    <td>{{ .Item.Info.FirmwareType }}</td>
-                                </tr>
-                                {{ end }}
-                                {{ if .Item.Info.ProtocolVersion }}
-                                <tr>
-                                    <td>{{ t $.Localizer "Protocol Version:" }}</td>
-                                    <td>{{ deref .Item.Info.ProtocolVersion }}</td>
-                                </tr>
-                                {{ end }}
-                                {{ if .Item.Info.MACAddress }}
-                                <tr>
-                                    <td>{{ t $.Localizer "MAC Address:" }}</td>
-                                    <td>{{ .Item.Info.MACAddress }}</td>
-                                </tr>
-                                {{ end }}
-                                {{ if .Item.Info.Hostname }}
-                                <tr>
-                                    <td>{{ t $.Localizer "Hostname:" }}</td>
-                                    <td>{{ .Item.Info.Hostname }}</td>
-                                </tr>
-                                {{ end }}
-                                {{ if .Item.Info.SNTPServer }}
-                                <tr>
-                                    <td>{{ t $.Localizer "SNTP Server:" }}</td>
-                                    <td>{{ .Item.Info.SNTPServer }}</td>
-                                </tr>
-                                {{ end }}
-                                {{ if .Item.Info.SyslogAddr }}
-                                <tr>
-                                    <td>{{ t $.Localizer "Syslog Address:" }}</td>
-                                    <td>{{ .Item.Info.SyslogAddr }}</td>
-                                </tr>
-                                {{ end }}
-                                {{ if .Item.Info.SSID }}
-                                <tr>
-                                    <td>{{ t $.Localizer "WiFi SSID:" }}</td>
-                                    <td>{{ .Item.Info.SSID }}</td>
-                                </tr>
-                                {{ end }}
-                                <tr>
-                                    <td>{{ t $.Localizer "Protocol Type:" }}</td>
-                                    <td>{{ .Item.Info.ProtocolType }}</td>
-                                </tr>
-                                {{ if .Item.LastSeen }}
-                                <tr>
-                                    <td>{{ t $.Localizer "Last Seen:" }}</td>
-                                    <td>{{ timeago $.Localizer .Item.LastSeen }}</td>
-                                </tr>
-                                {{ end }}
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="settings-card">
-            <div class="view-toggle-row settings-view-row">
-                <div class="view-toggle-container settings-view-controls">
-                    <span class="settings-view-label">{{ t .Localizer "View:" }}</span>
-                    <button id="listViewBtn-{{ .Item.ID }}"
-                            class="w3-button w3-blue w3-round view-toggle-btn active"
-                            onclick="switchToListView('{{ .Item.ID }}')"
-                            title="{{ t .Localizer "List View" }}">
-                        <i class="fas fa-list"></i> {{ t .Localizer "List" }}
-                    </button>
-                    <button id="gridViewBtn-{{ .Item.ID }}"
-                            class="w3-button w3-blue w3-round view-toggle-btn"
-                            onclick="switchToGridView('{{ .Item.ID }}')"
-                            title="{{ t .Localizer "Grid View" }}">
-                        <i class="fas fa-th"></i> {{ t .Localizer "Grid" }}
-                    </button>
-                    <button id="collapsedViewBtn-{{ .Item.ID }}"
-                            class="w3-button w3-blue w3-round view-toggle-btn"
-                            onclick="switchToCollapsedView('{{ .Item.ID }}')"
-                            title="{{ t .Localizer "Collapsed View" }}">
-                        <i class="fas fa-chevron-up"></i> {{ t .Localizer "Collapsed" }}
-                    </button>
+            <div class="pxt-control">
+                <div class="pxt-control-head">
+                    <span class="pxt-field-label">{{ t .Localizer "Brightness" }}</span>
+                    <span class="pxt-control-value" id="brightnessValue-{{ .Item.ID }}">{{ .Item.BrightnessUIScale }}</span>
                 </div>
                 {{ if not .ReadOnly }}
-                <div class="instruction-text settings-caption">
-                    {{ t .Localizer "Drag apps to reorder or copy from/to another device" }}
+                <div class="brightness-panel" id="brightness-panel-{{ .Item.ID }}">
+                    {{ range $i := seq 0 5 }}
+                    <button type="button"
+                            class="brightness-btn {{ if eq $.Item.BrightnessUIScale $i }}active{{ end }}"
+                            aria-pressed="{{ if eq $.Item.BrightnessUIScale $i }}true{{ else }}false{{ end }}"
+                            data-brightness="{{ $i }}"
+                            aria-label="{{ t $.Localizer "Brightness" }} {{ $i }}"
+                            onclick="setBrightness('{{ $.Item.ID }}', {{ $i }})">{{ $i }}</button>
+                    {{ end }}
                 </div>
                 {{ end }}
             </div>
-            <div id="appsList-{{ .Item.ID }}" class="visible apps-list-view">
-                {{ range .Item.Apps }}
-                {{ template "app_card" (dict "App" . "Device" $.Item "Localizer" $.Localizer "Devices" $.AllDevices "ReadOnly" $.ReadOnly) }}
-                <hr class="list-view-separator">
-                {{ end }}
+            <div class="pxt-control">
+                <div class="pxt-control-head">
+                    <label class="pxt-field-label" for="default_interval-{{ .Item.ID }}">{{ t .Localizer "Seconds per app" }}</label>
+                    <span class="pxt-control-value"><span id="intervalValue-{{ .Item.ID }}">{{ .Item.DefaultInterval }}</span> s</span>
+                </div>
+                <input type="range"
+                       name="default_interval"
+                       id="default_interval-{{ .Item.ID }}"
+                       min="1"
+                       max="30"
+                       value="{{ .Item.DefaultInterval }}"
+                       {{ if .ReadOnly }}
+                       disabled
+                       {{ else }}
+                       oninput="updateIntervalValue('{{ .Item.ID }}', this.value)"
+                       onchange="updateInterval('{{ .Item.ID }}', this.value)"
+                       {{ end }}>
             </div>
+            {{ if .Item.NightModeEnabled }}
+            <div class="pxt-control">
+                <label class="pxt-check" for="night-mode-toggle-{{ .Item.ID }}">
+                    <input type="checkbox"
+                           id="night-mode-toggle-{{ .Item.ID }}"
+                           {{ if .Item.GetNightModeIsActive }}
+                           checked
+                           {{ end }}
+                           {{ if .ReadOnly }}
+                           disabled
+                           {{ else }}
+                           onchange="setNightModeOverride('{{ .Item.ID }}', this.checked, this)"
+                           {{ end }}>
+                    {{ t .Localizer "Night mode on" }}
+                </label>
+                <p class="pxt-help">{{ t .Localizer "Persists until the next scheduled night mode change." }}</p>
+            </div>
+            {{ end }}
+            {{ if .Item.DimModeEnabled }}
+            <div class="pxt-control">
+                <label class="pxt-check" for="dim-mode-toggle-{{ .Item.ID }}">
+                    <input type="checkbox"
+                           id="dim-mode-toggle-{{ .Item.ID }}"
+                           {{ if .Item.GetDimModeIsActive }}
+                           checked
+                           {{ end }}
+                           {{ if .ReadOnly }}
+                           disabled
+                           {{ else }}
+                           onchange="setDimModeOverride('{{ .Item.ID }}', this.checked, this)"
+                           {{ end }}>
+                    {{ t .Localizer "Dim mode on" }}
+                </label>
+                <p class="pxt-help">{{ t .Localizer "Persists until the next scheduled dim mode change." }}</p>
+            </div>
+            {{ end }}
+            {{ if .Item.HasSpeaker }}
+            <div class="pxt-control">
+                <div class="pxt-control-head">
+                    <label class="pxt-field-label" for="volume-{{ .Item.ID }}">{{ t .Localizer "Volume" }}</label>
+                    <span class="pxt-control-value" id="volumeValue-{{ .Item.ID }}">{{ .Item.GetVolume }}%</span>
+                </div>
+                <input type="range"
+                       name="volume"
+                       id="volume-{{ .Item.ID }}"
+                       min="0"
+                       max="100"
+                       step="5"
+                       value="{{ .Item.GetVolume }}"
+                       {{ if .ReadOnly }}
+                       disabled
+                       {{ else }}
+                       oninput="updateVolumeValue('{{ .Item.ID }}', this.value)"
+                       onchange="updateVolume('{{ .Item.ID }}', this.value)"
+                       {{ end }}>
+                <label class="pxt-check" for="mute-toggle-{{ .Item.ID }}">
+                    <input type="checkbox"
+                           id="mute-toggle-{{ .Item.ID }}"
+                           {{ if .Item.Muted }}
+                           checked
+                           {{ end }}
+                           {{ if .ReadOnly }}
+                           disabled
+                           {{ else }}
+                           onchange="setMute('{{ .Item.ID }}', this.checked, this)"
+                           {{ end }}>
+                    {{ t .Localizer "Mute all sounds" }}
+                </label>
+            </div>
+            {{ end }}
         </section>
-    </article>
-</div>
+        <!-- Device info, as an accordion row like the help page's questions -->
+        <details class="pxt-details">
+            <summary>{{ t .Localizer "Device Info" }}</summary>
+            <div class="pxt-details-body">
+                <dl class="pxt-specs">
+                    {{ if .Item.Info.FirmwareVersion }}
+                    <dt>{{ t $.Localizer "Firmware Version:" }}</dt>
+                    <dd>{{ .Item.Info.FirmwareVersion }}</dd>
+                    {{ end }}
+                    {{ if .Item.Info.FirmwareType }}
+                    <dt>{{ t $.Localizer "Firmware Type:" }}</dt>
+                    <dd>{{ .Item.Info.FirmwareType }}</dd>
+                    {{ end }}
+                    {{ if .Item.Info.ProtocolVersion }}
+                    <dt>{{ t $.Localizer "Protocol Version:" }}</dt>
+                    <dd>{{ deref .Item.Info.ProtocolVersion }}</dd>
+                    {{ end }}
+                    {{ if .Item.Info.MACAddress }}
+                    <dt>{{ t $.Localizer "MAC Address:" }}</dt>
+                    <dd>{{ .Item.Info.MACAddress }}</dd>
+                    {{ end }}
+                    {{ if .Item.Info.Hostname }}
+                    <dt>{{ t $.Localizer "Hostname:" }}</dt>
+                    <dd>{{ .Item.Info.Hostname }}</dd>
+                    {{ end }}
+                    {{ if .Item.Info.SNTPServer }}
+                    <dt>{{ t $.Localizer "SNTP Server:" }}</dt>
+                    <dd>{{ .Item.Info.SNTPServer }}</dd>
+                    {{ end }}
+                    {{ if .Item.Info.SyslogAddr }}
+                    <dt>{{ t $.Localizer "Syslog Address:" }}</dt>
+                    <dd>{{ .Item.Info.SyslogAddr }}</dd>
+                    {{ end }}
+                    {{ if .Item.Info.SSID }}
+                    <dt>{{ t $.Localizer "WiFi SSID:" }}</dt>
+                    <dd>{{ .Item.Info.SSID }}</dd>
+                    {{ end }}
+                    <dt>{{ t $.Localizer "Connection:" }}</dt>
+                    <dd>{{ .Item.Info.ProtocolType }}</dd>
+                    {{ if .Item.LastSeen }}
+                    <dt>{{ t $.Localizer "Last Seen:" }}</dt>
+                    <dd>{{ timeago $.Localizer .Item.LastSeen }}</dd>
+                    {{ end }}
+                </dl>
+            </div>
+        </details>
+    </div>
+    <!-- Apps on this device -->
+    <section aria-labelledby="apps-title-{{ .Item.ID }}">
+        <h3 class="pxt-section-title" id="apps-title-{{ .Item.ID }}">{{ t .Localizer "Apps" }}</h3>
+        {{ if not .Item.Apps }}
+        <div class="pxt-empty">
+            <p class="pxt-empty-title">{{ t .Localizer "Nothing on this screen yet" }}</p>
+            <p class="pxt-help">{{ t .Localizer "Add an app and it will start showing on the device right away. Add more and the device takes turns showing each one." }}</p>
+            {{ if not .ReadOnly }}
+            <a class="btn btn-primary" href="/devices/{{ .Item.ID }}/addapp">{{ pixelIcon "plus" }} {{ t .Localizer "Add App" }}</a>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="view-toggle-row settings-view-row">
+            <div class="view-toggle-container settings-view-controls">
+                <span class="settings-view-label">{{ t .Localizer "View:" }}</span>
+                <button id="listViewBtn-{{ .Item.ID }}"
+                        type="button"
+                        class="btn btn-ghost btn-sm view-toggle-btn active"
+                        aria-pressed="true"
+                        onclick="switchToListView('{{ .Item.ID }}')"
+                        title="{{ t .Localizer "List View" }}">{{ t .Localizer "List" }}</button>
+                <button id="gridViewBtn-{{ .Item.ID }}"
+                        type="button"
+                        class="btn btn-ghost btn-sm view-toggle-btn"
+                        aria-pressed="false"
+                        onclick="switchToGridView('{{ .Item.ID }}')"
+                        title="{{ t .Localizer "Grid View" }}">{{ t .Localizer "Grid" }}</button>
+                <button id="collapsedViewBtn-{{ .Item.ID }}"
+                        type="button"
+                        class="btn btn-ghost btn-sm view-toggle-btn"
+                        aria-pressed="false"
+                        onclick="switchToCollapsedView('{{ .Item.ID }}')"
+                        title="{{ t .Localizer "Collapsed View" }}">{{ t .Localizer "Collapsed" }}</button>
+            </div>
+            {{ if not .ReadOnly }}
+            <p class="instruction-text pxt-help">{{ t .Localizer "Drag apps to reorder or copy from/to another device" }}</p>
+            {{ end }}
+        </div>
+        {{ end }}
+        <div id="appsList-{{ .Item.ID }}" class="visible apps-list-view">
+            {{ range .Item.Apps }}
+            {{ template "app_card" (dict "App" . "Device" $.Item "Localizer" $.Localizer "Devices" $.AllDevices "ReadOnly" $.ReadOnly) }}
+            <hr class="list-view-separator">
+            {{ end }}
+        </div>
+    </section>
+</section>
 {{ end }}

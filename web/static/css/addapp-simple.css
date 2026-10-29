@@ -1,107 +1,186 @@
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-  text-align: center;
-  color: var(--muted-text);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid color-mix(in srgb, var(--border-color) 75%, transparent);
-  border-top: 3px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.content-loaded .loading-container {
-  display: none;
-}
+/* Add-app catalog: toolbar, tiles with LED-screen previews, and the details
+   panel. Selectors carry .content where style.css resets controls there. */
 
 .addapp-shell {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-3);
 }
 
-.addapp-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+/* catalog.js shows and hides with the hidden attribute; flex and grid rules
+   below must not override it. */
+.addapp-shell [hidden] {
+  display: none !important;
 }
 
-.addapp-config {
+/* ------------------------------------------------------------------ */
+/* Toolbar: search, category chips, sort and toggles                   */
+/* ------------------------------------------------------------------ */
+.catalog-toolbar {
+  position: sticky;
+  top: var(--space-1);
+  z-index: var(--z-nav);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.app-group {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.app-group-header {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.app-group-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
-}
-
-.app-group-meta {
-  font-size: 0.9rem;
-  color: var(--muted-text);
-}
-
-.app-group-meta a {
-  text-decoration: none;
-}
-
-.filter-sort-controls {
-  border: 1px solid var(--border-color);
-  background: var(--surface-subtle);
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.filter-sort-controls-inner {
-  display: flex;
   gap: 12px;
+  padding: var(--space-2);
+  background: var(--surface);
+  border: var(--border-pixel) solid var(--ink);
+  box-shadow: var(--shadow-pixel);
+}
+
+.catalog-search {
+  position: relative;
+  display: flex;
   align-items: center;
-  flex-wrap: wrap;
 }
 
-.filter-sort-controls input[type="search"] {
+.catalog-search > .ttp-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.content .catalog-search-input {
+  width: 100%;
+  height: 52px;
   margin: 0;
-  min-width: 220px;
-  max-width: 320px;
+  padding: 0 48px 0 44px;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-2);
+  font: 400 18px/24px var(--font-sans);
 }
 
-.control-label {
+.catalog-search-input::placeholder {
+  color: var(--ink-muted);
+}
+
+/* "/" focuses the search; the hint steps aside once you're typing. */
+.catalog-kbd {
+  position: absolute;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border: var(--border-pixel) solid var(--line-strong);
+  border-radius: var(--radius-1);
+  font: 500 13px/1 var(--font-mono);
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.catalog-search:focus-within .catalog-kbd,
+.catalog-search:has(.catalog-search-input:not(:placeholder-shown)) .catalog-kbd {
+  display: none;
+}
+
+@media (hover: none), (max-width: 600px) {
+  .catalog-kbd {
+    display: none;
+  }
+}
+
+/* Category chips scroll sideways instead of wrapping into a wall. The edges
+   fade where more chips are hidden; catalog.js sets the data flags. */
+.catalog-chips {
+  --fade-start: 0px;
+  --fade-end: 0px;
+  display: flex;
+  gap: 6px;
+  margin: 0 calc(-1 * var(--space-2));
+  padding: 2px var(--space-2) 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+}
+
+.catalog-chips[data-more-start] {
+  --fade-start: 40px;
+}
+
+.catalog-chips[data-more-end] {
+  --fade-end: 56px;
+}
+
+.content .catalog-cat {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: var(--control-height-sm);
+  margin: 0;
+  padding: 0 12px;
+  background: transparent;
+  color: var(--ink);
+  border: var(--border-pixel) solid var(--line-strong);
+  border-radius: var(--radius-2);
+  font: 700 14px/20px var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.content .catalog-cat:hover {
+  border-color: var(--ink);
+}
+
+.content .catalog-cat[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* How many apps each category holds under the current search and toggles. */
+.catalog-cat-count {
+  font: 400 12px/16px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.content .catalog-cat.is-empty:not([aria-pressed="true"]) {
+  border-style: dashed;
+  color: var(--ink-muted);
+}
+
+.catalog-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.content .catalog-option {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--muted-text);
-  font-weight: 500;
+  gap: var(--space-1);
+  margin: 0;
+  font: 400 15px/20px var(--font-sans);
+  color: var(--ink);
+  cursor: pointer;
 }
 
-/* Padded, theme-aware chevron for filter selects. Icon: Heroicons chevron-down (MIT). */
+.content .catalog-option select {
+  height: var(--control-height-sm);
+  padding-top: 0;
+  padding-bottom: 0;
+  font: 400 15px/20px var(--font-sans);
+}
+
+.catalog-count {
+  margin: 0 0 0 auto;
+  font: 400 13px/18px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+/* Padded, theme-aware chevron for the sort select. Icon: Heroicons chevron-down (MIT). */
 .select-wrap {
   position: relative;
   display: inline-flex;
@@ -122,216 +201,600 @@
   width: 1rem;
   height: 1rem;
   pointer-events: none;
-  background-color: var(--muted-text);
+  background-color: var(--ink-muted);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-.control-checkbox,
-.filter-checkbox {
-  margin: 0 !important;
-}
-
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 14px;
-}
-
-.app-item {
-  border: 1px solid var(--border-color);
-  background: var(--surface-bg);
-  border-radius: 16px;
-  padding: 14px;
-  text-align: left;
-  cursor: pointer;
-  position: relative;
+/* ------------------------------------------------------------------ */
+/* Groups                                                              */
+/* ------------------------------------------------------------------ */
+/* The groups flow with the page; the sticky toolbar keeps search in reach.
+   Padding leaves room for the tiles' hover lift and pixel shadow. */
+.catalog-groups {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  gap: var(--space-6);
+  padding: var(--space-1) var(--space-1) var(--space-2);
 }
 
-.app-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px var(--shadow-color);
+.catalog-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.app-item.selected {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 14%, transparent);
+.catalog-group[hidden] {
+  display: none;
 }
 
-.app-item.installed {
-  border-color: color-mix(in srgb, var(--border-color) 80%, #c58a0b 20%);
+.catalog-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-half) 12px;
 }
 
-.app-item.broken-app {
-  border-color: color-mix(in srgb, var(--border-color) 70%, #c63c37 30%);
-  background: color-mix(in srgb, var(--surface-bg) 94%, #c63c37 6%);
-  cursor: not-allowed;
+.catalog-group-title {
+  margin: 0;
+  font: 800 24px/30px var(--font-sans);
+  letter-spacing: -0.01em;
 }
 
-.app-item.broken-app:hover {
-  transform: none;
+.catalog-group-count {
+  font: 400 13px/18px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.catalog-group-meta {
+  margin-left: auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 400 13px/18px var(--font-sans);
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.catalog-group-meta:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.content .catalog-more {
+  align-self: center;
+}
+
+.catalog-more[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tiles                                                               */
+/* ------------------------------------------------------------------ */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-2);
+}
+
+.content .app-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* Tabbing to a tile never parks it under the sticky toolbar. */
+  scroll-margin-top: var(--catalog-toolbar-h, 0px);
+  transition: transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step);
+}
+
+.content .app-item[hidden] {
+  display: none;
+}
+
+.content .app-item:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--cherry);
+}
+
+.content .app-item:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.catalog-screen-wrap {
+  position: relative;
+  display: block;
+}
+
+/* Installed / broken status, stuck on the screen's bottom-right edge. */
+.catalog-screen-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  transform: translateY(50%);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  padding: 3px 8px;
+}
+
+.catalog-screen-badge.catalog-chip-broken {
+  box-shadow: inset 0 0 0 2px var(--accent-text);
+}
+
+.catalog-screen-wrap:has(.catalog-screen-badge) + .catalog-tile-body {
+  padding-top: 18px;
+}
+
+.catalog-screen-badge .ttp-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* The preview is the device's screen: dark glass, pixel-exact art. */
+.catalog-screen.app-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2 / 1;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 0;
+  border-bottom: var(--border-pixel) solid var(--ink);
+  background: var(--screen);
+}
+
+.catalog-screen.app-img img,
+.catalog-detail-screen.app-img img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Square panels sit centred in the same 2:1 screen so rows stay even. */
+.catalog-screen.app-img.is-square img {
+  width: auto;
+  height: 100%;
+}
+
+.broken-app .catalog-screen img {
+  opacity: 0.45;
+}
+
+.content .app-item.broken-app {
+  border-style: dashed;
+  border-color: var(--line-strong);
+}
+
+.catalog-tile-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-half);
+  padding: 12px 14px 14px;
 }
 
 .app-item-title {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.35;
-  color: var(--page-text);
+  font: 700 16px/22px var(--font-sans);
+  overflow-wrap: anywhere;
+}
+
+.app-item-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font: 400 14px/20px var(--font-sans);
+  color: var(--ink-muted);
+}
+
+/* One line: author on the left, install count pinned right. */
+.catalog-tile-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: var(--space-1);
 }
 
 .app-item-meta {
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.45;
-  color: var(--muted-text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 400 13px/18px var(--font-sans);
+  color: var(--ink-muted);
 }
 
 /* Install count with download icon. */
 .app-item-installs {
   display: inline-flex;
+  flex: none;
   align-items: center;
-  gap: 0.375rem;
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.45;
+  gap: 4px;
+  margin-left: auto;
+  font: 400 12px/16px var(--font-mono);
   font-variant-numeric: tabular-nums;
-  color: var(--muted-text);
+  color: var(--ink-muted);
 }
 
 .app-item-installs svg {
-  width: 1rem;
-  height: 1rem;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
-  opacity: 0.9;
 }
 
-.app-item-muted {
-  opacity: 0.55;
-}
-
-.app-img {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 2 / 1;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Square panels. The CONTAINER carries the aspect too: sizing only the
-   image leaves it overflowing a 2:1 box with overflow:hidden, which is
-   what clipped square previews into a cut-off rectangle. */
-.app-img.is-square {
-  aspect-ratio: 1 / 1;
-}
-
-.app-img.is-square .lazy-image {
-  width: 128px;
-  height: 128px;
-}
-
-.app-img .lazy-image {
-  position: relative;
-  width: 128px;
-  height: 64px;
-  object-fit: contain;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 2;
-  image-rendering: pixelated;
-}
-
-.lazy-image.loaded {
-  opacity: 1;
-}
-
-.installed-badge,
-.supports-2x-badge,
-.supports-64x64-badge,
-.broken-badge {
-  position: absolute;
-  top: 10px;
-  z-index: 10;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 650;
-  line-height: 1.2;
-}
-
-.installed-badge {
-  right: 10px;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #c58a0b 16%);
-  color: var(--page-text);
-}
-
-.supports-2x-badge {
-  left: 10px;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #4a78d8 16%);
-  color: var(--page-text);
-}
-
-/* Sits under the 2x badge: an app can legitimately declare both. */
-.supports-64x64-badge {
-  left: 10px;
-  top: 38px;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #3f9d6b 16%);
-  color: var(--page-text);
-}
-
-.broken-badge {
-  position: static;
-  align-self: flex-start;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #c63c37 16%);
-  color: var(--danger-text);
-}
-
-.delete-upload-btn,
-.mark-broken-btn,
-.unmark-broken-btn {
-  align-self: flex-start;
+.catalog-chip {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-1);
+  background: var(--sun-soft);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.catalog-chip-installed {
+  background: var(--sun);
+  color: var(--midnight);
+}
+
+.catalog-chip-broken {
+  background: var(--surface);
+  color: var(--accent-text);
+  box-shadow: inset 0 0 0 1px var(--accent-text);
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout: the catalog beside the stage                                 */
+/* ------------------------------------------------------------------ */
+/* This page runs wider than the rest so three tile columns fit beside
+   the stage. */
+.pxt-main:has(.addapp-shell) {
+  max-width: var(--content-wide);
+}
+
+.catalog-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 432px;
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.catalog-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* The tile on stage stays marked while you browse. */
+.content .app-item[aria-pressed="true"] {
+  outline: var(--border-pixel) solid var(--ink);
+  outline-offset: 0;
+  box-shadow: 6px 6px 0 0 var(--cherry);
+}
+
+/* ------------------------------------------------------------------ */
+/* The stage: always dark, like the device in a dim room                */
+/* ------------------------------------------------------------------ */
+.catalog-stage {
+  position: sticky;
+  top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--space-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--stage);
+  color: var(--cream);
+  border: var(--border-bold) solid var(--midnight);
+  box-shadow: 10px 10px 0 0 var(--cherry);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.catalog-stage-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 48px;
+  padding: 0 var(--space-1) 0 var(--space-2);
+  border-bottom: var(--border-pixel) solid var(--line);
+}
+
+/* Lit while an app is on stage. */
+.catalog-stage-led {
+  width: 8px;
+  height: 8px;
+  background: var(--line-strong);
+}
+
+.catalog-stage.has-app .catalog-stage-led {
+  background: var(--mint);
+}
+
+.content .catalog-stage-label {
+  flex: 1;
+  margin: 0;
+  font: 400 12px/14px var(--font-pixel);
+  color: var(--on-stage-muted);
+}
+
+/* Only the bottom sheet needs a close button. */
+.content .catalog-detail-close {
+  display: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  border: var(--border-pixel) solid transparent;
+  border-radius: var(--radius-0);
+}
+
+.content .catalog-detail-close:hover {
+  background: var(--sun);
+  color: var(--midnight);
+  border-color: var(--ink);
+}
+
+/* The screen sits in a bezel at a whole-number scale: 64 × 32 at 6×. */
+.catalog-stage-bezel {
+  margin: var(--space-3) auto var(--space-2);
+  padding: 12px;
+  background: var(--midnight);
+  border: var(--border-chunky) solid var(--line);
+}
+
+.catalog-detail-screen.app-img {
+  display: grid;
+  place-items: center;
+  width: 384px;
+  height: 192px;
+  border: 0;
+  background: var(--screen);
+}
+
+.catalog-detail-screen.app-img img {
+  display: block;
+  width: 384px;
+  height: 192px;
+}
+
+.catalog-detail-screen.app-img.is-square img {
+  width: 192px;
+  height: 192px;
+}
+
+.catalog-stage-empty {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+  font: 400 15px/22px var(--font-sans);
+  color: var(--on-stage-muted);
+  text-align: center;
+}
+
+.catalog-stage-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.catalog-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--space-1) var(--space-3) var(--space-2);
+}
+
+.content .catalog-detail-name {
+  margin: 0;
+  font: 800 32px/36px var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--cream);
+  overflow-wrap: anywhere;
+}
+
+/* The brand's cherry full stop after the app's name. */
+.catalog-detail-name::after {
+  content: ".";
+  color: var(--cherry);
+}
+
+.catalog-detail-summary {
+  margin: 0;
+  font: 400 17px/26px var(--font-sans);
+}
+
+.catalog-detail-chips {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-top: 2px;
-  padding: 0.5rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--input-border);
-  background: var(--button-bg);
-  color: var(--page-text);
-  text-decoration: none;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-.delete-upload-btn {
-  color: var(--danger-text);
-  border-color: color-mix(in srgb, var(--input-border) 70%, #c63c37 30%);
+.catalog-detail-desc {
+  margin: 0;
+  font: 400 15px/24px var(--font-sans);
+  color: var(--on-stage-muted);
+  white-space: pre-line;
 }
 
-.mark-broken-btn,
-.unmark-broken-btn {
-  border: 1px solid var(--input-border);
+.catalog-detail-specs {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: var(--border-pixel) solid var(--line);
 }
 
-@media screen and (max-width: 768px) {
-  .filter-sort-controls-inner {
-    align-items: stretch;
+.catalog-detail-note {
+  margin: 0;
+  padding: 12px var(--space-2);
+  background: var(--surface-raised);
+  font: 400 15px/22px var(--font-sans);
+}
+
+.catalog-detail-note-broken {
+  color: var(--accent-text);
+  box-shadow: inset 0 0 0 1px var(--accent-text);
+}
+
+.catalog-detail-actions {
+  display: flex;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+/* The stage's primary is sun, like the other dark stages (pixeltron.css). */
+.content .catalog-stage .btn-primary {
+  background: var(--sun);
+  border-color: var(--sun);
+  color: var(--midnight);
+}
+
+.content .catalog-stage .btn-primary:hover {
+  background: var(--sun);
+  border-color: var(--cream);
+  color: var(--midnight);
+}
+
+.content .catalog-stage .btn:focus-visible {
+  outline-color: var(--cream);
+}
+
+.catalog-detail-actions [data-detail-install] {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.catalog-detail-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: 0 var(--space-3) var(--space-3);
+}
+
+.catalog-detail-admin[hidden],
+.catalog-detail-admin [hidden] {
+  display: none;
+}
+
+.catalog-stage-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--scrim);
+}
+
+/* ------------------------------------------------------------------ */
+/* Narrow screens: the stage becomes a bottom sheet                     */
+/* ------------------------------------------------------------------ */
+@media (max-width: 1000px) {
+  .catalog-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .filter-sort-controls input[type="search"] {
-    max-width: none;
+  .catalog-stage {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: calc(var(--z-modal) + 1);
+    max-height: 92dvh;
+    border-width: var(--border-bold) 0 0;
+    box-shadow: 0 -8px 0 0 var(--cherry);
+    transform: translateY(100%);
+    visibility: hidden;
+    transition: transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base);
+  }
+
+  .catalog-stage[data-open] {
+    transform: none;
+    visibility: visible;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .content .catalog-detail-close {
+    display: grid;
+    place-items: center;
+  }
+
+  .catalog-stage-empty {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .catalog-toolbar {
+    position: static;
+  }
+
+  .catalog-count {
+    margin-left: 0;
     width: 100%;
   }
+}
 
+@media (max-width: 600px) {
   .app-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .catalog-tile-body {
+    padding: 10px;
+  }
+
+  .app-item-title {
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .app-item-summary {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  /* 64 × 32 at 4× on phones. */
+  .catalog-stage-bezel {
+    margin-top: var(--space-2);
+    padding: 8px;
+  }
+
+  .catalog-detail-screen.app-img,
+  .catalog-detail-screen.app-img img {
+    width: 256px;
+    height: 128px;
+  }
+
+  .catalog-detail-screen.app-img.is-square img {
+    width: 128px;
+    height: 128px;
+  }
+
+  .catalog-detail-body,
+  .catalog-detail-actions,
+  .catalog-detail-admin {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-stage,
+  .catalog-stage[data-open] {
+    transition: none;
   }
 }

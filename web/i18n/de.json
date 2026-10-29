@@ -399,7 +399,85 @@
     "other": "Gerät existiert bereits. Import übersprungen."
   },
   "Tronbyt Manager": {
-    "other": "Tronbyt Manager"
+    "other": "Pixeltron"
+  },
+  "lang": {
+    "other": "de"
+  },
+  "Menu": {
+    "other": "Menü"
+  },
+  "Skip to content": {
+    "other": "Zum Inhalt springen"
+  },
+  "Main": {
+    "other": "Hauptmenü"
+  },
+  "Apps": {
+    "other": "Apps"
+  },
+  "Lights off": {
+    "other": "Licht aus"
+  },
+  "Lights on": {
+    "other": "Licht an"
+  },
+  "by Ten Thousand Pixels": {
+    "other": "von Ten Thousand Pixels"
+  },
+  "Your Pixeltrons": {
+    "other": "Deine Pixeltrons"
+  },
+  "New": {
+    "other": "Neu"
+  },
+  "No Pixeltrons yet": {
+    "other": "Noch keine Pixeltrons"
+  },
+  "Add your first device to start sending it apps.": {
+    "other": "Füge dein erstes Gerät hinzu, um Apps darauf zu schicken."
+  },
+  "Sign in to manage your Pixeltrons and the apps they show.": {
+    "other": "Melde dich an, um deine Pixeltrons und ihre Apps zu verwalten."
+  },
+  "Or": {
+    "other": "Oder"
+  },
+  "The first account runs this server. You can add more people later.": {
+    "other": "Das erste Konto verwaltet diesen Server. Weitere Personen kannst du später hinzufügen."
+  },
+  "Make an account to set up your own Pixeltrons.": {
+    "other": "Erstelle ein Konto, um deine eigenen Pixeltrons einzurichten."
+  },
+  "Letters and numbers only.": {
+    "other": "Nur Buchstaben und Zahlen."
+  },
+  "All devices": {
+    "other": "Alle Geräte"
+  },
+  "Every user on this server and the Pixeltrons they run.": {
+    "other": "Alle Nutzer dieses Servers und ihre Pixeltrons."
+  },
+  "Add your own app to this device's catalog.": {
+    "other": "Füge diesem Gerät eine eigene App hinzu."
+  },
+  "Appearance": {
+    "other": "Darstellung"
+  },
+  "The Lights off button flips between light and dark. Choose System to follow your device instead.": {
+    "other": "Der Knopf „Licht aus“ wechselt zwischen hell und dunkel. Wähle System, um deinem Gerät zu folgen."
+  },
+  "Theme": {
+    "other": "Design"
+  },
+  "Saved to your account.": {
+    "other": "Wird in deinem Konto gespeichert."
+  },
+  "Name it, pick its type, and tell it where it lives.": {
+    "other": "Gib ihm einen Namen, wähle den Typ und sag ihm, wo es steht."
+  },
+  "Close": {
+    "other": "Schließen"
   },
   "Home": {
     "other": "Home"
@@ -915,7 +993,7 @@
     "other": "Verwalten Sie die Anmeldung mit einem Hardware-Schlüssel, Browser oder Geräte-Passkey."
   },
   "Passkeys only work when Tronbyt is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled.": {
-    "other": "Passkeys funktionieren nur, wenn Tronbyt über eine sichere Verbindung geöffnet wird. Wenn die Passkey-Einrichtung nicht verfügbar ist, fragen Sie die Person, die Ihren Server verwaltet, ob HTTPS aktiviert ist."
+    "other": "Passkeys funktionieren nur, wenn Pixeltron über eine sichere Verbindung geöffnet wird. Wenn die Passkey-Einrichtung nicht verfügbar ist, fragen Sie die Person, die Ihren Server verwaltet, ob HTTPS aktiviert ist."
   },
   "API Access": {
     "other": "API-Zugriff"
@@ -960,7 +1038,7 @@
     "other": "Konfigurieren"
   },
   "New Tronbyt": {
-    "other": "Neuer Tronbyt"
+    "other": "Neuer Pixeltron"
   },
   "Delete User?": {
     "other": "Benutzer löschen?"
@@ -1365,13 +1443,13 @@
     "other": "Fehlgeschlagen"
   },
   "New Tronbyt Device": {
-    "other": "Neues Tronbyt-Gerät"
+    "other": "Neuer Pixeltron"
   },
   "Basic Information": {
     "other": "Grundlegende Informationen"
   },
   "Descriptive name for this Tronbyt device": {
-    "other": "Beschreibender Name für dieses Tronbyt-Gerät"
+    "other": "Beschreibender Name für diesen Pixeltron"
   },
   "Leave blank to auto-generate.": {
     "other": "Leer lassen für automatische Generierung."
@@ -2416,5 +2494,188 @@
   },
   "No Changes Provided": {
     "other": "Keine Änderungen angegeben"
+  },
+  "Add an app and it will start showing on the device right away. Add more and the device takes turns showing each one.": {
+    "other": "Füge eine App hinzu, und das Gerät zeigt sie sofort an. Mit mehreren Apps wechselt das Gerät zwischen ihnen."
+  },
+  "App deleted": {
+    "other": "App gelöscht"
+  },
+  "Apps & Firmware": {
+    "other": "Apps & Firmware"
+  },
+  "Auto-pin": {
+    "other": "Auto-Anheften"
+  },
+  "Cancel and remove app": {
+    "other": "Abbrechen und App entfernen"
+  },
+  "Changes on this page apply when you save.": {
+    "other": "Änderungen auf dieser Seite gelten erst nach dem Speichern."
+  },
+  "Choose device": {
+    "other": "Gerät wählen"
+  },
+  "Connection:": {
+    "other": "Verbindung:"
+  },
+  "Controls": {
+    "other": "Steuerung"
+  },
+  "Dark mode": {
+    "other": "Dunkler Modus"
+  },
+  "Delete device": {
+    "other": "Gerät löschen"
+  },
+  "DeleteAppConfirm": {
+    "other": "„{{.AppName}}“ von diesem Gerät löschen?"
+  },
+  "DeleteDeviceConfirm": {
+    "other": "„{{.DeviceName}}“ und alle seine Apps löschen? Das kann nicht rückgängig gemacht werden."
+  },
+  "DeleteUploadConfirm": {
+    "other": "Die hochgeladene App „{{.AppName}}“ löschen?"
+  },
+  "Error saving config": {
+    "other": "Fehler beim Speichern der Konfiguration."
+  },
+  "Full-screen view": {
+    "other": "Vollbildansicht"
+  },
+  "Install": {
+    "other": "Installieren"
+  },
+  "Light mode": {
+    "other": "Heller Modus"
+  },
+  "More": {
+    "other": "Mehr"
+  },
+  "More actions for": {
+    "other": "Weitere Aktionen für"
+  },
+  "Move to bottom": {
+    "other": "Ganz nach unten"
+  },
+  "Move to top": {
+    "other": "Ganz nach oben"
+  },
+  "Nothing on this screen yet": {
+    "other": "Auf diesem Bildschirm ist noch nichts"
+  },
+  "OK": {
+    "other": "OK"
+  },
+  "On screen now": {
+    "other": "Gerade auf dem Bildschirm"
+  },
+  "Passkey sign-in didn't work. Try again, or sign in with your password.": {
+    "other": "Die Anmeldung mit Passkey hat nicht funktioniert. Versuche es erneut oder melde dich mit deinem Passwort an."
+  },
+  "Pick an app to install it on this device. You'll set its options on the next screen.": {
+    "other": "Wähle eine App, um sie auf diesem Gerät zu installieren. Die Optionen legst du auf der nächsten Seite fest."
+  },
+  "Pinned": {
+    "other": "Angeheftet"
+  },
+  "Pins itself while it has something to show": {
+    "other": "Heftet sich selbst an, solange sie etwas anzuzeigen hat"
+  },
+  "Pushed": {
+    "other": "Gepusht"
+  },
+  "Removes this device and every app installed on it. This can't be undone.": {
+    "other": "Entfernt dieses Gerät und alle darauf installierten Apps. Das kann nicht rückgängig gemacht werden."
+  },
+  "Saved": {
+    "other": "Gespeichert"
+  },
+  "Seconds per app": {
+    "other": "Sekunden pro App"
+  },
+  "Sent to the device through the API": {
+    "other": "Über die API an das Gerät gesendet"
+  },
+  "Shown all the time instead of taking turns": {
+    "other": "Wird dauerhaft angezeigt, statt sich abzuwechseln"
+  },
+  "Shows this device's screen full-size in a new tab, for a TV or spare monitor": {
+    "other": "Zeigt den Bildschirm dieses Geräts groß in einem neuen Tab, für einen Fernseher oder zweiten Monitor"
+  },
+  "Something went wrong. Try again.": {
+    "other": "Etwas ist schiefgelaufen. Versuche es erneut."
+  },
+  "Updates every": {
+    "other": "Aktualisiert alle"
+  },
+  "The Dark mode button at the bottom of every page flips between light and dark. Choose System to follow your device instead.": {
+    "other": "Die Schaltfläche „Dunkler Modus“ unten auf jeder Seite wechselt zwischen hell und dunkel. Wähle „System“, um deinem Gerät zu folgen."
+  },
+  "All": {
+    "other": "Alle"
+  },
+  "Already on this device. Installing again adds a second copy with its own settings.": {
+    "other": "Schon auf diesem Gerät. Eine erneute Installation fügt eine zweite Kopie mit eigenen Einstellungen hinzu."
+  },
+  "By": {
+    "other": "Von"
+  },
+  "CatalogCountOne": {
+    "other": "1 App"
+  },
+  "CatalogCountMany": {
+    "other": "{{.Count}} Apps"
+  },
+  "CatalogShowing": {
+    "other": "{{.Shown}} von {{.Count}} Apps"
+  },
+  "CatalogShowMore": {
+    "other": "{{.Count}} weitere anzeigen"
+  },
+  "Category": {
+    "other": "Kategorie"
+  },
+  "Clear filters": {
+    "other": "Filter zurücksetzen"
+  },
+  "Delete uploaded app": {
+    "other": "Hochgeladene App löschen"
+  },
+  "Find an app, check its preview, and install it on this device.": {
+    "other": "Finde eine App, sieh dir die Vorschau an und installiere sie auf diesem Gerät."
+  },
+  "Install on": {
+    "other": "Installieren auf"
+  },
+  "Installs": {
+    "other": "Installationen"
+  },
+  "No apps match": {
+    "other": "Keine passenden Apps"
+  },
+  "Search by name, tag, or @author": {
+    "other": "Nach Name, Tag oder @Autor suchen"
+  },
+  "Sharper on 2x panels": {
+    "other": "Schärfer auf 2x-Panels"
+  },
+  "Sort": {
+    "other": "Sortieren"
+  },
+  "Tags": {
+    "other": "Tags"
+  },
+  "Try a shorter search, another category, or turn on broken apps.": {
+    "other": "Versuche eine kürzere Suche, eine andere Kategorie oder blende defekte Apps ein."
+  },
+  "Works on 64×64 panels": {
+    "other": "Funktioniert auf 64×64-Panels"
+  },
+  "On stage": {
+    "other": "Auf der Bühne"
+  },
+  "Pick an app to see it here.": {
+    "other": "Wähle eine App, um sie hier zu sehen."
   }
 }

@@ -2,6 +2,7 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "System Settings" }}{{ end }}
+{{ define "tone" }}pc-bubble{{ end }}
 {{ define "content" }}
 <div class="settings-page">
     <header class="settings-page-header">
@@ -11,6 +12,7 @@
             <p class="settings-page-copy">{{ t .Localizer "Manage your login, security, and API access." }}</p>
         </div>
     </header>
+    {{ template "pxt_settings_tabs" . }}
     <section class="settings-card">
         <div class="settings-card-header">
             <h2>{{ t .Localizer "Profile" }}</h2>
@@ -55,11 +57,41 @@
                 </div>
             </div>
             <div class="settings-actions">
-                <button type="submit" class="w3-button w3-green">
+                <button type="submit" class="btn btn-primary">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save Changes" }}
                 </button>
             </div>
         </form>
+    </section>
+    <section class="settings-card">
+        <div class="settings-card-header">
+            <h2>{{ t .Localizer "Appearance" }}</h2>
+            <p>{{ t .Localizer "The Dark mode button at the bottom of every page flips between light and dark. Choose System to follow your device instead." }}</p>
+        </div>
+        <div class="settings-field-list">
+            <div class="settings-field-row">
+                <div class="settings-field-label">
+                    <label for="theme-select">{{ t .Localizer "Theme" }}</label>
+                </div>
+                <div class="settings-field-control">
+                    <select id="theme-select" name="theme" class="settings-input">
+                        <option value="light"
+                                {{ if eq (string .User.ThemePreference) "light" }}
+                                selected
+                                {{ end }}>{{ t .Localizer "Light" }}</option>
+                        <option value="dark"
+                                {{ if eq (string .User.ThemePreference) "dark" }}
+                                selected
+                                {{ end }}>{{ t .Localizer "Dark" }}</option>
+                        <option value="system"
+                                {{ if or (eq (string .User.ThemePreference) "system") (eq (string .User.ThemePreference) "") }}
+                                selected
+                                {{ end }}>{{ t .Localizer "System" }}</option>
+                    </select>
+                    <p class="settings-help">{{ t .Localizer "Saved to your account." }}</p>
+                </div>
+            </div>
+        </div>
     </section>
     <section class="settings-card">
         <div class="settings-card-header">
@@ -95,7 +127,7 @@
                         <span>{{ or .Name .Authenticator }}{{ if ne .AttestationType "none" }} ({{ .AttestationType }}){{ end }}</span>
                     </div>
                     <button onclick="deletePasskey('{{ .ID }}')"
-                            class="w3-button w3-red"
+                            class="btn btn-danger"
                             type="button"
                             title="{{ t $.Localizer "Delete Passkey" }}">
                         <i class="fa-solid fa-trash"></i> {{ t $.Localizer "Delete" }}
@@ -107,7 +139,7 @@
             </ul>
             <div class="settings-actions">
                 <button onclick="registerPasskey()"
-                        class="w3-button w3-blue"
+                        class="btn"
                         type="button"
                         {{ if gt (len .User.Credentials) 0 }}
                         disabled
@@ -143,12 +175,12 @@
                                    required
                                    value="{{ .User.APIKey }}"
                                    class="settings-input settings-input-xwide settings-input-code">
-                            <button type="button" class="w3-button w3-blue" onclick="copyAPIKey()">
+                            <button type="button" class="btn" onclick="copyAPIKey()">
                                 <i class="fa-solid fa-copy" aria-hidden="true"></i> {{ t .Localizer "Copy" }}
                             </button>
                             <button type="submit"
-                                    class="w3-button w3-green"
-                                    onclick="return confirm('{{ t .Localizer "Update API key?" }}');">
+                                    class="btn btn-primary"
+                                    data-confirm="{{ t .Localizer "Update API key?" }}">
                                 <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                             </button>
                         </div>
@@ -159,8 +191,8 @@
         <div class="settings-actions">
             <form method="post" action="/auth/generate_api_key">
                 <button type="submit"
-                        class="w3-button w3-blue"
-                        onclick="return confirm('{{ t .Localizer "Generate a new API key? This will replace your current API key." }}');">
+                        class="btn"
+                        data-confirm="{{ t .Localizer "Generate a new API key? This will replace your current API key." }}">
                     <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> {{ t .Localizer "Generate New" }}
                 </button>
             </form>
@@ -187,7 +219,7 @@
     }
 
     async function deletePasskey(id) {
-        if (!confirm('{{ t .Localizer "Delete this passkey?" }}')) return;
+        if (!(await pxtConfirm('{{ t .Localizer "Delete this passkey?" }}', { danger: true }))) return;
         try {
             const resp = await fetch('/auth/webauthn/delete/' + encodeURIComponent(id), {
                 method: 'POST'
@@ -195,17 +227,17 @@
             if (resp.ok) {
                 location.reload();
             } else {
-                alert("{{ t .Localizer "Failed to delete passkey" }}");
+                pxtError("{{ t .Localizer "Failed to delete passkey" }}");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 
     async function registerPasskey() {
         if (!window.PublicKeyCredential || !navigator.credentials) {
-            alert("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
+            pxtError("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
             return;
         }
         try {
@@ -246,11 +278,11 @@
             if (finishResp.ok) {
                 location.reload();
             } else {
-                alert("Registration failed");
+                pxtError("Registration failed");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 
@@ -268,7 +300,7 @@
             try {
                 document.execCommand('copy');
             } catch (copyError) {
-                alert("{{ t .Localizer "Failed to copy API key" }}");
+                pxtError("{{ t .Localizer "Failed to copy API key" }}");
             }
         }
     }

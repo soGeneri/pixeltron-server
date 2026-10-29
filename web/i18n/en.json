@@ -399,7 +399,85 @@
     "other": "Device already exists. Import skipped."
   },
   "Tronbyt Manager": {
-    "other": "Tronbyt Manager"
+    "other": "Pixeltron"
+  },
+  "lang": {
+    "other": "en"
+  },
+  "Menu": {
+    "other": "Menu"
+  },
+  "Skip to content": {
+    "other": "Skip to content"
+  },
+  "Main": {
+    "other": "Main"
+  },
+  "Apps": {
+    "other": "Apps"
+  },
+  "Lights off": {
+    "other": "Lights off"
+  },
+  "Lights on": {
+    "other": "Lights on"
+  },
+  "by Ten Thousand Pixels": {
+    "other": "by Ten Thousand Pixels"
+  },
+  "Your Pixeltrons": {
+    "other": "Your Pixeltrons"
+  },
+  "New": {
+    "other": "New"
+  },
+  "No Pixeltrons yet": {
+    "other": "No Pixeltrons yet"
+  },
+  "Add your first device to start sending it apps.": {
+    "other": "Add your first device to start sending it apps."
+  },
+  "Sign in to manage your Pixeltrons and the apps they show.": {
+    "other": "Sign in to manage your Pixeltrons and the apps they show."
+  },
+  "Or": {
+    "other": "Or"
+  },
+  "The first account runs this server. You can add more people later.": {
+    "other": "The first account runs this server. You can add more people later."
+  },
+  "Make an account to set up your own Pixeltrons.": {
+    "other": "Make an account to set up your own Pixeltrons."
+  },
+  "Letters and numbers only.": {
+    "other": "Letters and numbers only."
+  },
+  "All devices": {
+    "other": "All devices"
+  },
+  "Every user on this server and the Pixeltrons they run.": {
+    "other": "Every user on this server and the Pixeltrons they run."
+  },
+  "Add your own app to this device's catalog.": {
+    "other": "Add your own app to this device's catalog."
+  },
+  "Appearance": {
+    "other": "Appearance"
+  },
+  "The Lights off button flips between light and dark. Choose System to follow your device instead.": {
+    "other": "The Lights off button flips between light and dark. Choose System to follow your device instead."
+  },
+  "Theme": {
+    "other": "Theme"
+  },
+  "Saved to your account.": {
+    "other": "Saved to your account."
+  },
+  "Name it, pick its type, and tell it where it lives.": {
+    "other": "Name it, pick its type, and tell it where it lives."
+  },
+  "Close": {
+    "other": "Close"
   },
   "Home": {
     "other": "Home"
@@ -915,7 +993,7 @@
     "other": "Manage sign-in with a hardware key, browser, or device passkey."
   },
   "Passkeys only work when Tronbyt is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled.": {
-    "other": "Passkeys only work when Tronbyt is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled."
+    "other": "Passkeys only work when Pixeltron is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled."
   },
   "API Access": {
     "other": "API Access"
@@ -960,7 +1038,7 @@
     "other": "Configure"
   },
   "New Tronbyt": {
-    "other": "New Tronbyt"
+    "other": "New Pixeltron"
   },
   "Delete User?": {
     "other": "Delete User?"
@@ -1368,13 +1446,13 @@
     "other": "Failed"
   },
   "New Tronbyt Device": {
-    "other": "New Tronbyt Device"
+    "other": "New Pixeltron"
   },
   "Basic Information": {
     "other": "Basic Information"
   },
   "Descriptive name for this Tronbyt device": {
-    "other": "Descriptive name for this Tronbyt device"
+    "other": "Descriptive name for this Pixeltron"
   },
   "Leave blank to auto-generate.": {
     "other": "Leave blank to auto-generate."
@@ -2419,5 +2497,188 @@
   },
   "No Changes Provided": {
     "other": "No Changes Provided"
+  },
+  "Add an app and it will start showing on the device right away. Add more and the device takes turns showing each one.": {
+    "other": "Add an app and it will start showing on the device right away. Add more and the device takes turns showing each one."
+  },
+  "App deleted": {
+    "other": "App deleted"
+  },
+  "Apps & Firmware": {
+    "other": "Apps & Firmware"
+  },
+  "Auto-pin": {
+    "other": "Auto-pin"
+  },
+  "Cancel and remove app": {
+    "other": "Cancel and remove app"
+  },
+  "Changes on this page apply when you save.": {
+    "other": "Changes on this page apply when you save."
+  },
+  "Choose device": {
+    "other": "Choose device"
+  },
+  "Connection:": {
+    "other": "Connection:"
+  },
+  "Controls": {
+    "other": "Controls"
+  },
+  "Dark mode": {
+    "other": "Dark mode"
+  },
+  "Delete device": {
+    "other": "Delete device"
+  },
+  "DeleteAppConfirm": {
+    "other": "Delete “{{.AppName}}” from this device?"
+  },
+  "DeleteDeviceConfirm": {
+    "other": "Delete “{{.DeviceName}}” and all of its apps? This can't be undone."
+  },
+  "DeleteUploadConfirm": {
+    "other": "Delete the uploaded app “{{.AppName}}”?"
+  },
+  "Error saving config": {
+    "other": "Couldn't save the configuration. Try again."
+  },
+  "Full-screen view": {
+    "other": "Full-screen view"
+  },
+  "Install": {
+    "other": "Install"
+  },
+  "Light mode": {
+    "other": "Light mode"
+  },
+  "More": {
+    "other": "More"
+  },
+  "More actions for": {
+    "other": "More actions for"
+  },
+  "Move to bottom": {
+    "other": "Move to bottom"
+  },
+  "Move to top": {
+    "other": "Move to top"
+  },
+  "Nothing on this screen yet": {
+    "other": "Nothing on this screen yet"
+  },
+  "OK": {
+    "other": "OK"
+  },
+  "On screen now": {
+    "other": "On screen now"
+  },
+  "Passkey sign-in didn't work. Try again, or sign in with your password.": {
+    "other": "Passkey sign-in didn't work. Try again, or sign in with your password."
+  },
+  "Pick an app to install it on this device. You'll set its options on the next screen.": {
+    "other": "Pick an app to install it on this device. You'll set its options on the next screen."
+  },
+  "Pinned": {
+    "other": "Pinned"
+  },
+  "Pins itself while it has something to show": {
+    "other": "Pins itself while it has something to show"
+  },
+  "Pushed": {
+    "other": "Pushed"
+  },
+  "Removes this device and every app installed on it. This can't be undone.": {
+    "other": "Removes this device and every app installed on it. This can't be undone."
+  },
+  "Saved": {
+    "other": "Saved"
+  },
+  "Seconds per app": {
+    "other": "Seconds per app"
+  },
+  "Sent to the device through the API": {
+    "other": "Sent to the device through the API"
+  },
+  "Shown all the time instead of taking turns": {
+    "other": "Shown all the time instead of taking turns"
+  },
+  "Shows this device's screen full-size in a new tab, for a TV or spare monitor": {
+    "other": "Shows this device's screen full-size in a new tab, for a TV or spare monitor"
+  },
+  "Something went wrong. Try again.": {
+    "other": "Something went wrong. Try again."
+  },
+  "Updates every": {
+    "other": "Updates every"
+  },
+  "The Dark mode button at the bottom of every page flips between light and dark. Choose System to follow your device instead.": {
+    "other": "The Dark mode button at the bottom of every page flips between light and dark. Choose System to follow your device instead."
+  },
+  "All": {
+    "other": "All"
+  },
+  "Already on this device. Installing again adds a second copy with its own settings.": {
+    "other": "Already on this device. Installing again adds a second copy with its own settings."
+  },
+  "By": {
+    "other": "By"
+  },
+  "CatalogCountOne": {
+    "other": "1 app"
+  },
+  "CatalogCountMany": {
+    "other": "{{.Count}} apps"
+  },
+  "CatalogShowing": {
+    "other": "Showing {{.Shown}} of {{.Count}} apps"
+  },
+  "CatalogShowMore": {
+    "other": "Show {{.Count}} more"
+  },
+  "Category": {
+    "other": "Category"
+  },
+  "Clear filters": {
+    "other": "Clear filters"
+  },
+  "Delete uploaded app": {
+    "other": "Delete uploaded app"
+  },
+  "Find an app, check its preview, and install it on this device.": {
+    "other": "Find an app, check its preview, and install it on this device."
+  },
+  "Install on": {
+    "other": "Install on"
+  },
+  "Installs": {
+    "other": "Installs"
+  },
+  "No apps match": {
+    "other": "No apps match"
+  },
+  "Search by name, tag, or @author": {
+    "other": "Search by name, tag, or @author"
+  },
+  "Sharper on 2x panels": {
+    "other": "Sharper on 2x panels"
+  },
+  "Sort": {
+    "other": "Sort"
+  },
+  "Tags": {
+    "other": "Tags"
+  },
+  "Try a shorter search, another category, or turn on broken apps.": {
+    "other": "Try a shorter search, another category, or turn on broken apps."
+  },
+  "Works on 64×64 panels": {
+    "other": "Works on 64×64 panels"
+  },
+  "On stage": {
+    "other": "On stage"
+  },
+  "Pick an app to see it here.": {
+    "other": "Pick an app to see it here."
   }
 }

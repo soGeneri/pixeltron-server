@@ -3,23 +3,48 @@
   gap: 12px;
   margin: 0 0 24px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-color, #d6d6d6);
+  border-bottom: var(--border-hair) solid var(--line-strong);
   flex-wrap: wrap;
 }
 
 .settings-subnav-link {
-  color: var(--muted-text, #666);
+  color: var(--ink);
+  font: 700 15px/20px var(--font-sans);
   text-decoration: none;
-  padding: 0.35rem 0.7rem;
-  border: 1px solid transparent;
-  border-radius: 999px;
+  padding: 8px 12px;
+  border: var(--border-pixel) solid transparent;
+  border-radius: var(--radius-0);
 }
 
+.settings-subnav-link:hover,
 .settings-subnav-link.active {
-  color: var(--page-text);
-  font-weight: 600;
-  background: var(--surface-bg, #fff);
-  border-color: var(--border-color, #d6d6d6);
+  color: var(--midnight);
+  background: var(--sun);
+  border-color: var(--ink);
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+/* In-page jump links (device sections, devices on the dashboard) look like
+   links, not tabs: nothing here is "selected". */
+.pxt-jump {
+  gap: 4px var(--space-2);
+  border-bottom: 0;
+}
+
+.pxt-jump .settings-subnav-link {
+  padding: 4px 0;
+  border: 0;
+  font-weight: 400;
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 4px;
+}
+
+.pxt-jump .settings-subnav-link:hover {
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+  text-decoration-color: var(--ink);
 }
 
 .settings-page {
@@ -38,10 +63,10 @@
 
 .settings-eyebrow {
   margin: 0 0 6px;
-  font-size: 0.85rem;
+  font: 500 12px/16px var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted-text, #666);
+  letter-spacing: 0.08em;
+  color: var(--muted-text);
 }
 
 .settings-page-header h1,
@@ -54,20 +79,20 @@
 .settings-card-header p,
 .settings-help {
   margin: 6px 0 0;
-  color: var(--muted-text, #666);
+  color: var(--muted-text);
   line-height: 1.45;
   max-width: 68ch;
 }
 
 .settings-card {
-  border: 1px solid var(--border-color, #d6d6d6);
-  background: var(--surface-bg, #fff);
-  border-radius: 16px;
-  padding: 18px;
+  border: var(--border-pixel) solid var(--ink);
+  background: var(--surface);
+  border-radius: var(--radius-0);
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  box-shadow: 0 10px 30px var(--shadow-color, rgba(15, 23, 42, 0.06));
+  gap: var(--space-2);
+  box-shadow: var(--shadow-pixel);
 }
 
 .settings-card-header {
@@ -77,8 +102,8 @@
 }
 
 .settings-card-subsection {
-  border-top: 1px solid var(--border-color, #d6d6d6);
-  padding-top: 14px;
+  border-top: var(--border-hair) solid var(--line-strong);
+  padding-top: var(--space-2);
 }
 
 .settings-form,
@@ -97,11 +122,13 @@
 }
 
 .settings-field-list > .settings-field-row + .settings-field-row {
-  border-top: 1px solid color-mix(in srgb, var(--border-color, #d6d6d6) 75%, transparent);
+  border-top: var(--border-hair) solid var(--line);
 }
 
 .settings-field-label {
-  font-weight: 600;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   padding-top: 10px;
   color: var(--page-text);
 }
@@ -142,7 +169,7 @@
   margin: 0;
 }
 
-.settings-repo-url-actions .w3-button {
+.settings-repo-url-actions .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -195,7 +222,7 @@
 }
 
 .settings-input-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.95rem;
 }
 
@@ -218,7 +245,7 @@
 
 .settings-caption {
   margin: 0;
-  color: var(--muted-text, #666);
+  color: var(--muted-text);
   font-size: 0.92rem;
   line-height: 1.4;
 }
@@ -253,8 +280,9 @@
   width: 100%;
   box-sizing: border-box;
   background-color: var(--flash-bg);
-  border-left: 4px solid var(--primary-color, #0284c7);
-  border-radius: 6px;
+  border: var(--border-pixel) solid var(--ink);
+  border-left-width: var(--border-chunky);
+  border-radius: var(--radius-0);
   padding: 12px 16px;
   color: var(--flash-text, var(--page-text));
   margin-bottom: 8px;
@@ -291,9 +319,9 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  border: 1px solid var(--border-color, #d6d6d6);
-  border-radius: 14px;
-  background: var(--surface-subtle, #f7f7f8);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  background: var(--surface-raised);
 }
 
 .settings-list-item,
@@ -303,8 +331,8 @@
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border-top: 1px solid var(--border-color, #d6d6d6);
-  background: var(--surface-bg, #fff);
+  border-top: var(--border-hair) solid var(--line);
+  background: var(--surface);
 }
 
 .settings-list li:first-child,
@@ -347,15 +375,16 @@
 
 .settings-dialog {
   width: min(42rem, calc(100vw - 2rem));
-  border: 1px solid var(--border-color, #d6d6d6);
-  border-radius: 18px;
-  padding: 18px;
-  background: var(--surface-bg, #fff);
-  box-shadow: 0 24px 60px var(--shadow-color, rgba(15, 23, 42, 0.18));
+  border: var(--border-hair) solid var(--line);
+  border-radius: var(--radius-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lift);
 }
 
 .settings-dialog::backdrop {
-  background: rgba(15, 23, 42, 0.3);
+  background: var(--scrim);
 }
 
 .settings-dialog-actions {
@@ -369,13 +398,15 @@
   display: inline-flex;
   width: fit-content;
   padding: 2px 8px;
-  border: 1px solid var(--border-color, #d6d6d6);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  color: var(--muted-text, #666);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  border-radius: var(--radius-1);
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-text);
 }
 
-@media (max-width: 800px) {
+@media (max-width: 760px) {
   .settings-page-header {
     flex-direction: column;
     align-items: stretch;
@@ -408,7 +439,7 @@
   max-width: 42rem;
 }
 
-.usage-sharing-option .w3-check {
+.usage-sharing-option input {
   flex-shrink: 0;
   margin-top: 3px;
 }
@@ -418,5 +449,5 @@
   margin-top: 4px;
   font-size: 0.9em;
   font-weight: 400;
-  color: var(--muted-text, #666);
+  color: var(--muted-text);
 }
