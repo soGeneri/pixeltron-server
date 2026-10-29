@@ -10,7 +10,7 @@ import (
 )
 
 type Settings struct {
-	NibletCloudURL         string `env:"NIBLET_CLOUD_URL"         envDefault:"https://cloud.heyniblet.com"`
+	NibletCloudURL         string `env:"NIBLET_CLOUD_URL"` // Pixeltron: off unless set
 	DBDSN                  string `env:"DB_DSN"                   envDefault:"data/tronbyt.db"`
 	DataDir                string `env:"DATA_DIR"                 envDefault:"data"`
 	Production             bool   `env:"PRODUCTION"               envDefault:"true"`
@@ -82,7 +82,8 @@ func LoadSettings() (*Settings, error) {
 		return nil, err
 	}
 
-	// An explicitly empty URL disables Niblet network activity.
+	// Niblet Cloud is off by default in Pixeltron; an empty URL disables all
+	// Niblet network activity. Set NIBLET_CLOUD_URL to opt back in.
 	if value, set := os.LookupEnv("NIBLET_CLOUD_URL"); set {
 		cfg.NibletCloudURL = value
 	}
