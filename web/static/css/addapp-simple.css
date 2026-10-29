@@ -461,53 +461,84 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Details panel: a side sheet on wide screens, a bottom sheet on phones */
+/* Layout: the catalog beside the stage                                 */
 /* ------------------------------------------------------------------ */
-.catalog-detail {
-  position: fixed;
-  inset: 0 0 0 auto;
-  width: min(480px, 100vw);
-  height: 100dvh;
-  max-width: none;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  overflow-y: auto;
-  background: var(--surface);
-  color: var(--ink);
-  border: 0;
-  border-left: var(--border-bold) solid var(--ink);
+/* This page runs wider than the rest so three tile columns fit beside
+   the stage. */
+.pxt-main:has(.addapp-shell) {
+  max-width: var(--content-wide);
 }
 
-.catalog-detail[open] {
-  animation: catalog-sheet-in var(--dur-base) var(--ease-out);
+.catalog-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 432px;
+  align-items: start;
+  gap: var(--space-4);
 }
 
-.catalog-detail::backdrop {
-  background: var(--scrim);
-}
-
-@keyframes catalog-sheet-in {
-  from {
-    transform: translateX(32px);
-    opacity: 0;
-  }
-}
-
-.catalog-detail-inner {
+.catalog-main {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
-.catalog-detail-top {
+/* The tile on stage stays marked while you browse. */
+.content .app-item[aria-pressed="true"] {
+  outline: var(--border-pixel) solid var(--ink);
+  outline-offset: 0;
+  box-shadow: 6px 6px 0 0 var(--cherry);
+}
+
+/* ------------------------------------------------------------------ */
+/* The stage: always dark, like the device in a dim room                */
+/* ------------------------------------------------------------------ */
+.catalog-stage {
+  position: sticky;
+  top: var(--space-2);
   display: flex;
-  justify-content: flex-end;
-  padding: var(--space-1) var(--space-1) 0;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--space-4));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--stage);
+  color: var(--cream);
+  border: var(--border-bold) solid var(--midnight);
+  box-shadow: 10px 10px 0 0 var(--cherry);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
+.catalog-stage-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 48px;
+  padding: 0 var(--space-1) 0 var(--space-2);
+  border-bottom: var(--border-pixel) solid var(--line);
+}
+
+/* Lit while an app is on stage. */
+.catalog-stage-led {
+  width: 8px;
+  height: 8px;
+  background: var(--line-strong);
+}
+
+.catalog-stage.has-app .catalog-stage-led {
+  background: var(--mint);
+}
+
+.content .catalog-stage-label {
+  flex: 1;
+  margin: 0;
+  font: 400 12px/14px var(--font-pixel);
+  color: var(--on-stage-muted);
+}
+
+/* Only the bottom sheet needs a close button. */
 .content .catalog-detail-close {
+  display: none;
   width: 40px;
   height: 40px;
   padding: 0;
@@ -523,42 +554,66 @@
   border-color: var(--ink);
 }
 
-/* The authored moment: the app on a big screen, framed like the dashboard stage. */
-.catalog-detail-screen.app-img {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 var(--space-3);
-  padding: var(--space-2);
-  aspect-ratio: 2 / 1;
-  box-sizing: border-box;
-  border: var(--border-chunky) solid var(--ink);
-  background: var(--screen);
-  box-shadow: 6px 6px 0 0 var(--cherry);
+/* The screen sits in a bezel at a whole-number scale: 64 × 32 at 6×. */
+.catalog-stage-bezel {
+  margin: var(--space-3) auto var(--space-2);
+  padding: 12px;
+  background: var(--midnight);
+  border: var(--border-chunky) solid var(--line);
 }
 
-.catalog-detail-screen.app-img.is-square {
-  aspect-ratio: 2 / 1;
+.catalog-detail-screen.app-img {
+  display: grid;
+  place-items: center;
+  width: 384px;
+  height: 192px;
+  border: 0;
+  background: var(--screen);
+}
+
+.catalog-detail-screen.app-img img {
+  display: block;
+  width: 384px;
+  height: 192px;
 }
 
 .catalog-detail-screen.app-img.is-square img {
-  width: auto;
-  height: 100%;
+  width: 192px;
+  height: 192px;
+}
+
+.catalog-stage-empty {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+  font: 400 15px/22px var(--font-sans);
+  color: var(--on-stage-muted);
+  text-align: center;
+}
+
+.catalog-stage-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .catalog-detail-body {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 12px;
-  padding: var(--space-3);
+  padding: var(--space-1) var(--space-3) var(--space-2);
 }
 
-.catalog-detail-name {
+.content .catalog-detail-name {
   margin: 0;
-  font: 800 28px/34px var(--font-sans);
+  font: 800 32px/36px var(--font-sans);
   letter-spacing: -0.01em;
+  color: var(--cream);
   overflow-wrap: anywhere;
+}
+
+/* The brand's cherry full stop after the app's name. */
+.catalog-detail-name::after {
+  content: ".";
+  color: var(--cherry);
 }
 
 .catalog-detail-summary {
@@ -575,37 +630,48 @@
 .catalog-detail-desc {
   margin: 0;
   font: 400 15px/24px var(--font-sans);
-  color: var(--ink-muted);
+  color: var(--on-stage-muted);
   white-space: pre-line;
 }
 
 .catalog-detail-specs {
   margin-top: var(--space-1);
   padding-top: var(--space-2);
-  border-top: var(--border-hair) solid var(--line);
+  border-top: var(--border-pixel) solid var(--line);
 }
 
 .catalog-detail-note {
   margin: 0;
   padding: 12px var(--space-2);
-  background: var(--sun-soft);
+  background: var(--surface-raised);
   font: 400 15px/22px var(--font-sans);
 }
 
 .catalog-detail-note-broken {
-  background: var(--surface-raised);
   color: var(--accent-text);
   box-shadow: inset 0 0 0 1px var(--accent-text);
 }
 
 .catalog-detail-actions {
-  position: sticky;
-  bottom: 0;
   display: flex;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface);
-  border-top: var(--border-pixel) solid var(--ink);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+/* The stage's primary is sun, like the other dark stages (pixeltron.css). */
+.content .catalog-stage .btn-primary {
+  background: var(--sun);
+  border-color: var(--sun);
+  color: var(--midnight);
+}
+
+.content .catalog-stage .btn-primary:hover {
+  background: var(--sun);
+  border-color: var(--cream);
+  color: var(--midnight);
+}
+
+.content .catalog-stage .btn:focus-visible {
+  outline-color: var(--cream);
 }
 
 .catalog-detail-actions [data-detail-install] {
@@ -619,8 +685,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  padding: 0 var(--space-3) var(--space-2);
-  background: var(--surface);
+  padding: 0 var(--space-3) var(--space-3);
 }
 
 .catalog-detail-admin[hidden],
@@ -628,9 +693,49 @@
   display: none;
 }
 
+.catalog-stage-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--scrim);
+}
+
 /* ------------------------------------------------------------------ */
-/* Phones                                                              */
+/* Narrow screens: the stage becomes a bottom sheet                     */
 /* ------------------------------------------------------------------ */
+@media (max-width: 1000px) {
+  .catalog-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .catalog-stage {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: calc(var(--z-modal) + 1);
+    max-height: 92dvh;
+    border-width: var(--border-bold) 0 0;
+    box-shadow: 0 -8px 0 0 var(--cherry);
+    transform: translateY(100%);
+    visibility: hidden;
+    transition: transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base);
+  }
+
+  .catalog-stage[data-open] {
+    transform: none;
+    visibility: visible;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .content .catalog-detail-close {
+    display: grid;
+    place-items: center;
+  }
+
+  .catalog-stage-empty {
+    display: none;
+  }
+}
+
 @media (max-width: 760px) {
   .catalog-toolbar {
     position: static;
@@ -662,29 +767,34 @@
     line-height: 18px;
   }
 
-  .catalog-detail {
-    inset: auto 0 0 0;
-    width: 100%;
-    height: auto;
-    max-height: 92dvh;
-    border-left: 0;
-    border-top: var(--border-bold) solid var(--ink);
+  /* 64 × 32 at 4× on phones. */
+  .catalog-stage-bezel {
+    margin-top: var(--space-2);
+    padding: 8px;
   }
 
-  @keyframes catalog-sheet-in {
-    from {
-      transform: translateY(32px);
-      opacity: 0;
-    }
+  .catalog-detail-screen.app-img,
+  .catalog-detail-screen.app-img img {
+    width: 256px;
+    height: 128px;
   }
 
-  .catalog-detail-screen.app-img {
-    margin: 0 var(--space-2);
+  .catalog-detail-screen.app-img.is-square img {
+    width: 128px;
+    height: 128px;
   }
 
   .catalog-detail-body,
-  .catalog-detail-actions {
+  .catalog-detail-actions,
+  .catalog-detail-admin {
     padding-left: var(--space-2);
     padding-right: var(--space-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-stage,
+  .catalog-stage[data-open] {
+    transition: none;
   }
 }

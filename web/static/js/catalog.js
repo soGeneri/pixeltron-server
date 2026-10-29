@@ -210,7 +210,7 @@
   });
   // "/" jumps to the search from anywhere on the page that isn't a text field.
   document.addEventListener('keydown', (e) => {
-    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || detail.open) return;
+    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || sheetOpen()) return;
     const t = e.target;
     if (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return;
     e.preventDefault();
@@ -240,8 +240,13 @@
     search.focus();
   });
 
-  // ---- Details panel ------------------------------------------------------
+  // ---- The stage ----------------------------------------------------------
+  // Wide screens show the chosen app in a sticky column beside the grid;
+  // narrow ones raise the same panel as a bottom sheet.
   const detail = document.getElementById('catalog_detail');
+  const scrim = root.querySelector('.catalog-stage-scrim');
+  const sheetQuery = window.matchMedia('(max-width: 1000px)');
+  const sheetOpen = () => detail.hasAttribute('data-open');
   const $ = (sel) => detail.querySelector(sel);
   const install = $('[data-detail-install]');
   const delBtn = $('[data-detail-delete]');
@@ -266,7 +271,9 @@
   }
 
   function openDetail(item) {
+    if (current) current.setAttribute('aria-pressed', 'false');
     current = item;
+    item.setAttribute('aria-pressed', 'true');
     const d = item.dataset;
     const broken = d.broken === 'true';
 
@@ -298,7 +305,7 @@
     spec(specs, label('by'), d.author);
     spec(specs, label('category'), d.category ? d.category.charAt(0).toUpperCase() + d.category.slice(1) : '');
     spec(specs, label('installs'), d.installsLabel);
-    spec(specs, label('updated'), (d.updated || d.date || '').split(' ')[0]);
+    spec(specs, label('updated'), (d.updated || d.date || '').split(/[ T]/)[0]);
     spec(specs, label('tags'), (d.tags || '').split(',').filter(Boolean).join(', '));
 
     $('[data-detail-installed]').hidden = d.installed !== 'true' || broken;
@@ -325,8 +332,24 @@
     }
     admin.hidden = !anyAdmin;
 
-    detail.showModal();
-    (broken ? $('.catalog-detail-close') : install).focus();
+    detail.classList.add('has-app');
+    $('[data-stage-empty]').hidden = true;
+    $('[data-stage-content]').hidden = false;
+    if (sheetQuery.matches) {
+      detail.toggleAttribute('data-open', true);
+      scrim.hidden = false;
+      (broken ? $('.catalog-detail-close') : install).focus();
+    } else {
+      // Start each new app at the top of the stage.
+      detail.scrollTop = 0;
+    }
+  }
+
+  function closeSheet() {
+    if (!sheetOpen()) return;
+    detail.removeAttribute('data-open');
+    scrim.hidden = true;
+    if (current && document.contains(current)) current.focus();
   }
 
   root.addEventListener('click', (e) => {
@@ -334,13 +357,16 @@
     if (item && root.contains(item)) openDetail(item);
   });
 
-  detail.querySelectorAll('[data-detail-close]').forEach((b) => b.addEventListener('click', () => detail.close()));
-  // A click on the backdrop closes the panel.
-  detail.addEventListener('click', (e) => {
-    if (e.target === detail) detail.close();
+  root.querySelectorAll('[data-detail-close]').forEach((b) => b.addEventListener('click', closeSheet));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sheetOpen()) closeSheet();
   });
-  detail.addEventListener('close', () => {
-    if (current && document.contains(current)) current.focus();
+  // Widening the window turns the sheet back into the side column.
+  sheetQuery.addEventListener('change', () => {
+    if (!sheetQuery.matches) {
+      detail.removeAttribute('data-open');
+      scrim.hidden = true;
+    }
   });
 
   install.addEventListener('click', () => {

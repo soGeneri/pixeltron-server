@@ -25,10 +25,11 @@
 </section>
 {{ end }}
 {{ define "app_card_grid_item" }}
-<!-- A catalog tile. Choosing it opens the details panel; installing happens there. -->
+<!-- A catalog tile. Choosing it puts the app on the stage; installing happens there. -->
 <button type="button"
         class="app-item{{ if .App.Broken }} broken-app{{ end }}{{ if .App.IsInstalled }} installed{{ end }}"
-        aria-haspopup="dialog"
+        aria-pressed="false"
+        aria-controls="catalog_detail"
         data-value="{{ .App.ID }}"
         data-path="{{ .App.Path }}"
         data-name="{{ .App.Name }}"

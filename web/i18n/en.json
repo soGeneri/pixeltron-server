@@ -2674,5 +2674,11 @@
   },
   "Works on 64×64 panels": {
     "other": "Works on 64×64 panels"
+  },
+  "On stage": {
+    "other": "On stage"
+  },
+  "Pick an app to see it here.": {
+    "other": "Pick an app to see it here."
   }
 }

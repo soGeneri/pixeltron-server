@@ -18,6 +18,9 @@
         <a class="btn btn-ghost"
            href="/devices/{{ .Device.ID }}/uploadapp">{{ pixelIcon "plus" }} {{ t .Localizer "Upload app" }}</a>
     </header>
+    <!-- The catalog on the left; the chosen app plays on the stage beside it. -->
+    <div class="catalog-layout">
+    <div class="catalog-main">
     <!-- One toolbar filters every group below it. -->
     <div class="catalog-toolbar" role="search">
         <div class="catalog-search">
@@ -96,23 +99,34 @@
         <!-- Set from the chosen app's recommended interval; adjustable on the next screen. -->
         <input type="hidden" name="uinterval" id="uinterval" value="-1">
     </form>
-    <!-- Details for the chosen app, with the install decision. -->
-    <dialog class="catalog-detail"
-            id="catalog_detail"
-            aria-labelledby="catalog_detail_name"
-            data-delete-confirm="{{ t .Localizer "DeleteUploadConfirm" (dict "AppName" "__NAME__") }}"
-            data-mark-broken-confirm="{{ t .Localizer "MarkAppBrokenConfirm" (dict "AppName" "__NAME__") }}"
-            data-unmark-broken-confirm="{{ t .Localizer "UnmarkAppBrokenConfirm" (dict "AppName" "__NAME__") }}">
-        <div class="catalog-detail-inner">
-            <div class="catalog-detail-top">
-                <button type="button"
-                        class="pxt-nav-iconbtn catalog-detail-close"
-                        data-detail-close
-                        aria-label="{{ t .Localizer "Close" }}">{{ pixelIcon "close" }}</button>
-            </div>
+    </div>
+    <!-- The stage: the chosen app on a big always-dark screen, with the install
+         decision. A sticky column on wide screens, a bottom sheet on narrow ones. -->
+    <aside class="catalog-stage"
+           id="catalog_detail"
+           data-theme="dark"
+           aria-labelledby="catalog_stage_label"
+           data-delete-confirm="{{ t .Localizer "DeleteUploadConfirm" (dict "AppName" "__NAME__") }}"
+           data-mark-broken-confirm="{{ t .Localizer "MarkAppBrokenConfirm" (dict "AppName" "__NAME__") }}"
+           data-unmark-broken-confirm="{{ t .Localizer "UnmarkAppBrokenConfirm" (dict "AppName" "__NAME__") }}">
+        <div class="catalog-stage-bar">
+            <span class="catalog-stage-led" aria-hidden="true"></span>
+            <h2 class="catalog-stage-label" id="catalog_stage_label">{{ t .Localizer "On stage" }}</h2>
+            <button type="button"
+                    class="pxt-nav-iconbtn catalog-detail-close"
+                    data-detail-close
+                    aria-label="{{ t .Localizer "Close" }}">{{ pixelIcon "close" }}</button>
+        </div>
+        <div class="catalog-stage-bezel">
             <div class="app-img catalog-detail-screen" data-detail-screen></div>
+        </div>
+        <p class="catalog-stage-empty" data-stage-empty>{{ t .Localizer "Pick an app to see it here." }}</p>
+        <div class="catalog-stage-content" data-stage-content hidden>
             <div class="catalog-detail-body">
-                <h2 class="catalog-detail-name" id="catalog_detail_name" data-detail-name></h2>
+                <h3 class="catalog-detail-name"
+                    id="catalog_detail_name"
+                    aria-live="polite"
+                    data-detail-name></h3>
                 <p class="catalog-detail-summary" data-detail-summary></p>
                 <div class="catalog-detail-chips" data-detail-chips></div>
                 <p class="catalog-detail-desc" data-detail-desc></p>
@@ -126,7 +140,6 @@
                 <button type="button" class="btn btn-primary btn-lg" data-detail-install>
                     {{ t .Localizer "Install on" }} {{ .Device.Name }} {{ pixelIcon "arrow-right" }}
                 </button>
-                <button type="button" class="btn btn-ghost btn-lg" data-detail-close>{{ t .Localizer "Cancel" }}</button>
             </div>
             <div class="catalog-detail-admin" data-detail-admin hidden>
                 <button type="submit"
@@ -143,7 +156,10 @@
                 {{ end }}
             </div>
         </div>
-    </dialog>
+    </aside>
+    </div>
+    <!-- Behind the stage while it is a bottom sheet; a click closes it. -->
+    <div class="catalog-stage-scrim" data-detail-close hidden></div>
 </div>
 <!-- Labels catalog.js puts together at runtime. -->
 <div hidden
