@@ -26,8 +26,9 @@
   margin: 0 auto;
   padding: 20px;
   background-color: var(--content-bg);
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  box-shadow: var(--shadow-pixel);
 }
 
 .form-container h2 {
@@ -79,7 +80,7 @@
   margin-top: 20px;
 }
 
-.form-actions .w3-button {
+.form-actions .btn {
   padding: 10px 20px;
   font-size: 1rem;
 }
@@ -234,23 +235,10 @@ textarea.device-example-command-input {
   height: 35px;
 }
 
-/* Override brightness styles for update page (dark theme default) */
-.brightness-btn[data-brightness="0"] { background-color: #1a1a1a; color: #666; border-color: #222; }
-.brightness-btn[data-brightness="1"] { background-color: #333; color: #aaa; border-color: #444; }
-.brightness-btn[data-brightness="2"] { background-color: #555; color: #ccc; border-color: #666; }
-.brightness-btn[data-brightness="3"] { background-color: #777; color: #eee; border-color: #888; }
-.brightness-btn[data-brightness="4"] { background-color: #999; color: #fff; border-color: #aaa; }
-.brightness-btn[data-brightness="5"] { background-color: #bbb; color: #fff; border-color: #ccc; }
-
+/* Brightness steps use the grey ramp from common.css; hover lifts like a key. */
 .brightness-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 4px rgba(255,255,255,0.2);
-}
-
-.brightness-btn.active {
-  border-color: #377ba8;
-  border-width: 3px;
-  box-shadow: 0 0 8px rgba(55, 123, 168, 0.5);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-pixel-sm);
 }
 
 .firmware-release-notes {

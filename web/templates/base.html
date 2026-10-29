@@ -1,13 +1,16 @@
 {{ define "base" }}<!DOCTYPE html>
+<html lang="{{ t .Localizer "lang" }}">
 <head>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
     // Inline script to set initial theme and prevent FOUC
     (function () {
-      var storedTheme = localStorage.getItem('theme_preference');
+      var storedTheme = null;
+      try { storedTheme = localStorage.getItem('theme_preference'); } catch (e) {}
       // Get server preference if user is logged in, otherwise default to 'system'
       var serverProvidedTheme = "{{ if .User }}{{ .User.ThemePreference }}{{ else }}system{{ end }}";
-      var themeToApply = storedTheme || serverProvidedTheme;
+      var themeToApply = storedTheme || serverProvidedTheme || 'system';
 
       if (themeToApply === 'system') {
         var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -15,12 +18,13 @@
       } else {
         document.documentElement.setAttribute('data-theme', themeToApply);
       }
-      // The full theme.js script will later synchronize the select dropdown and localStorage if needed.
     })();
     </script>
     <title>{{ block "title" . }}{{ end }} - {{ t .Localizer "Tronbyt Manager" }}</title>
-    <link rel="icon" href="/static/favicon.ico">
-    <link rel="stylesheet" href="/static/css/w3.css">
+    <link rel="icon" href="/static/favicon.ico" sizes="32x32">
+    <link rel="icon" href="/static/images/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/fonts.css">
+    <link rel="stylesheet" href="/static/css/tokens.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="/static/css/common.css">
@@ -29,143 +33,54 @@
     <link rel="stylesheet" href="/static/css/fontawesome.min.css">
     <link rel="stylesheet" href="/static/css/brands.min.css">
     <link rel="stylesheet" href="/static/css/solid.min.css">
+    {{ block "head" . }}{{ end }}
+    <link rel="stylesheet" href="/static/css/pixeltron.css">
 </head>
-<nav>
-    <button class="hamburger" id="hamburgerButton">
-        <span>&nbsp;</span>
-        <span>&nbsp;</span>
-        <span>&nbsp;</span>
-    </button>
-    <h1 class="w3-sans-serif">
-        <a href="/" style="text-decoration: none; color: inherit;">{{ t .Localizer "Tronbyt Manager" }}</a>
-    </h1>
-    <ul>
-        {{ if .User }}
-        <li>
-            <a href="/">{{ t .Localizer "Home" }}</a>
-        </li>
-        <li>
-            <a href="/settings/content">{{ t .Localizer "System Settings" }}</a>
-        </li>
-        {{ if not .IsAutoLoginActive }}
-        <li>
-            <a href="/auth/logout">{{ t .Localizer "Log Out" }}</a>
-        </li>
-        {{ end }}
-        <li class="theme-toggle-container">
-            <div class="theme-toggle">
-                <label for="theme-select">{{ t .Localizer "Theme:" }}</label>
-                <select id="theme-select" name="theme">
-                    <option value="light"
-                            {{ if eq (string .User.ThemePreference) "light" }}
-                            selected
-                            {{ end }}>{{ t .Localizer "Light" }}</option>
-                    <option value="dark"
-                            {{ if eq (string .User.ThemePreference) "dark" }}
-                            selected
-                            {{ end }}>{{ t .Localizer "Dark" }}</option>
-                    <option value="system"
-                            {{ if or (eq (string .User.ThemePreference) "system") (eq (string .User.ThemePreference) "") }}
-                            selected
-                            {{ end }}>{{ t .Localizer "System" }}</option>
-                </select>
-            </div>
-        </li>
-    {{ else }}
-        <li>
-            <a href="/auth/login">{{ t .Localizer "Log In" }}</a>
-        </li>
-        {{ if .Config.EnableUserRegistration }}
-        <li>
-            <a href="/auth/register">{{ t .Localizer "Create User" }}</a>
-        </li>
-        {{ end }}
-        {{ end }}
-    </ul>
-</nav>
-<!-- Mobile Menu Overlay -->
-<div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
-<!-- Mobile Menu -->
-<div class="mobile-menu" id="mobileMenu">
-    <div class="mobile-menu-header">
-        <h1>
-            <a href="/"
-               onclick="closeMobileMenu()"
-               style="text-decoration: none;
-                      color: inherit">{{ t .Localizer "Tronbyt Manager" }}</a>
-        </h1>
-        <button class="mobile-menu-close" id="mobileMenuClose">×</button>
-    </div>
-    <ul>
-        {{ if .User }}
-        <li>
-            <a href="/" onclick="closeMobileMenu()">{{ t .Localizer "Home" }}</a>
-        </li>
-        <li>
-            <a href="/settings/content" onclick="closeMobileMenu()">{{ t .Localizer "System Settings" }}</a>
-        </li>
-        {{ if not .IsAutoLoginActive }}
-        <li>
-            <a href="/auth/logout" onclick="closeMobileMenu()">{{ t .Localizer "Log Out" }}</a>
-        </li>
-        {{ end }}
-        <li class="theme-toggle-container">
-            <div class="theme-toggle">
-                <label for="mobile-theme-select">{{ t .Localizer "Theme:" }}</label>
-                <select id="mobile-theme-select" name="theme">
-                    <option value="light"
-                            {{ if eq (string .User.ThemePreference) "light" }}
-                            selected
-                            {{ end }}>{{ t .Localizer "Light" }}</option>
-                    <option value="dark"
-                            {{ if eq (string .User.ThemePreference) "dark" }}
-                            selected
-                            {{ end }}>{{ t .Localizer "Dark" }}</option>
-                    <option value="system"
-                            {{ if or (eq (string .User.ThemePreference) "system") (eq (string .User.ThemePreference) "") }}
-                            selected
-                            {{ end }}>{{ t .Localizer "System" }}</option>
-                </select>
-            </div>
-        </li>
-    {{ else }}
-        <li>
-            <a href="/auth/login" onclick="closeMobileMenu()">{{ t .Localizer "Log In" }}</a>
-        </li>
-        {{ if .Config.EnableUserRegistration }}
-        <li>
-            <a href="/auth/register" onclick="closeMobileMenu()">{{ t .Localizer "Create User" }}</a>
-        </li>
-        {{ end }}
-        {{ end }}
-    </ul>
-</div>
-<section class="content">
-    <header>
-        {{ block "header" . }}{{ end }}
+<body class="pxt-body {{ block "tone" . }}pc-sun{{ end }}">
+    <a class="pxt-skip" href="#main">{{ t .Localizer "Skip to content" }}</a>
+    <!-- The page's tinted band, with the cartridge nav bar floating in it. -->
+    <header class="pxt-top ttp-dotgrid">
+        <nav class="pxt-nav" aria-label="{{ t .Localizer "Main" }}">
+            <button class="pxt-nav-iconbtn pxt-nav-menu"
+                    id="hamburgerButton"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-label="{{ t .Localizer "Menu" }}">{{ pixelIcon "menu" }}</button>
+            {{ template "pxt_logo" . }}
+            <ul class="pxt-nav-links">
+                {{ template "pxt_nav_links" . }}
+            </ul>
+        </nav>
     </header>
-    {{ if .SettingsSection }}
-    <nav class="settings-subnav"
-         aria-label="{{ t .Localizer "System Settings" }}">
-        <a href="/settings/content"
-           class="settings-subnav-link {{ if eq .SettingsSection "content" }}active{{ end }}">{{ t .Localizer "Content and Firmware" }}</a>
-        <a href="/settings/account"
-           class="settings-subnav-link {{ if eq .SettingsSection "account" }}active{{ end }}">{{ t .Localizer "Account" }}</a>
-        {{ if and .User .User.IsAdmin }}
-        <a href="/settings/admin"
-           class="settings-subnav-link {{ if eq .SettingsSection "admin" }}active{{ end }}">{{ t .Localizer "Admin" }}</a>
-        {{ end }}
-    </nav>
-    {{ end }}
-    {{- if .Flashes -}}
-    <div class="flash">
-        {{- range .Flashes -}}
-        <div>{{ . }}</div>
-        {{- end -}}
+    <!-- Mobile menu drawer -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <div class="mobile-menu"
+         id="mobileMenu"
+         role="dialog"
+         aria-modal="true"
+         aria-label="{{ t .Localizer "Menu" }}">
+        <div class="mobile-menu-header">
+            <p class="pxt-drawer-title">{{ t .Localizer "Menu" }}</p>
+            <button class="pxt-nav-iconbtn mobile-menu-close"
+                    id="mobileMenuClose"
+                    type="button"
+                    aria-label="{{ t .Localizer "Close" }}">{{ pixelIcon "close" }}</button>
+        </div>
+        <ul class="ttp-menu">
+            {{ template "pxt_menu_rows" . }}
+        </ul>
     </div>
-    {{- end -}}
-    {{ block "content" . }}{{ end }}
-    {{ if .ShowUsagePrompt }}
+    <main class="content pxt-main" id="main">
+        {{ block "header" . }}{{ end }}
+        {{- if .Flashes -}}
+        <div class="flash" role="status">
+            {{- range .Flashes -}}
+            <div>{{ . }}</div>
+            {{- end -}}
+        </div>
+        {{- end -}}
+        {{ block "content" . }}{{ end }}
+        {{ if .ShowUsagePrompt }}
     <dialog id="usage-sharing-prompt"
             class="settings-dialog"
             aria-labelledby="usage-sharing-prompt-title">
@@ -178,7 +93,7 @@
             </div>
             <p class="settings-help">{{ t .Localizer "Community app stats description" }}</p>
             <label class="usage-sharing-option">
-                <input class="w3-check"
+                <input class="pxt-checkbox"
                        type="checkbox"
                        name="contribute"
                        value="true"
@@ -186,8 +101,8 @@
                 <span><strong>{{ t .Localizer "Show stats from Niblet community" }}</strong></span>
             </label>
             <div class="settings-dialog-actions">
-                <button class="w3-button" type="submit" name="consent" value="false">{{ t .Localizer "Not now" }}</button>
-                <button class="w3-button w3-blue" type="submit" name="usage_prompt" value="1">{{ t .Localizer "Continue" }}</button>
+                <button class="btn btn-ghost" type="submit" name="consent" value="false">{{ t .Localizer "Not now" }}</button>
+                <button class="btn btn-primary" type="submit" name="usage_prompt" value="1">{{ t .Localizer "Continue" }}</button>
             </div>
         </form>
     </dialog>
@@ -200,126 +115,216 @@
       })();
     </script>
     {{ end }}
-</section>
-<hr style="margin-top: 20px; border: none; border-top: 1px solid #333;">
-{{ if .UpdateAvailable }}
-<div style="text-align: center; margin-top: 20px;">
-    <a href="{{ .LatestReleaseURL }}"
-       target="_blank"
-       style="color: #ff5722;
-              text-decoration: none;
-              font-weight: bold">
-        <i class="fa-solid fa-circle-arrow-up"></i> {{ t .Localizer "Update available!" }}
-    </a>
-</div>
-{{ end }}
-<div style="font-size: 12px;
-            color: #888;
-            text-align: center;
-            margin-top: {{ if .UpdateAvailable }}5px{{ else }}20px{{ end }}">
+    </main>
+    <!-- The page's last band: big arcade links, utility rows and the small print. -->
+    <footer class="pxt-footer ttp-dotgrid{{ if not .User }} pxt-footer-slim{{ end }}">
+        {{ if .User }}
+        <ul class="pxt-footer-big">
+            <li>
+                <a href="/">{{ t .Localizer "Devices" }}</a>
+            </li>
+            <li>
+                <a href="/settings/content">{{ t .Localizer "Apps" }}</a>
+            </li>
+            <li>
+                <a href="/settings/account">{{ t .Localizer "Settings" }}</a>
+            </li>
+            <li>
+                <a href="/settings/content#firmware">{{ t .Localizer "Firmware" }}</a>
+            </li>
+        </ul>
+        <ul class="ttp-menu">
+            {{ template "pxt_menu_rows" . }}
+        </ul>
+        {{ end }}
+        {{ if .UpdateAvailable }}
+        <a class="pxt-footer-update"
+           href="{{ .LatestReleaseURL }}"
+           target="_blank">{{ pixelIcon "star" }} {{ t .Localizer "Update available!" }}</a>
+        {{ end }}
+        <div class="pxt-footer-bottom">
+            <p class="pxt-footer-version">
 {{ t .Localizer "Server" }} {{ .ServerVersion }}{{ if and .CommitHash (ne .CommitHash "unknown") }}{{ if .ShowBranchTag }} <a href="{{ if .CommitURL }}{{ .CommitURL }}{{ else }}https://github.com/tronbyt/server/tree/{{ .CommitHash }}{{ end }}"
     target="_blank"
-    style="color: var(--primary-color);
-           text-decoration: none;
-           font-family: monospace"
     title="{{ .CommitHash }}">[{{ .Branch }}]({{ substr .CommitHash 0 7 }})</a>{{ else }} (<a href="{{ if .CommitURL }}{{ .CommitURL }}{{ else }}https://github.com/tronbyt/server/tree/{{ .CommitHash }}{{ end }}"
    target="_blank"
-   style="color: var(--primary-color);
-          text-decoration: none;
-          font-family: monospace"
    title="{{ .CommitHash }}">{{ substr .CommitHash 0 7 }}</a>){{ end }}{{ else if .Branch }} <a href="{{ if .CommitURL }}{{ .CommitURL }}{{ else }}https://github.com/tronbyt/server/tree/{{ .Branch }}{{ end }}"
-    target="_blank"
-    style="color: var(--primary-color);
-           text-decoration: none;
-           font-family: monospace">{{ if .ShowBranchTag }}[{{ .Branch }}]{{ else }}{{ .Branch }}{{ end }}</a>{{ end }}
-</div>
-<script>
+    target="_blank">{{ if .ShowBranchTag }}[{{ .Branch }}]{{ else }}{{ .Branch }}{{ end }}</a>{{ end }}
+</p>
+            <svg class="pxt-logo-mark"
+                 viewBox="0 0 12 11"
+                 width="15"
+                 height="14"
+                 aria-hidden="true">
+                <path fill="var(--cherry)" d="M2 2h2v1h-2zM7 2h2v1h-2zM1 3h4v1h-4zM6 3h4v1h-4zM1 4h9v1h-9zM1 5h9v1h-9zM2 6h7v1h-7zM3 7h5v1h-5zM4 8h3v1h-3zM5 9h1v1h-1z" />
+                <rect x="2" y="3" width="1" height="1" fill="var(--cream)" />
+                <rect class="pxt-logo-pop" x="10" y="0" width="1.5" height="1.5" fill="var(--sun)" stroke="currentColor" stroke-width="0.3" />
+            </svg>
+            <p class="pxt-footer-legal">{{ t .Localizer "Tronbyt Manager" }} · {{ t .Localizer "by Ten Thousand Pixels" }}</p>
+        </div>
+    </footer>
+    <!-- Lights off / Lights on: flips between Bright and Night. -->
+    <button class="pxt-theme-toggle"
+            id="theme-toggle"
+            type="button"
+            aria-pressed="false">
+        <span class="pxt-when-light">{{ pixelIcon "moon" }} {{ t .Localizer "Lights off" }}</span>
+        <span class="pxt-when-dark">{{ pixelIcon "sun" }} {{ t .Localizer "Lights on" }}</span>
+    </button>
+    <script>
+  window.pxtLoggedIn = {{ if .User }}true{{ else }}false{{ end }};
   {{ if .User }}
   window.currentUserThemePreference = "{{ .User.ThemePreference }}";
   {{ else }}
   window.currentUserThemePreference = "system"; // Default for guests or if not set
   {{ end }}
 
+  // Mark the nav link for the section we are in.
+  (function () {
+    var path = location.pathname;
+    document.querySelectorAll('.pxt-nav-links a').forEach(function (a) {
+      var href = a.getAttribute('href');
+      // Devices covers the dashboard and every /devices/ page, Settings every
+      // settings tab; anything else marks only its own page.
+      var match = href === '/' ? (path === '/' || path.indexOf('/devices/') === 0)
+        : href.indexOf('/settings/') === 0 ? path.indexOf('/settings/') === 0
+        : path === href;
+      if (match) a.setAttribute('aria-current', 'page');
+    });
+  })();
+
   // Mobile menu state management
   let isMenuOpen = false;
 
   function openMobileMenu() {
     if (!isMenuOpen) {
-      const mobileMenu = document.getElementById('mobileMenu');
-      const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-      const hamburger = document.querySelector('.hamburger');
-
-      mobileMenu.classList.add('active');
-      mobileMenuOverlay.classList.add('active');
-      hamburger.classList.add('active');
+      document.getElementById('mobileMenu').classList.add('active');
+      document.getElementById('mobileMenuOverlay').classList.add('active');
       document.body.style.overflow = 'hidden';
       isMenuOpen = true;
+      document.getElementById('mobileMenuClose').focus();
     }
   }
 
   function closeMobileMenu() {
     if (isMenuOpen) {
-      const mobileMenu = document.getElementById('mobileMenu');
-      const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-      const hamburger = document.querySelector('.hamburger');
-
-      mobileMenu.classList.remove('active');
-      mobileMenuOverlay.classList.remove('active');
-      hamburger.classList.remove('active');
+      document.getElementById('mobileMenu').classList.remove('active');
+      document.getElementById('mobileMenuOverlay').classList.remove('active');
       document.body.style.overflow = '';
       isMenuOpen = false;
+      document.getElementById('hamburgerButton').focus();
     }
   }
 
-  function toggleMobileMenu() {
-    if (isMenuOpen) {
-      closeMobileMenu();
-    } else {
-      openMobileMenu();
-    }
-  }
-
-  // Initialize mobile menu
   document.addEventListener('DOMContentLoaded', function() {
-    const hamburgerButton = document.getElementById('hamburgerButton');
-    const mobileMenuClose = document.getElementById('mobileMenuClose');
-    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-
-    // Hamburger button
-    if (hamburgerButton) {
-      hamburgerButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleMobileMenu();
-      });
-    }
-
-    // Close button
-    if (mobileMenuClose) {
-      mobileMenuClose.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeMobileMenu();
-      });
-    }
-
-    // Overlay click to close
-    if (mobileMenuOverlay) {
-      mobileMenuOverlay.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeMobileMenu();
-      });
-    }
-
-    // Escape key to close
+    document.getElementById('hamburgerButton').addEventListener('click', function(e) {
+      e.preventDefault();
+      isMenuOpen ? closeMobileMenu() : openMobileMenu();
+    });
+    document.getElementById('mobileMenuClose').addEventListener('click', function(e) {
+      e.preventDefault();
+      closeMobileMenu();
+    });
+    document.getElementById('mobileMenuOverlay').addEventListener('click', function(e) {
+      e.preventDefault();
+      closeMobileMenu();
+    });
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape' && isMenuOpen) {
         closeMobileMenu();
       }
     });
   });
-</script>
-<script src="/static/js/manager.js" defer></script>
-<script src="/static/js/theme.js" defer></script>
+    </script>
+    <script src="/static/js/manager.js" defer></script>
+    <script src="/static/js/theme.js" defer></script>
+</body>
+</html>
+{{ end }}
+
+{{ define "pxt_logo" }}
+<a href="/" class="pxt-logo" aria-label="{{ t .Localizer "Tronbyt Manager" }}">
+    <svg class="pxt-logo-mark"
+         viewBox="0 0 12 11"
+         width="24"
+         height="22"
+         aria-hidden="true">
+        <path fill="var(--cherry)" d="M2 2h2v1h-2zM7 2h2v1h-2zM1 3h4v1h-4zM6 3h4v1h-4zM1 4h9v1h-9zM1 5h9v1h-9zM2 6h7v1h-7zM3 7h5v1h-5zM4 8h3v1h-3zM5 9h1v1h-1z" />
+        <rect x="2" y="3" width="1" height="1" fill="var(--cream)" />
+        <rect class="pxt-logo-pop" x="10" y="0" width="1.5" height="1.5" fill="var(--sun)" stroke="currentColor" stroke-width="0.3" />
+    </svg>
+    <span class="pxt-logo-word">{{ t .Localizer "Tronbyt Manager" }}</span>
+</a>
+{{ end }}
+
+{{ define "pxt_nav_links" }}
+{{ if .User }}
+<li>
+    <a href="/">{{ t .Localizer "Devices" }}</a>
+</li>
+<li>
+    <a href="/settings/content">{{ t .Localizer "Settings" }}</a>
+</li>
+{{ if not .IsAutoLoginActive }}
+<li>
+    <a href="/auth/logout">{{ t .Localizer "Log Out" }}</a>
+</li>
+{{ end }}
+{{ else }}
+<li>
+    <a href="/auth/login">{{ t .Localizer "Log In" }}</a>
+</li>
+{{ if .Config.EnableUserRegistration }}
+<li>
+    <a href="/auth/register">{{ t .Localizer "Create User" }}</a>
+</li>
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ define "pxt_menu_rows" }}
+{{ if .User }}
+<li>
+    <a class="ttp-menu-row" href="/">{{ t .Localizer "Devices" }} {{ pixelIcon "grid" }}</a>
+</li>
+<li>
+    <a class="ttp-menu-row" href="/devices/create">{{ t .Localizer "New Tronbyt" }} {{ pixelIcon "plus" }}</a>
+</li>
+<li>
+    <a class="ttp-menu-row" href="/settings/account">{{ t .Localizer "Account" }} {{ pixelIcon "eye" }}</a>
+</li>
+{{ if .User.IsAdmin }}
+<li>
+    <a class="ttp-menu-row" href="/settings/admin">{{ t .Localizer "Admin" }} {{ pixelIcon "info" }}</a>
+</li>
+{{ end }}
+{{ if not .IsAutoLoginActive }}
+<li>
+    <a class="ttp-menu-row" href="/auth/logout">{{ t .Localizer "Log Out" }} {{ pixelIcon "arrow-right" }}</a>
+</li>
+{{ end }}
+{{ else }}
+<li>
+    <a class="ttp-menu-row" href="/auth/login">{{ t .Localizer "Log In" }} {{ pixelIcon "arrow-right" }}</a>
+</li>
+{{ if .Config.EnableUserRegistration }}
+<li>
+    <a class="ttp-menu-row" href="/auth/register">{{ t .Localizer "Create User" }} {{ pixelIcon "plus" }}</a>
+</li>
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ define "pxt_settings_tabs" }}
+<nav class="settings-subnav"
+     aria-label="{{ t .Localizer "System Settings" }}">
+    <a href="/settings/content"
+       class="settings-subnav-link {{ if eq .SettingsSection "content" }}active{{ end }}">{{ t .Localizer "Content and Firmware" }}</a>
+    <a href="/settings/account"
+       class="settings-subnav-link {{ if eq .SettingsSection "account" }}active{{ end }}">{{ t .Localizer "Account" }}</a>
+    {{ if and .User .User.IsAdmin }}
+    <a href="/settings/admin"
+       class="settings-subnav-link {{ if eq .SettingsSection "admin" }}active{{ end }}">{{ t .Localizer "Admin" }}</a>
+    {{ end }}
+</nav>
 {{ end }}

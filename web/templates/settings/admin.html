@@ -2,6 +2,7 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "System Settings" }}{{ end }}
+{{ define "tone" }}pc-grape{{ end }}
 {{ define "content" }}
 <div class="settings-page">
     <header class="settings-page-header">
@@ -11,11 +12,12 @@
             <p class="settings-page-copy">{{ t .Localizer "Manage backups and user accounts for this server." }}</p>
         </div>
     </header>
+    {{ template "pxt_settings_tabs" . }}
+    {{ if .NibletCloudConfigured }}
     <section class="settings-card">
         <div class="settings-card-header">
             <h2>{{ t .Localizer "Community app stats" }}</h2>
         </div>
-        {{ if .NibletCloudConfigured }}
         <form method="post"
               action="/settings/admin/usage-sharing"
               class="settings-form">
@@ -56,13 +58,11 @@
                 </div>
             </div>
             <div class="settings-actions">
-                <button type="submit" class="w3-button w3-blue">{{ t .Localizer "Save" }}</button>
+                <button type="submit" class="btn">{{ t .Localizer "Save" }}</button>
             </div>
         </form>
-    {{ else }}
-        <p class="settings-help">{{ t .Localizer "Niblet Cloud hard disabled description" }}</p>
-        {{ end }}
     </section>
+    {{ end }}
     <section class="settings-card">
         <div class="settings-card-header">
             <h2>{{ t .Localizer "Data Management" }}</h2>
@@ -72,7 +72,7 @@
                 <div class="settings-field-label">{{ t .Localizer "Export Configuration" }}</div>
                 <div class="settings-field-control">
                     <p class="settings-help">{{ t .Localizer "Download your entire user configuration as a JSON file." }}</p>
-                    <a href="/export_user_config" class="w3-button w3-blue">
+                    <a href="/export_user_config" class="btn">
                         <i class="fa-solid fa-download" aria-hidden="true"></i> {{ t .Localizer "Export" }}
                     </a>
                 </div>
@@ -94,7 +94,7 @@
                                    accept=".json"
                                    required
                                    class="settings-input settings-file-input">
-                            <button type="submit" class="w3-button w3-blue">
+                            <button type="submit" class="btn">
                                 <i class="fa-solid fa-upload" aria-hidden="true"></i> {{ t .Localizer "Import" }}
                             </button>
                         </div>
@@ -117,7 +117,7 @@
                         <input type="checkbox"
                                name="oidc_enabled"
                                id="oidc_enabled"
-                               class="w3-check"
+                               class="pxt-checkbox"
                                {{ if .OIDCEnabled }}
                                checked
                                {{ end }}
@@ -187,7 +187,7 @@
                             <input type="checkbox"
                                    name="oidc_allow_auto_create"
                                    id="oidc_allow_auto_create"
-                                   class="w3-check"
+                                   class="pxt-checkbox"
                                    {{ if .OIDCAllowAutoCreate }}
                                    checked
                                    {{ end }}>
@@ -238,7 +238,7 @@
                 </div>
             </div>
             <div class="settings-actions">
-                <button type="submit" class="w3-button w3-blue">
+                <button type="submit" class="btn">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save OIDC Settings" }}
                 </button>
                 <a href="#"
@@ -249,7 +249,7 @@
                           user-select: none;
                           margin-left: 8px">{{ t .Localizer "Expand" }}</a>
                 {{ if .OIDCEnabled }}
-                <a href="/auth/oidc/login" class="w3-button w3-blue">
+                <a href="/auth/oidc/login" class="btn">
                     <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> {{ t .Localizer "Test OIDC Login" }}
                 </a>
                 {{ end }}
@@ -279,7 +279,7 @@
                     <table class="form-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="text-align: left;
-                                       border-bottom: 1px solid var(--border-color, #e5e7eb)">
+                                       border-bottom: 1px solid var(--line)">
                                 <th style="padding: 6px 8px;">{{ t .Localizer "Name" }}</th>
                                 <th style="padding: 6px 8px;">{{ t .Localizer "Piezo Tone" }}</th>
                                 <th style="padding: 6px 8px;">{{ t .Localizer "Audio Preview" }}</th>
@@ -287,7 +287,7 @@
                         </thead>
                         <tbody>
                             {{ range .DefaultSounds }}
-                            <tr style="border-bottom: 1px solid var(--border-color, #e5e7eb);">
+                            <tr style="border-bottom: 1px solid var(--line);">
                                 <td style="padding: 8px;"><strong>{{ .Name }}</strong></td>
                                 <td style="padding: 8px;"><code style="font-size: 0.85em;">{{ .Tone }}</code></td>
                                 <td style="padding: 8px;">
@@ -317,7 +317,7 @@
                                   margin-bottom: 15px">
                         <thead>
                             <tr style="text-align: left;
-                                       border-bottom: 1px solid var(--border-color, #e5e7eb)">
+                                       border-bottom: 1px solid var(--line)">
                                 <th style="padding: 6px 8px;">{{ t .Localizer "Filename" }}</th>
                                 <th style="padding: 6px 8px;">{{ t .Localizer "Size" }}</th>
                                 <th style="padding: 6px 8px;">{{ t .Localizer "Audio Preview" }}</th>
@@ -326,7 +326,7 @@
                         </thead>
                         <tbody>
                             {{ range .CustomSounds }}
-                            <tr style="border-bottom: 1px solid var(--border-color, #e5e7eb);">
+                            <tr style="border-bottom: 1px solid var(--line);">
                                 <td style="padding: 8px;"><strong>{{ .Name }}</strong></td>
                                 <td style="padding: 8px;"><span class="settings-help">{{ .Size }} bytes</span></td>
                                 <td style="padding: 8px;">
@@ -341,7 +341,7 @@
                                           action="/settings/admin/sounds/{{ .Name }}/delete"
                                           style="display: inline"
                                           onsubmit="return confirm('{{ t $.Localizer "Are you sure you want to delete this sound?" }}');">
-                                        <button class="w3-button w3-red w3-small" type="submit">
+                                        <button class="btn btn-danger btn-sm" type="submit">
                                             <i class="fa-solid fa-trash" aria-hidden="true"></i> {{ t $.Localizer "Delete" }}
                                         </button>
                                     </form>
@@ -369,7 +369,7 @@
                                    accept=".wav,.mp3,.ogg,.m4a"
                                    required
                                    class="settings-input settings-file-input">
-                            <button type="submit" class="w3-button w3-blue">
+                            <button type="submit" class="btn">
                                 <i class="fa-solid fa-upload" aria-hidden="true"></i> {{ t .Localizer "Upload Sound" }}
                             </button>
                         </div>
@@ -385,7 +385,7 @@
             <p>{{ t .Localizer "Create, review, and remove users." }}</p>
         </div>
         <div class="settings-actions">
-            <a class="w3-button w3-green" href="/auth/register">
+            <a class="btn btn-primary" href="/auth/register">
                 <i class="fa-solid fa-user-plus" aria-hidden="true"></i> {{ t .Localizer "Create User" }}
             </a>
         </div>
@@ -402,13 +402,13 @@
                     <span>{{ if .Email }}{{ derefOr .Email "" }}{{ else }}{{ t $.Localizer "No email address" }}{{ end }}</span>
                 </div>
                 <div class="settings-actions settings-user-actions">
-                    <button class="w3-button w3-blue"
+                    <button class="btn"
                             type="button"
                             onclick="openEmailDialog('{{ .Username }}')">
                         <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> {{ t $.Localizer "Edit Email" }}
                     </button>
                     {{ if ne .Username $.User.Username }}
-                    <button class="w3-button w3-red"
+                    <button class="btn btn-danger"
                             type="button"
                             onclick="deleteUser('{{ .Username }}')">
                         <i class="fa-solid fa-trash"></i> {{ t $.Localizer "Delete User" }}
@@ -441,10 +441,10 @@
                             </div>
                         </div>
                         <div class="settings-dialog-actions">
-                            <button class="w3-button w3-blue" type="submit">
+                            <button class="btn" type="submit">
                                 <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t $.Localizer "Save Email" }}
                             </button>
-                            <button class="w3-button"
+                            <button class="btn btn-ghost"
                                     type="button"
                                     onclick="closeEmailDialog('{{ .Username }}')">{{ t $.Localizer "Cancel" }}</button>
                         </div>

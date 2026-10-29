@@ -2,28 +2,27 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Add App" }}{{ end }}
-{{ define "header" }}
+{{ define "tone" }}pc-grape{{ end }}
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/addapp-simple.css">
 {{ end }}
 {{ define "content" }}
 <div id="addapp_page_identifier" class="addapp-shell settings-page">
-    <header class="settings-page-header">
+    <header class="pxt-page-head">
         <div>
-            <p class="settings-eyebrow">{{ t .Localizer "Apps" }}</p>
+            <p class="pxt-eyebrow">{{ t .Localizer "Apps" }} · {{ .Device.Name }}</p>
             <h1>{{ t .Localizer "Add App" }}</h1>
-            <p class="settings-page-copy">
+            <p class="pxt-lede">
                 {{ t .Localizer "Choose an app to install on this device, then configure its timing and options." }}
             </p>
         </div>
+        <a class="btn btn-ghost"
+           href="/devices/{{ .Device.ID }}/uploadapp">{{ pixelIcon "plus" }} {{ t .Localizer "Upload app" }}</a>
     </header>
     <!-- Loading indicator -->
     <div id="loading-indicator" class="loading-container">
         <div class="loading-spinner"></div>
         <p>{{ t .Localizer "Loading apps..." }}</p>
-    </div>
-    <div class="addapp-actions">
-        <a class="w3-button w3-purple"
-           href="/devices/{{ .Device.ID }}/uploadapp"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> {{ t .Localizer "Upload app" }}</a>
     </div>
     <form method="post" id="main_form" class="addapp-config">
         <section class="settings-card">
@@ -105,8 +104,8 @@
                 </div>
             </div>
             <div class="settings-actions">
-                <button type="submit" class="w3-button w3-green">
-                    <i class="fa-solid fa-sliders" aria-hidden="true"></i> {{ t .Localizer "Configure" }}
+                <button type="submit" class="btn btn-primary btn-lg">
+                    {{ t .Localizer "Configure" }} {{ pixelIcon "arrow-right" }}
                 </button>
             </div>
         </section>

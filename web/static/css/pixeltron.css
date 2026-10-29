@@ -1,0 +1,1871 @@
+/* Pixeltron component layer, loaded after every other stylesheet (page CSS
+   loads in <head> before it). Ports the Ten Thousand Pixels site frame and
+   components (10kpx/src/assets/styles.css, design-system/components) onto the
+   server's templates. Every value comes from tokens.css. */
+
+/* ------------------------------------------------------------------ */
+/* Page tones: each page tints its header band with one companion.     */
+/* ------------------------------------------------------------------ */
+.pc-sun { --pc: var(--sun); --pc-soft: var(--sun-soft); --pc-ink: var(--sun-ink); }
+.pc-sky { --pc: var(--sky); --pc-soft: var(--sky-soft); --pc-ink: var(--sky-ink); }
+.pc-mint { --pc: var(--mint); --pc-soft: var(--mint-soft); --pc-ink: var(--mint-ink); }
+.pc-grape { --pc: var(--grape); --pc-soft: var(--grape-soft); --pc-ink: var(--grape-ink); }
+.pc-bubble { --pc: var(--bubble); --pc-soft: var(--bubble-soft); --pc-ink: var(--bubble-ink); }
+
+.ttp-dotgrid {
+  background-image: radial-gradient(circle at 1px 1px, var(--dot) 1.5px, transparent 2px);
+  background-size: var(--space-20) var(--space-20);
+  background-position: calc(var(--space-20) / 2) calc(var(--space-20) / 2);
+}
+
+.ttp-icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+}
+
+.pxt-body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pxt-skip {
+  position: absolute;
+  left: var(--space-2);
+  top: -100px;
+  z-index: var(--z-modal);
+  padding: 8px 12px;
+  background: var(--sun);
+  color: var(--midnight);
+  border: var(--border-pixel) solid var(--ink);
+  font: 500 13px/16px var(--font-mono);
+  text-transform: uppercase;
+}
+
+.pxt-skip:focus {
+  top: var(--space-1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Top band and the cartridge nav bar                                  */
+/* ------------------------------------------------------------------ */
+.pxt-top {
+  position: relative;
+  padding: var(--space-1) var(--space-2) var(--space-6);
+  background-color: var(--pc-soft);
+}
+
+.pxt-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: var(--nav-width);
+  height: 60px;
+  margin: 0 auto;
+  padding: 0 10px 0 14px;
+  box-sizing: border-box;
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--border-bold) solid var(--ink);
+  border-radius: var(--radius-0);
+  box-shadow: var(--shadow-pixel);
+  z-index: var(--z-nav);
+}
+
+.pxt-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.pxt-logo:hover {
+  color: var(--ink);
+}
+
+.pxt-logo-mark {
+  flex: none;
+  shape-rendering: crispEdges;
+}
+
+.pxt-logo-pop {
+  transition: transform var(--dur-fast) var(--ease-pixel);
+}
+
+.pxt-logo:hover .pxt-logo-pop {
+  transform: translate(1px, -1px);
+}
+
+.pxt-logo-word {
+  font: 400 16px/1 var(--font-pixel);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pxt-nav-links {
+  display: flex;
+  gap: var(--space-half);
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.pxt-nav-links a {
+  display: block;
+  padding: 8px 12px;
+  font: 400 14px/16px var(--font-pixel);
+  color: var(--ink);
+  text-decoration: none;
+  border: var(--border-pixel) solid transparent;
+}
+
+.pxt-nav-links a:hover,
+.pxt-nav-links a[aria-current="page"] {
+  background: var(--sun);
+  color: var(--midnight);
+  border-color: var(--ink);
+  box-shadow: var(--shadow-pixel-sm);
+  transform: translate(-1px, -1px);
+}
+
+.pxt-nav-iconbtn {
+  all: unset;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+  color: inherit;
+  cursor: pointer;
+  border: var(--border-pixel) solid transparent;
+}
+
+.pxt-nav-iconbtn:hover {
+  background: var(--sun);
+  color: var(--midnight);
+  border-color: var(--ink);
+}
+
+.pxt-nav-iconbtn:focus-visible,
+.pxt-nav-links a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pxt-nav-menu {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .pxt-nav {
+    height: 56px;
+    padding: 0 8px;
+    justify-content: space-between;
+  }
+
+  .pxt-nav-links {
+    display: none;
+  }
+
+  .pxt-nav-menu {
+    display: grid;
+  }
+
+  .pxt-logo-word {
+    font-size: 13px;
+  }
+
+  /* Balances the menu button so the logo sits in the middle. */
+  .pxt-nav::after {
+    content: "";
+    width: 40px;
+  }
+}
+
+/* Mobile drawer */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  z-index: var(--z-modal);
+}
+
+.mobile-menu-overlay.active {
+  display: block;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(320px, 86vw);
+  height: 100vh;
+  padding: var(--space-2);
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--ink);
+  border-right: var(--border-bold) solid var(--ink);
+  z-index: calc(var(--z-modal) + 1);
+  transform: translateX(-110%);
+  visibility: hidden;
+  transition: transform var(--dur-base) var(--ease-in-out), visibility 0s linear var(--dur-base);
+}
+
+.mobile-menu.active {
+  transform: none;
+  visibility: visible;
+  box-shadow: var(--shadow-pixel);
+  transition: transform var(--dur-base) var(--ease-in-out);
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: var(--border-hair) solid var(--line-strong);
+}
+
+.pxt-drawer-title {
+  margin: 0;
+  font: 400 16px/1 var(--font-pixel);
+  text-transform: uppercase;
+}
+
+.mobile-menu .ttp-menu {
+  max-width: none;
+}
+
+/* Menu rows: mono uppercase rows with a pixel icon at the end. */
+.ttp-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-half);
+  width: 100%;
+  max-width: 320px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ttp-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 12px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  border-radius: var(--radius-2);
+  font: 500 13px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.ttp-menu-row .ttp-icon {
+  transition: transform var(--dur-fast) var(--ease-pixel);
+}
+
+.ttp-menu-row:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.ttp-menu-row:hover .ttp-icon {
+  transform: translateX(2px);
+}
+
+.ttp-menu-row:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Main column and the page header                                     */
+/* ------------------------------------------------------------------ */
+.pxt-main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: var(--nav-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-12);
+  box-sizing: border-box;
+}
+
+/* Eyebrow, a big bold title with a cherry full stop, then a lede. */
+.settings-page-header,
+.pxt-page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: 0;
+  margin-bottom: var(--space-2);
+}
+
+.settings-eyebrow,
+.pxt-eyebrow {
+  margin: 0 0 var(--space-1);
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.settings-page-header h1,
+.pxt-page-head h1,
+.pxt-main > h1,
+.pxt-main .page-title {
+  margin: 0;
+  font: 800 48px/52px var(--font-sans);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.settings-page-header > div > h1::after,
+.pxt-page-head h1::after {
+  content: ".";
+  color: var(--cherry);
+}
+
+.settings-page-copy,
+.pxt-lede {
+  margin: var(--space-2) 0 0;
+  max-width: var(--content-text);
+  font: 400 20px/30px var(--font-sans);
+  color: var(--ink);
+}
+
+.settings-page {
+  gap: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .pxt-main {
+    padding: var(--space-4) var(--space-2) var(--space-8);
+  }
+
+  .settings-page-header h1,
+  .pxt-page-head h1,
+  .pxt-main > h1,
+  .pxt-main .page-title {
+    font-size: 36px;
+    line-height: 40px;
+  }
+
+  .settings-page-copy,
+  .pxt-lede {
+    font-size: 17px;
+    line-height: 26px;
+  }
+}
+
+/* Section headings inside a page */
+.pxt-section-title {
+  margin: 0 0 var(--space-2);
+  font: 800 32px/36px var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+/* The settings tabs */
+nav.settings-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-4);
+  padding: 0 0 12px;
+  border-bottom: var(--border-hair) solid var(--line-strong);
+}
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                             */
+/* ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  height: var(--control-height);
+  padding: 0 var(--space-2);
+  box-sizing: border-box;
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-2);
+  background: var(--ink);
+  color: var(--bg);
+  font: 500 13px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step);
+}
+
+.btn:hover {
+  color: var(--bg);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-pixel);
+}
+
+.btn:active {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.btn .ttp-icon {
+  transition: transform var(--dur-fast) var(--ease-pixel);
+}
+
+.btn:hover .ttp-icon:last-child {
+  transform: translateX(2px);
+}
+
+.btn-primary {
+  background: var(--action);
+  border-color: var(--action);
+  color: var(--on-action);
+}
+
+.btn-primary:hover {
+  background: var(--action-hover);
+  border-color: var(--action-hover);
+  color: var(--on-action);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.btn-ghost:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.btn-danger {
+  background: transparent;
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.btn-danger:hover {
+  color: var(--signal);
+}
+
+.btn-sm {
+  height: var(--control-height-sm);
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.btn-lg {
+  height: 48px;
+  padding: 0 var(--space-3);
+  font-size: 14px;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background: var(--surface-raised);
+  border-color: var(--line);
+  color: var(--ink-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.pxt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+/* `.content button` (style.css) resets font and padding; buttons keep their label. */
+.content .btn  {
+  padding: 0 var(--space-2);
+  font: 500 13px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.content .btn {
+  background: var(--ink);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-2);
+  color: var(--bg);
+}
+
+.content .btn-primary {
+  background: var(--action);
+  border-color: var(--action);
+  color: var(--on-action);
+}
+
+.content .btn-primary:hover {
+  background: var(--action-hover);
+  border-color: var(--action-hover);
+}
+
+.content .btn-ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.content .btn-ghost:hover {
+  border-color: var(--ink);
+}
+
+.content .btn-danger {
+  background: transparent;
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.content .btn-sm {
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cards and panels                                                    */
+/* ------------------------------------------------------------------ */
+.settings-card  {
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  box-shadow: var(--shadow-pixel);
+}
+
+.settings-card {
+  padding: var(--space-4);
+  gap: var(--space-3);
+}
+
+.settings-card-header h2 {
+  margin: 0;
+  font: 800 24px/30px var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+.settings-card-header p {
+  color: var(--ink-muted);
+}
+
+.settings-card-subsection h3 {
+  font: 800 18px/24px var(--font-sans);
+}
+
+@media (max-width: 600px) {
+  .settings-card {
+    padding: var(--space-2);
+  }
+}
+
+/* An eyebrow-style label for a group of rows */
+.pxt-label {
+  margin: 0;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Accordion rows, like the help page's questions */
+.pxt-details {
+  border: var(--border-pixel) solid var(--line-strong);
+  border-radius: var(--radius-2);
+  background: var(--surface);
+}
+
+.pxt-details[open] {
+  border-color: var(--ink);
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+.pxt-details summary {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 12px var(--space-2);
+  font: 700 16px/22px var(--font-sans);
+  list-style: none;
+  cursor: pointer;
+}
+
+.pxt-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.pxt-details summary::after {
+  content: "+";
+  font: 400 16px/22px var(--font-pixel);
+  color: var(--accent-text);
+}
+
+.pxt-details[open] summary::after {
+  content: "\2013";
+}
+
+.pxt-details summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pxt-details-body {
+  padding: 0 var(--space-2) var(--space-2);
+  color: var(--ink-muted);
+}
+
+/* Spec list: muted term, bold value */
+.pxt-specs {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+}
+
+.pxt-specs dt {
+  font: 500 12px/22px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.pxt-specs dd {
+  margin: 0;
+  font: 700 16px/22px var(--font-sans);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ */
+/* Dashboard: the dark stage panel for each Pixeltron                  */
+/* ------------------------------------------------------------------ */
+.pxt-device {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+  scroll-margin-top: var(--space-2);
+}
+
+.pxt-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  background: var(--midnight);
+  color: var(--cream);
+  border: var(--border-bold) solid var(--ink);
+  box-shadow: var(--shadow-pixel);
+}
+
+.pxt-stage-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.pxt-stage-title {
+  margin: 0;
+  color: var(--cream);
+  font: 800 40px/44px var(--font-sans);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.pxt-stage-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pxt-stage-title a:hover {
+  color: var(--sun);
+}
+
+.pxt-stage-meta {
+  margin: 0;
+  font: 500 13px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-stage-muted);
+}
+
+.pxt-stage-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* The rotated "New"-style sticker from the shop card, used for live states */
+.pxt-sticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--sun);
+  color: var(--midnight);
+  border: var(--border-bold) solid var(--cream);
+  font: 400 14px/14px var(--font-pixel);
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  box-shadow: 4px 4px 0 0 var(--cherry);
+}
+
+.pxt-stage-badges .pxt-sticker:nth-child(even) {
+  transform: rotate(3deg);
+}
+
+.pxt-stage-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+/* The LED screen: pixel art behind screen glass in a chunky frame */
+.pxt-stage .app-img {
+  width: 100%;
+  max-width: 512px;
+  border: var(--border-chunky) solid var(--cream);
+  box-shadow: 8px 8px 0 0 var(--cherry);
+}
+
+.pxt-stage .app-img img {
+  display: block;
+}
+
+.pxt-stage-caption {
+  margin: 0;
+  font: 400 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-stage-muted);
+}
+
+/* Buttons on the dark stage: sun primary, cream outline for the rest */
+.pxt-stage .btn {
+  background: transparent;
+  border-color: var(--on-stage-muted);
+  color: var(--cream);
+}
+
+.pxt-stage .btn:hover {
+  border-color: var(--cream);
+  color: var(--cream);
+  box-shadow: 4px 4px 0 0 var(--cherry);
+}
+
+.pxt-stage .btn-primary {
+  background: var(--sun);
+  border-color: var(--sun);
+  color: var(--midnight);
+}
+
+.pxt-stage .btn-primary:hover {
+  background: var(--sun);
+  border-color: var(--cream);
+  color: var(--midnight);
+}
+
+.pxt-stage .btn:focus-visible {
+  outline-color: var(--cream);
+}
+
+@media (max-width: 900px) {
+  .pxt-stage {
+    grid-template-columns: 1fr;
+    padding: var(--space-3);
+  }
+
+  .pxt-stage-art {
+    order: -1;
+  }
+
+  .pxt-stage-title {
+    font-size: 32px;
+    line-height: 36px;
+  }
+}
+
+/* Admin overview: one group per user */
+.pxt-user-group {
+  padding-top: var(--space-4);
+  border-top: var(--border-hair) solid var(--line-strong);
+}
+
+.pxt-user-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.pxt-user-head .pxt-section-title {
+  margin: 0;
+}
+
+/* Controls and apps under the stage */
+.pxt-device-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .pxt-device-panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pxt-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pxt-control + .pxt-control {
+  padding-top: var(--space-2);
+  border-top: var(--border-hair) solid var(--line);
+}
+
+.pxt-control-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.pxt-control-value {
+  font: 700 16px/22px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.pxt-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.content .pxt-check {
+  margin: 0;
+}
+
+.pxt-help {
+  margin: 0;
+  font: 400 14px/20px var(--font-sans);
+  color: var(--ink-muted);
+}
+
+/* ------------------------------------------------------------------ */
+/* App cards                                                           */
+/* ------------------------------------------------------------------ */
+.app-card {
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  background: var(--surface);
+  box-shadow: var(--shadow-pixel-sm);
+  transition: transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step), opacity var(--dur-fast) var(--ease-out);
+}
+
+.app-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--pc, var(--cherry));
+}
+
+.app-card.dragging {
+  transform: rotate(-1.5deg);
+  box-shadow: var(--shadow-pixel);
+}
+
+.app-card[data-status="enabled"] {
+  border-left: var(--border-chunky) solid var(--success);
+}
+
+.app-card[data-status="disabled"] {
+  background: var(--surface-raised);
+  border-color: var(--line-strong);
+  border-left: var(--border-chunky) solid var(--line-strong);
+  box-shadow: none;
+}
+
+.app-header h3 {
+  font: 800 18px/24px var(--font-sans);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.app-render-info {
+  font: 400 12px/16px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app-preview .app-img,
+.inactive-overlay {
+  border-radius: var(--radius-0);
+}
+
+.app-actions-primary,
+.app-actions-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.app-actions-secondary {
+  margin-top: var(--space-1);
+}
+
+/* Grid view packs the actions into the card: equal-width, smaller buttons. */
+.apps-grid-view .app-actions .btn,
+.apps-grid-view .app-actions .pxt-copy-select {
+  flex: 1;
+  min-width: 60px;
+  height: 28px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.apps-grid-view .copy-to-dropdown {
+  flex: 1;
+  display: flex;
+}
+
+@media (max-width: 768px) {
+  .app-actions .btn {
+    flex: 1;
+    min-width: 70px;
+  }
+}
+
+/* The "Copy to…" select styled as a small ghost button */
+.content select.pxt-copy-select {
+  height: var(--control-height-sm);
+  padding: 0 28px 0 12px;
+  background: transparent;
+  border: var(--border-pixel) solid var(--line-strong);
+  border-radius: var(--radius-2);
+  color: var(--ink);
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  appearance: none;
+}
+
+.content select.pxt-copy-select:hover {
+  border-color: var(--ink);
+}
+
+.copy-to-dropdown .custom-select-arrow {
+  color: var(--ink);
+}
+
+/* View switcher (list / grid / collapsed) as a segmented control */
+.view-toggle-row {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-1) 12px;
+  background: var(--surface-raised);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+.settings-view-label {
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.content .view-toggle-btn {
+  height: var(--control-height-sm) !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  border-radius: var(--radius-2) !important;
+  font-size: 12px !important;
+}
+
+.content .view-toggle-btn.active {
+  background-color: var(--ink) !important;
+  border: var(--border-pixel) solid var(--ink) !important;
+  color: var(--bg) !important;
+  box-shadow: var(--shadow-pixel-sm) !important;
+}
+
+.list-view-separator {
+  display: none;
+}
+
+/* Status badges: one or two mono uppercase words */
+.status-badge,
+.pinned-badge,
+.night-mode-badge,
+.dim-mode-badge,
+.muted-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 0;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-radius: var(--radius-1);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  vertical-align: middle;
+}
+
+.inactive-badge-overlay {
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--radius-1);
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+/* ------------------------------------------------------------------ */
+/* Forms                                                               */
+/* ------------------------------------------------------------------ */
+.form-control,
+.pxt-input  {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  color: var(--ink);
+  border: var(--border-pixel) solid var(--line-strong) !important;
+  border-radius: var(--radius-2);
+  font: 400 16px/24px var(--font-sans);
+  box-sizing: border-box;
+}
+
+.form-control:hover,
+.pxt-input:hover  {
+  border-color: var(--ink) !important;
+}
+
+.form-control:focus,
+.pxt-input:focus  {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-color: var(--ink) !important;
+}
+
+.pxt-input[aria-invalid="true"]  {
+  border-color: var(--signal) !important;
+}
+
+/* Field: mono uppercase label above a 40px input */
+.pxt-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.content .pxt-field-label,
+.pxt-field-label,
+.settings-field-label {
+  margin: 0;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Settings rows: a <label> inside the label column takes the column's style. */
+.content .settings-field-label label,
+.content .settings-field-label a {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+.pxt-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.content form.pxt-form {
+  display: flex;
+}
+
+/* Two fields side by side, stacking on phones */
+.pxt-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 600px) {
+  .pxt-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pxt-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.pxt-fieldset legend {
+  margin-bottom: var(--space-1);
+}
+
+/* A wrapping row of radios or checkboxes */
+.pxt-choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.content .pxt-day {
+  margin: 0;
+  font-weight: 400;
+}
+
+/* A field with a button beside it */
+.pxt-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.pxt-input-narrow {
+  max-width: 220px;
+}
+
+.pxt-mt {
+  margin-top: 12px;
+}
+
+.pxt-text-danger {
+  color: var(--signal);
+}
+
+/* A field label that is also a link out (release notes) */
+.pxt-label-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pxt-label-link:hover {
+  color: var(--accent-text);
+}
+
+/* Callout cards: warnings that need a decision, with an icon and a word */
+.settings-card.pxt-callout {
+  background: var(--sun-soft);
+}
+
+.settings-card.pxt-callout-danger {
+  background: var(--surface);
+  border-color: var(--signal);
+  box-shadow: 4px 4px 0 0 var(--signal);
+}
+
+.pxt-callout h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.pxt-callout-danger h2 {
+  color: var(--signal);
+}
+
+/* Lists: cherry square bullets, numbered steps in pixel numerals */
+.pxt-list {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.pxt-list li {
+  margin-bottom: var(--space-1);
+}
+
+.pxt-list li::marker {
+  content: "\25A0  ";
+  color: var(--cherry);
+  font-size: 0.7em;
+}
+
+.pxt-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: pxt-step;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* The number sits in the gutter, so inline <strong> stays in the sentence. */
+.pxt-steps li {
+  counter-increment: pxt-step;
+  position: relative;
+  min-height: 24px;
+  padding-left: 36px;
+}
+
+.pxt-steps li::before {
+  content: counter(pxt-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  background: var(--sun);
+  color: var(--midnight);
+  border: var(--border-pixel) solid var(--ink);
+  font: 400 12px/1 var(--font-pixel);
+}
+
+.pxt-list-plain {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pxt-list-plain > li {
+  padding: 12px 0;
+  border-bottom: var(--border-hair) solid var(--line);
+}
+
+.pxt-table {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.pxt-table th,
+.pxt-table td {
+  padding: 8px 12px 8px 0;
+  text-align: left;
+  border-bottom: var(--border-hair) solid var(--line);
+}
+
+.pxt-table th {
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.pxt-legacy-card {
+  margin-bottom: var(--space-3);
+}
+
+/* ------------------------------------------------------------------ */
+/* App configuration                                                   */
+/* ------------------------------------------------------------------ */
+.pxt-config-stage {
+  margin-bottom: var(--space-3);
+}
+
+.pxt-config-stage .app-desc {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--on-stage-muted);
+}
+
+.pxt-stage-check {
+  color: var(--cream);
+}
+
+.content .pxt-stage .pxt-check {
+  margin: 0;
+  color: var(--cream);
+}
+
+.pxt-code,
+.content pre {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2);
+  background: var(--screen);
+  color: var(--cream);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  box-shadow: var(--shadow-pixel-sm);
+  font: 400 13px/20px var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The whole config form is one panel; <hr>s split its sections */
+.pxt-config-form,
+.api-section {
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: var(--border-pixel) solid var(--ink);
+  box-shadow: var(--shadow-pixel);
+}
+
+.pxt-config-form > hr {
+  margin: var(--space-4) 0;
+  border-top: var(--border-hair) solid var(--line-strong);
+}
+
+.pxt-config-form h2,
+.api-section h2 {
+  margin: 0 0 var(--space-2);
+  font: 800 24px/30px var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+.pxt-config-form h3 {
+  font: 800 18px/24px var(--font-sans);
+}
+
+.pxt-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.pxt-section-head h2 {
+  margin: 0;
+}
+
+/* Generated field rows: mono label column, control column */
+.pxt-config-form .form-table {
+  border-collapse: separate;
+  border-spacing: 0 var(--space-2);
+}
+
+.pxt-config-form .form-table td:first-child label {
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.pxt-config-form .form-table small {
+  font: 400 14px/20px var(--font-sans);
+  color: var(--ink-muted);
+}
+
+.pxt-recurrence-toggle {
+  margin: var(--space-3) 0;
+}
+
+.pxt-form-actions {
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-3);
+  border-top: var(--border-hair) solid var(--line-strong);
+}
+
+.pxt-push-right {
+  margin-left: auto;
+}
+
+.pxt-clear-btn {
+  margin-top: var(--space-half);
+}
+
+.pxt-api-example {
+  margin-bottom: var(--space-3);
+}
+
+.pxt-api-example h3 {
+  margin: 0 0 var(--space-1);
+  font: 500 13px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Colour palette swatches: square pixels, not round dots */
+.content .palette .pxt-swatch {
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  cursor: pointer;
+}
+
+.content .palette .pxt-swatch:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+/* Location search results under a field */
+#location_results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#location_results:has(li) {
+  border: var(--border-pixel) solid var(--ink);
+  background: var(--surface);
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+#location_results li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+#location_results li:hover {
+  background: var(--sun);
+  color: var(--midnight);
+}
+
+/* Sign-in and sign-up: one centred form card, like the site's sign-up card */
+.pxt-auth {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.pxt-auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bubble-soft);
+  border: var(--border-pixel) solid var(--ink);
+  box-shadow: 6px 6px 0 0 var(--cherry);
+}
+
+.pxt-auth-alt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: var(--border-hair) solid var(--line-strong);
+}
+
+.pxt-auth-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (max-width: 900px) {
+  .pxt-auth {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .pxt-auth-card {
+    padding: var(--space-3);
+  }
+}
+
+/* Notes: bordered panels that carry a word or icon, never colour alone */
+.pxt-note {
+  display: flex;
+  gap: var(--space-1);
+  align-items: flex-start;
+  margin: 0 0 var(--space-2);
+  padding: 12px var(--space-2);
+  background: var(--sun-soft) !important;
+  color: var(--ink) !important;
+  border: var(--border-pixel) solid var(--ink) !important;
+  border-radius: var(--radius-0) !important;
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+.pxt-note-danger {
+  background: var(--surface) !important;
+  color: var(--signal) !important;
+  border-color: var(--signal) !important;
+}
+
+.pxt-note a {
+  color: inherit;
+}
+
+.pxt-note .ttp-icon {
+  margin-top: 4px;
+}
+
+.flash {
+  background: var(--sun-soft);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  box-shadow: var(--shadow-pixel-sm);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tables, switches, brightness                                        */
+/* ------------------------------------------------------------------ */
+.device-info-table  {
+  font-variant-numeric: tabular-nums;
+}
+
+.slider,
+.slider.round,
+.slider:before,
+.slider.round:before {
+  border-radius: var(--radius-0);
+}
+
+.slider {
+  border: var(--border-pixel) solid var(--ink);
+  box-sizing: border-box;
+}
+
+.slider:before {
+  left: 1px;
+  bottom: 1px;
+  background-color: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.brightness-panel {
+  gap: var(--space-half);
+}
+
+.brightness-btn {
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-2);
+  font: 500 13px/16px var(--font-mono);
+}
+
+.brightness-btn.active {
+  border-color: var(--ink);
+  border-width: var(--border-pixel);
+  box-shadow: 3px 3px 0 0 var(--cherry);
+}
+
+/* ------------------------------------------------------------------ */
+/* Add app catalog                                                     */
+/* ------------------------------------------------------------------ */
+.app-item .app-img {
+  border-width: var(--border-pixel);
+}
+
+.app-group-title {
+  font: 800 24px/30px var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+.app-group-meta {
+  font: 400 12px/16px var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.control-label {
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.app-item-title {
+  font: 700 15px/20px var(--font-sans);
+  color: var(--ink);
+}
+
+.app-item-meta,
+.app-item-installs {
+  font: 400 12px/16px var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+.app-item.selected {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Footer: the mint band                                               */
+/* ------------------------------------------------------------------ */
+.pxt-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-2) var(--space-3);
+  background-color: var(--mint-soft);
+  color: var(--ink);
+}
+
+.pxt-footer-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pxt-footer-big a {
+  display: inline-block;
+  font: 400 36px/60px var(--font-arcade);
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-pixel);
+}
+
+.pxt-footer-big li:nth-child(odd) a:hover {
+  transform: rotate(-3deg) scale(1.06);
+}
+
+.pxt-footer-big li:nth-child(even) a:hover {
+  transform: rotate(3deg) scale(1.06);
+}
+
+.pxt-footer-big li:nth-child(4n+1) a:hover { color: var(--cherry); }
+.pxt-footer-big li:nth-child(4n+2) a:hover { color: var(--grape-ink); }
+.pxt-footer-big li:nth-child(4n+3) a:hover { color: var(--sky-ink); }
+.pxt-footer-big li:nth-child(4n+4) a:hover { color: var(--bubble-ink); }
+
+.pxt-footer-big a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.pxt-footer .ttp-menu-row {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.pxt-footer .ttp-menu-row:hover {
+  background: var(--surface);
+}
+
+.pxt-footer-update {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: 500 13px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+.pxt-footer-update:hover {
+  text-decoration: underline;
+}
+
+/* Logged out there is nothing to link to, so the band is just the small print. */
+.pxt-footer-slim {
+  gap: 0;
+  padding-top: var(--space-6);
+}
+
+/* Version on the left, the heart in the middle, the legal line under it
+   (centred, so it stays clear of the Lights off pill in the corner). */
+.pxt-footer-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  width: 100%;
+  padding-top: var(--space-6);
+}
+
+.pxt-footer-bottom .pxt-logo-mark {
+  grid-column: 2;
+}
+
+.pxt-footer-bottom .pxt-footer-version {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.pxt-footer-bottom .pxt-footer-legal {
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+.pxt-footer-version,
+.pxt-footer-legal {
+  margin: 0;
+  font: 400 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.pxt-footer-legal {
+  text-align: right;
+}
+
+.pxt-footer-version a {
+  color: var(--ink);
+  text-decoration: none;
+  text-transform: none;
+}
+
+.pxt-footer-version a:hover {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .pxt-footer {
+    gap: var(--space-6);
+    padding-top: var(--space-12);
+  }
+
+  .pxt-footer-big a {
+    font-size: 24px;
+    line-height: 44px;
+  }
+
+  .pxt-footer-bottom {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .pxt-footer-legal {
+    text-align: center;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Lights off / Lights on                                              */
+/* ------------------------------------------------------------------ */
+.pxt-theme-toggle {
+  position: fixed;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  z-index: var(--z-nav);
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height-sm);
+  padding: 0 14px;
+  background: var(--ink);
+  color: var(--bg);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-pixel-sm);
+  font: 400 12px/16px var(--font-pixel);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step);
+}
+
+.pxt-theme-toggle:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-pixel);
+}
+
+.pxt-theme-toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.pxt-theme-toggle .ttp-icon {
+  color: var(--sun);
+}
+
+.pxt-theme-toggle span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.pxt-when-dark,
+[data-theme="dark"] .pxt-when-light {
+  display: none !important;
+}
+
+[data-theme="dark"] .pxt-when-dark {
+  display: inline-flex !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* Night                                                               */
+/* ------------------------------------------------------------------ */
+[data-theme="dark"] .pxt-footer {
+  background-color: var(--bg);
+}
+
+[data-theme="dark"] .pxt-footer-big li:nth-child(n) a:hover {
+  color: var(--accent-text);
+}
+
+[data-theme="dark"] .pxt-footer .ttp-menu-row {
+  background: var(--surface);
+}
+
+[data-theme="dark"] .pxt-footer .ttp-menu-row:hover {
+  background: var(--surface-raised);
+}
+
+[data-theme="dark"] .pxt-auth-card {
+  background: var(--surface);
+  border-color: var(--action);
+  box-shadow: none;
+}
+
+/* The stage is midnight in Bright; in Night it lifts off the black page. */
+[data-theme="dark"] .pxt-stage {
+  background: var(--surface);
+  border-color: var(--line-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .btn:hover,
+  .app-card:hover,
+  .pxt-nav-links a:hover,
+  .pxt-footer-big a:hover,
+  .pxt-theme-toggle:hover  {
+    transform: none !important;
+  }
+}

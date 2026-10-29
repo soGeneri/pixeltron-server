@@ -2,6 +2,7 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "System Settings" }}{{ end }}
+{{ define "tone" }}pc-sky{{ end }}
 {{ define "content" }}
 <div class="settings-page">
     <header class="settings-page-header">
@@ -13,6 +14,7 @@
             </p>
         </div>
     </header>
+    {{ template "pxt_settings_tabs" . }}
     {{ if .User.IsAdmin }}
     <section class="settings-card">
         <div class="settings-card-header">
@@ -52,7 +54,7 @@
             <form method="post"
                   action="/refresh_system_repo"
                   onsubmit="event.preventDefault(); refreshSystemRepo(this);">
-                <button type="submit" class="w3-button w3-blue">
+                <button type="submit" class="btn">
                     <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> {{ t .Localizer "Refresh" }}
                 </button>
             </form>
@@ -113,7 +115,7 @@
                                    class="settings-input settings-input-wide settings-repo-url-input">
                             <div class="settings-repo-url-actions">
                                 <form id="set-system-repo-form" method="post" action="/set_system_repo">
-                                    <button type="submit" class="w3-button w3-green">
+                                    <button type="submit" class="btn btn-primary">
                                         <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                                     </button>
                                 </form>
@@ -121,7 +123,7 @@
                                       action="/clear_system_apps_repo"
                                       onsubmit="event.preventDefault(); clearSystemAppsRepo(this);">
                                     <button type="submit"
-                                            class="w3-button w3-red w3-round settings-icon-button"
+                                            class="btn btn-danger settings-icon-button"
                                             aria-label="{{ t .Localizer "Delete downloaded repo" }}"
                                             title="{{ t .Localizer "Delete downloaded repo" }}">
                                         <i class="fa-solid fa-trash" aria-hidden="true"></i>
@@ -175,7 +177,7 @@
             <form method="post"
                   action="/refresh_user_repo"
                   onsubmit="var btn = this.querySelector('button'); btn.disabled = true; btn.style.opacity = '0.6'; btn.innerHTML = '<i class=\'fa-solid fa-spinner fa-spin\'></i> {{ t .Localizer "Refreshing..." }}';">
-                <button type="submit" class="w3-button w3-blue">
+                <button type="submit" class="btn">
                     <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> {{ t .Localizer "Refresh" }}
                 </button>
             </form>
@@ -183,7 +185,7 @@
                   action="/set_user_repo"
                   onsubmit="return confirm('{{ t .Localizer "Remove custom repository? This will delete the repo and break any apps using it." }}');">
                 <input type="hidden" name="app_repo_url" value="">
-                <button type="submit" class="w3-button w3-red">
+                <button type="submit" class="btn btn-danger">
                     <i class="fa-solid fa-trash" aria-hidden="true"></i> {{ t .Localizer "Remove" }}
                 </button>
             </form>
@@ -203,7 +205,7 @@
                                    required
                                    value="{{ .User.AppRepoURL }}"
                                    class="settings-input settings-input-wide">
-                            <button type="submit" class="w3-button w3-green">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                             </button>
                         </div>
@@ -245,13 +247,13 @@
                 </div>
             </div>
             <div class="settings-actions">
-                <button type="submit" class="w3-button w3-green">
+                <button type="submit" class="btn btn-primary">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save Preference" }}
                 </button>
             </div>
         </form>
     </section>
-    <section class="settings-card">
+    <section class="settings-card" id="firmware">
         <div class="settings-card-header">
             <h2>{{ t .Localizer "Firmware" }}</h2>
             <p>{{ t .Localizer "Firmware files available for generating or flashing devices." }}</p>
@@ -269,7 +271,7 @@
             <form method="post"
                   action="/update_firmware"
                   onsubmit="event.preventDefault(); updateFirmware(this);">
-                <button type="submit" class="w3-button w3-blue">
+                <button type="submit" class="btn">
                     <i class="fa-solid {{ if ne .FirmwareVersion "unknown" }}fa-arrows-rotate{{ else }}fa-download{{ end }}"
                        aria-hidden="true"></i> {{ if ne .FirmwareVersion "unknown" }}{{ t .Localizer "Update" }}{{ else }}{{ t .Localizer "Download" }}{{ end }}
                 </button>

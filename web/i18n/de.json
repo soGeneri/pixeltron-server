@@ -399,7 +399,85 @@
     "other": "Gerät existiert bereits. Import übersprungen."
   },
   "Tronbyt Manager": {
-    "other": "Tronbyt Manager"
+    "other": "Pixeltron"
+  },
+  "lang": {
+    "other": "de"
+  },
+  "Menu": {
+    "other": "Menü"
+  },
+  "Skip to content": {
+    "other": "Zum Inhalt springen"
+  },
+  "Main": {
+    "other": "Hauptmenü"
+  },
+  "Apps": {
+    "other": "Apps"
+  },
+  "Lights off": {
+    "other": "Licht aus"
+  },
+  "Lights on": {
+    "other": "Licht an"
+  },
+  "by Ten Thousand Pixels": {
+    "other": "von Ten Thousand Pixels"
+  },
+  "Your Pixeltrons": {
+    "other": "Deine Pixeltrons"
+  },
+  "New": {
+    "other": "Neu"
+  },
+  "No Pixeltrons yet": {
+    "other": "Noch keine Pixeltrons"
+  },
+  "Add your first device to start sending it apps.": {
+    "other": "Füge dein erstes Gerät hinzu, um Apps darauf zu schicken."
+  },
+  "Sign in to manage your Pixeltrons and the apps they show.": {
+    "other": "Melde dich an, um deine Pixeltrons und ihre Apps zu verwalten."
+  },
+  "Or": {
+    "other": "Oder"
+  },
+  "The first account runs this server. You can add more people later.": {
+    "other": "Das erste Konto verwaltet diesen Server. Weitere Personen kannst du später hinzufügen."
+  },
+  "Make an account to set up your own Pixeltrons.": {
+    "other": "Erstelle ein Konto, um deine eigenen Pixeltrons einzurichten."
+  },
+  "Letters and numbers only.": {
+    "other": "Nur Buchstaben und Zahlen."
+  },
+  "All devices": {
+    "other": "Alle Geräte"
+  },
+  "Every user on this server and the Pixeltrons they run.": {
+    "other": "Alle Nutzer dieses Servers und ihre Pixeltrons."
+  },
+  "Add your own app to this device's catalog.": {
+    "other": "Füge diesem Gerät eine eigene App hinzu."
+  },
+  "Appearance": {
+    "other": "Darstellung"
+  },
+  "The Lights off button flips between light and dark. Choose System to follow your device instead.": {
+    "other": "Der Knopf „Licht aus“ wechselt zwischen hell und dunkel. Wähle System, um deinem Gerät zu folgen."
+  },
+  "Theme": {
+    "other": "Design"
+  },
+  "Saved to your account.": {
+    "other": "Wird in deinem Konto gespeichert."
+  },
+  "Name it, pick its type, and tell it where it lives.": {
+    "other": "Gib ihm einen Namen, wähle den Typ und sag ihm, wo es steht."
+  },
+  "Close": {
+    "other": "Schließen"
   },
   "Home": {
     "other": "Home"
@@ -915,7 +993,7 @@
     "other": "Verwalten Sie die Anmeldung mit einem Hardware-Schlüssel, Browser oder Geräte-Passkey."
   },
   "Passkeys only work when Tronbyt is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled.": {
-    "other": "Passkeys funktionieren nur, wenn Tronbyt über eine sichere Verbindung geöffnet wird. Wenn die Passkey-Einrichtung nicht verfügbar ist, fragen Sie die Person, die Ihren Server verwaltet, ob HTTPS aktiviert ist."
+    "other": "Passkeys funktionieren nur, wenn Pixeltron über eine sichere Verbindung geöffnet wird. Wenn die Passkey-Einrichtung nicht verfügbar ist, fragen Sie die Person, die Ihren Server verwaltet, ob HTTPS aktiviert ist."
   },
   "API Access": {
     "other": "API-Zugriff"
@@ -960,7 +1038,7 @@
     "other": "Konfigurieren"
   },
   "New Tronbyt": {
-    "other": "Neuer Tronbyt"
+    "other": "Neuer Pixeltron"
   },
   "Delete User?": {
     "other": "Benutzer löschen?"
@@ -1365,13 +1443,13 @@
     "other": "Fehlgeschlagen"
   },
   "New Tronbyt Device": {
-    "other": "Neues Tronbyt-Gerät"
+    "other": "Neuer Pixeltron"
   },
   "Basic Information": {
     "other": "Grundlegende Informationen"
   },
   "Descriptive name for this Tronbyt device": {
-    "other": "Beschreibender Name für dieses Tronbyt-Gerät"
+    "other": "Beschreibender Name für diesen Pixeltron"
   },
   "Leave blank to auto-generate.": {
     "other": "Leer lassen für automatische Generierung."

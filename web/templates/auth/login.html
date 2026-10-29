@@ -2,43 +2,72 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Log In" }}{{ end }}
-{{ define "header" }}
-<h1>{{ t .Localizer "Log In" }}</h1>
-{{ end }}
+{{ define "tone" }}pc-bubble{{ end }}
 {{ define "content" }}
-{{ if .DetectedAccessURL }}
-<div class="w3-panel w3-yellow w3-border w3-border-amber w3-round w3-padding">
-    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-    {{ t .Localizer "You are accessing this server via localhost. For proper firmware generation you should use:" }}
-    <strong><a href="{{ .DetectedAccessURL }}">{{ .DetectedAccessURL }}</a></strong>
-</div>
-{{ end }}
-<form method="post">
-    <label for="username">{{ t .Localizer "Username" }}</label>
-    <input name="username" id="username" required>
-    <label for="password">{{ t .Localizer "Password" }}</label>
-    <input type="password" name="password" id="password" required>
-    <div>
-        <input type="checkbox" name="remember" id="remember">
-        <label for="remember">{{ t .Localizer "Remember Me" }}</label>
+<div class="pxt-auth">
+    <div class="pxt-auth-side">
+        <header class="pxt-page-head">
+            <div>
+                <p class="pxt-eyebrow">{{ t .Localizer "Tronbyt Manager" }}</p>
+                <h1>{{ t .Localizer "Log In" }}</h1>
+                <p class="pxt-lede">{{ t .Localizer "Sign in to manage your Pixeltrons and the apps they show." }}</p>
+            </div>
+        </header>
+        {{ if .DetectedAccessURL }}
+        <div class="pxt-note" role="note">
+            {{ pixelIcon "info" }}
+            <p class="pxt-help">
+                {{ t .Localizer "You are accessing this server via localhost. For proper firmware generation you should use:" }}
+                <strong><a href="{{ .DetectedAccessURL }}">{{ .DetectedAccessURL }}</a></strong>
+            </p>
+        </div>
+        {{ end }}
     </div>
-    <button type="submit" class="w3-button w3-green w3-section">
-        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> {{ t .Localizer "Log In" }}
-    </button>
-</form>
-<div id="webauthn-login-container" class="w3-section">
-    <button onclick="loginWebAuthn()" class="w3-button w3-blue">
-        <i class="fa-solid fa-fingerprint" aria-hidden="true"></i> {{ t .Localizer "Sign in with Passkey" }}
-    </button>
-    {{ if .OIDCEnabled }}
-    <button onclick="window.location.href='/auth/oidc/login'"
-            class="w3-button w3-blue">
-        <i class="fa-solid fa-id-card" aria-hidden="true"></i> {{ t .Localizer "Sign in with OIDC" }}
-    </button>
-    {{ end }}
+    <div class="pxt-auth-card">
+        <form method="post" class="pxt-form">
+            <div class="pxt-field">
+                <label class="pxt-field-label" for="username">{{ t .Localizer "Username" }}</label>
+                <input class="pxt-input"
+                       name="username"
+                       id="username"
+                       autocomplete="username"
+                       required>
+            </div>
+            <div class="pxt-field">
+                <label class="pxt-field-label" for="password">{{ t .Localizer "Password" }}</label>
+                <input class="pxt-input"
+                       type="password"
+                       name="password"
+                       id="password"
+                       autocomplete="current-password"
+                       required>
+            </div>
+            <label class="pxt-check" for="remember">
+                <input type="checkbox" name="remember" id="remember">
+                {{ t .Localizer "Remember Me" }}
+            </label>
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                {{ t .Localizer "Log In" }} {{ pixelIcon "arrow-right" }}
+            </button>
+        </form>
+        <div id="webauthn-login-container" class="pxt-auth-alt">
+            <p class="pxt-label">{{ t .Localizer "Or" }}</p>
+            <div class="pxt-actions">
+                <button type="button" onclick="loginWebAuthn()" class="btn btn-ghost">
+                    <i class="fa-solid fa-fingerprint" aria-hidden="true"></i> {{ t .Localizer "Sign in with Passkey" }}
+                </button>
+                {{ if .OIDCEnabled }}
+                <a href="/auth/oidc/login" class="btn btn-ghost">
+                    <i class="fa-solid fa-id-card" aria-hidden="true"></i> {{ t .Localizer "Sign in with OIDC" }}
+                </a>
+                {{ end }}
+            </div>
+        </div>
+    </div>
 </div>
 <script>
-    function loginWebAuthn() {
+    // Hide the passkey option where the browser cannot use one.
+    document.addEventListener('DOMContentLoaded', () => {
         if (!window.PublicKeyCredential || !navigator.credentials) {
             const el = document.getElementById('webauthn-login-container');
             if (el) el.style.display = 'none';

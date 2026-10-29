@@ -2,98 +2,85 @@
 {{ template "base" . }}
 {{ end }}
 {{ define "title" }}{{ t .Localizer "Configuring" }} {{ if eq .App.Name "pushed" }}{{ installationID .App }}{{ else }}{{ .App.Name }}{{ end }}{{ end }}
-{{ define "header" }}
+{{ define "tone" }}pc-grape{{ end }}
+{{ define "head" }}
 <link rel="stylesheet" href="/static/css/configapp-simple.css">
 <link rel="stylesheet" href="/static/css/updateapp-simple.css">
+{{ end }}
+{{ define "header" }}
 <script src="/static/js/location.js"></script>
-<h1>
-{{ t .Localizer "Configuring" }} {{ if eq .App.Name "pushed" }}{{ installationID .App }}(pushed){{ else }}{{ .App.Iname }} ({{ .App.Name }}){{ end }}
-</h1>
 {{ end }}
 {{ define "content" }}
-<!-- Navigation and Toggle Buttons -->
-<div class="flex-container">
-    <!-- Toggle Buttons -->
-    <div class="toggle-buttons">
-        <button id="toggleConfigBtn"
-                class="w3-button"
-                style="background-color: var(--primary-color);
-                       color: white">
-            <i class="fa-solid fa-file-code" aria-hidden="true"></i> <span class="button-label">{{ t .Localizer "Show App Config" }}</span>
-        </button>
-        <button id="toggleDebugBtn"
-                class="w3-button"
-                style="background-color: var(--primary-color);
-                       color: white">
-            <i class="fa-solid fa-bug" aria-hidden="true"></i> <span class="button-label">{{ t .Localizer "Show Render Debug" }}</span>
+<header class="pxt-page-head">
+    <div>
+        <p class="pxt-eyebrow">{{ t .Localizer "Configuring" }} · {{ .Device.Name }}</p>
+        <h1>{{ if eq .App.Name "pushed" }}{{ installationID .App }}{{ else }}{{ .App.Name }}{{ end }}</h1>
+        {{ if and .AppMetadata .AppMetadata.Summary }}
+        <p class="pxt-lede app-summary">{{ .AppMetadata.Summary }}</p>
+        {{ end }}
+    </div>
+    <div class="pxt-actions action-buttons">
+        <button type="button" class="btn btn-ghost" id="cancelButtonTop">{{ t .Localizer "Cancel" }}</button>
+        <button type="submit" form="dynamicForm" class="btn btn-primary" id="saveButton">
+            {{ t .Localizer "Save" }} {{ pixelIcon "check" }}
         </button>
     </div>
-    <!-- Action Buttons -->
-    <div class="action-buttons">
-        <button type="submit"
-                form="dynamicForm"
-                class="w3-button w3-green w3-round"
-                id="saveButton">
-            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
-        </button>
-        <button type="button" class="w3-button w3-red w3-round" id="cancelButtonTop">
-            <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> {{ t .Localizer "Cancel" }}
-        </button>
+</header>
+<!-- The stage: the live preview beside what this installation is -->
+<div class="pxt-stage pxt-config-stage">
+    <div class="pxt-stage-copy">
+        <p class="pxt-stage-meta">
+            {{ if eq .App.Name "pushed" }}{{ installationID .App }} (pushed){{ else }}{{ .App.Iname }} · {{ .App.Name }}{{ end }}
+        </p>
+        {{ if and .AppMetadata .AppMetadata.Desc }}
+        <div class="app-desc">{{ .AppMetadata.Desc }}</div>
+        {{ end }}
+        <label class="pxt-check pxt-stage-check" for="autoRefreshPreview">
+            <input type="checkbox" id="autoRefreshPreview" checked>
+            {{ t .Localizer "Auto Render Preview" }}
+        </label>
+        <div class="pxt-actions toggle-buttons">
+            <button type="button" id="toggleConfigBtn" class="btn btn-sm">
+                <span class="button-label">{{ t .Localizer "Show App Config" }}</span>
+            </button>
+            <button type="button" id="toggleDebugBtn" class="btn btn-sm">
+                <span class="button-label">{{ t .Localizer "Show Render Debug" }}</span>
+            </button>
+        </div>
+    </div>
+    <div class="pxt-stage-art">
+        <div class="app-img">
+            <img id="previewImage"
+                 src="/devices/{{ .Device.ID }}/installations/{{ .App.Iname }}/preview"
+                 alt="{{ t .Localizer "Preview" }}"
+                 width="128"
+                 height="64">
+            <div class="skeleton-loader"></div>
+        </div>
+        <p class="pxt-stage-caption">{{ t .Localizer "Preview" }}</p>
     </div>
 </div>
 <!-- Config Content -->
 <div id="configContent" class="hidden">
-    <pre class="flash" id="configContentPre"></pre>
+    <pre class="flash pxt-code" id="configContentPre"></pre>
 </div>
 <!-- Debug Content -->
 <div id="debugContent" class="hidden">
-    <pre class="flash">{{ range .App.RenderMessages }}{{ . }}
+    <pre class="flash pxt-code">{{ range .App.RenderMessages }}{{ . }}
 {{ end }}</pre>
 </div>
-<!-- App Preview -->
-<div class="app-img">
-    <img id="previewImage"
-         src="/devices/{{ .Device.ID }}/installations/{{ .App.Iname }}/preview"
-         alt="{{ t .Localizer "Preview" }}"
-         width="128"
-         height="64">
-    <div class="skeleton-loader"></div>
-</div>
-<div style="text-align:center; margin:8px 0;">
-    <label style="cursor:pointer; user-select:none; font-size:0.9em;">
-        <input type="checkbox" id="autoRefreshPreview" checked>
-        {{ t .Localizer "Auto Render Preview" }}
-    </label>
-</div>
-{{ if .AppMetadata }}
-<div class="app-metadata">
-    {{ if .AppMetadata.Summary }}
-    <p class="app-summary">{{ .AppMetadata.Summary }}</p>
-    {{ end }}
-    {{ if .AppMetadata.Desc }}
-    <div class="app-desc">{{ .AppMetadata.Desc }}</div>
-    {{ end }}
-</div>
-{{ end }}
-<form method="post" id="dynamicForm">
+<form method="post" id="dynamicForm" class="pxt-config-form">
     <!-- Schema Config Section -->
-    <div style="display:flex;
-                align-items:center;
-                justify-content:space-between;
-                flex-wrap:wrap;
-                gap:10px">
+    <div class="pxt-section-head">
         <h2>{{ t .Localizer "App Configuration" }}</h2>
         <button type="button"
-                class="w3-button w3-blue w3-round"
+                class="btn btn-ghost btn-sm"
                 id="refreshSchemaButton"
                 title="{{ t .Localizer "Reload dropdown options from their source. Use this if an app's options are fetched online and you've updated them." }}">
-            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
             <span class="button-label">{{ t .Localizer "Refresh options" }}</span>
         </button>
     </div>
-    <table id="schemaConfigContainer"
-           class="form-table"
-           style="border-spacing: 0 15px">
+    <table id="schemaConfigContainer" class="form-table">
         <!-- Schema fields will be injected here -->
     </table>
     <hr>
@@ -259,7 +246,7 @@
                 {{ if and (ne $currentSound "") (not (hasPrefix $currentSound "default:")) (not (hasPrefix $currentSound "custom:")) (not (hasPrefix $currentSound "app:")) }}
                 {{ $isCustomURL = true }}
                 {{ end }}
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+                <div class="pxt-inline">
                     <select name="notification_sound_select"
                             id="notification_sound_select"
                             class="form-control"
@@ -308,11 +295,10 @@
                         {{ end }}
                     </select>
                     <button type="button"
-                            class="w3-button w3-light-gray w3-round"
+                            class="btn btn-ghost btn-sm"
                             id="testSoundBtn"
                             onclick="testNotificationSound()"
-                            title="{{ t .Localizer "Preview sound" }}"
-                            style="white-space: nowrap">
+                            title="{{ t .Localizer "Preview sound" }}">
                         <i class="fa-solid fa-volume-high" aria-hidden="true"></i> {{ t .Localizer "Test Sound" }}
                     </button>
                 </div>
@@ -329,7 +315,7 @@
                     <small class="settings-help">{{ t .Localizer "Direct URL to audio file (.mp3 or .wav)" }}</small>
                 </div>
                 {{ if eq $audioCap "piezo" }}
-                <p class="settings-help" style="margin-top: 6px;">
+                <p class="settings-help">
                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                     {{ t .Localizer "Piezo buzzers play tone sequences for built-in and app sounds. Custom uploaded files and external URLs require a device with full speaker support." }}
                 </p>
@@ -409,8 +395,8 @@
         <div id="legacy_schedule">
             <h3>{{ t .Localizer "Active Days" }}</h3>
             <small>{{ t .Localizer "(none selected is ALL selected)" }}</small>
-            <div style="margin-top: 10px;">
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+            <div class="pxt-choice-row pxt-mt">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="days"
                            value="monday"
@@ -418,7 +404,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Monday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="days"
                            value="tuesday"
@@ -426,7 +412,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Tuesday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="days"
                            value="wednesday"
@@ -434,7 +420,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Wednesday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="days"
                            value="thursday"
@@ -442,7 +428,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Thursday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="days"
                            value="friday"
@@ -450,7 +436,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Friday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="days"
                            value="saturday"
@@ -458,7 +444,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Saturday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="days"
                            value="sunday"
@@ -470,11 +456,8 @@
         </div>
     </div>
     <!-- Custom Recurrence Toggle -->
-    <div style="margin: 20px 0;">
-        <label for="use_custom_recurrence"
-               style="display: flex;
-                      align-items: center;
-                      gap: 10px">
+    <div class="pxt-recurrence-toggle">
+        <label for="use_custom_recurrence" class="pxt-check">
             <input type="checkbox"
                    name="use_custom_recurrence"
                    id="use_custom_recurrence"
@@ -484,9 +467,7 @@
                    onchange="toggleCustomRecurrence()">
             <div>
                 <strong>{{ t .Localizer "Use Custom Recurrence" }}</strong>
-                <small style="display: block;
-                              color: var(--post-about-text);
-                              margin-top: 5px">
+                <small class="pxt-help">
                     {{ t .Localizer "Enable advanced scheduling options (bi-weekly, monthly, yearly, etc.)" }}
                 </small>
             </div>
@@ -582,10 +563,10 @@
             <h4>{{ t .Localizer "Weekly Options" }}</h4>
             <label for="weekdays">{{ t .Localizer "Active Days" }}</label>
             <small>{{ t .Localizer "(none selected is ALL selected)" }}</small>
-            <div style="margin-top: 10px;">
+            <div class="pxt-choice-row pxt-mt">
                 {{ $weekdays := index .App.RecurrencePattern "weekdays" }}
                 {{ if not $weekdays }}{{ $weekdays = .App.Days }}{{ end }}
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="weekdays"
                            value="monday"
@@ -593,7 +574,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Monday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="weekdays"
                            value="tuesday"
@@ -601,7 +582,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Tuesday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="weekdays"
                            value="wednesday"
@@ -609,7 +590,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Wednesday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="weekdays"
                            value="thursday"
@@ -617,7 +598,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Thursday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="weekdays"
                            value="friday"
@@ -625,7 +606,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Friday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="weekdays"
                            value="saturday"
@@ -633,7 +614,7 @@
                            checked
                            {{ end }}> {{ t .Localizer "Saturday" }}
                 </label>
-                <label style="display: inline-block; margin-right: 15px; margin-bottom: 5px">
+                <label class="pxt-check pxt-day">
                     <input type="checkbox"
                            name="weekdays"
                            value="sunday"
@@ -729,60 +710,43 @@
             </div>
         </div>
     </div>
-    <div class="button-container">
-        <button type="submit" class="w3-button w3-green w3-round">
-            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
-        </button>
-        <button type="button" class="w3-button w3-blue w3-round" id="resetButton">
-            <i class="fa-solid fa-rotate-left"></i> {{ t .Localizer "Reset" }}
-        </button>
+    <div class="button-container pxt-form-actions">
+        <button type="submit" class="btn btn-primary">{{ t .Localizer "Save" }} {{ pixelIcon "check" }}</button>
+        <button type="button" class="btn btn-ghost" id="resetButton">{{ t .Localizer "Reset" }}</button>
         {{ if eq .Device.Info.ProtocolType "WS" }}
-        <button type="button" class="w3-button w3-blue w3-round" id="previewButton">
-            <i class="fa-solid fa-eye"></i> {{ t .Localizer "Preview" }}
-        </button>
+        <button type="button" class="btn btn-ghost" id="previewButton">{{ t .Localizer "Preview" }}</button>
         {{ end }}
+        <button type="button" class="btn btn-ghost" onclick="exportConfig()">{{ t .Localizer "Export Config" }}</button>
         <button type="button"
-                class="w3-button w3-grey w3-round"
-                onclick="exportConfig()">
-            <i class="fa-solid fa-download"></i> {{ t .Localizer "Export Config" }}
-        </button>
+                class="btn btn-ghost"
+                onclick="document.getElementById('importConfigInput').click()">{{ t .Localizer "Import Config" }}</button>
+        <button type="button" class="btn btn-ghost" id="cancelButton">{{ t .Localizer "Cancel" }}</button>
         <button type="button"
-                class="w3-button w3-grey w3-round"
-                onclick="document.getElementById('importConfigInput').click()">
-            <i class="fa-solid fa-upload"></i> {{ t .Localizer "Import Config" }}
-        </button>
-        <button type="button" class="w3-button w3-red w3-round" id="cancelButton">
-            <i class="fa-solid fa-circle-xmark"></i> {{ t .Localizer "Cancel" }}
-        </button>
-        <button type="button"
-                class="w3-button w3-red w3-round"
+                class="btn btn-danger pxt-push-right"
                 id="deleteButton"
                 onclick="if(confirm('{{ t .Localizer "Delete App?" }}')) deleteApp('{{ .Device.ID }}', '{{ .App.Iname }}', true)">
-            <i class="fa-solid fa-trash"></i> {{ t .Localizer "Delete" }}
+            {{ t .Localizer "Delete" }}
         </button>
     </div>
 </form>
 <input type="file"
        id="importConfigInput"
-       style="display:none"
+       hidden
        accept=".json"
        onchange="importConfig(this)">
 <!-- API Examples Section -->
 <div id="apiUsageContent">
     <div class="api-section">
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="pxt-section-head">
             <h2>{{ t .Localizer "API Usage" }}</h2>
-            <button id="toggleApiUsageBtn"
-                    class="w3-button"
-                    style="background-color: var(--primary-color);
-                           color: white">
-                <i class="fa-solid fa-code" aria-hidden="true"></i> <span class="button-label">{{ t .Localizer "Show API Usage" }}</span>
+            <button id="toggleApiUsageBtn" type="button" class="btn btn-ghost btn-sm">
+                <span class="button-label">{{ t .Localizer "Show API Usage" }}</span>
             </button>
         </div>
         <div class="api-usage-details collapsed">
             <p>{{ t .Localizer "Use these curl commands to control this app via the API:" }}</p>
             <!-- Enable App -->
-            <div style="margin-bottom: 20px;">
+            <div class="pxt-api-example">
                 <h3>{{ t .Localizer "Enable App" }}</h3>
                 <pre>curl -X PATCH \
   -H "Authorization: Bearer {{ .Device.APIKey }}" \
@@ -791,8 +755,8 @@
   /v0/devices/{{ .Device.ID }}/installations/{{ .App.Iname }}</pre>
             </div>
             <!-- Disable App -->
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: var(--danger-text);">{{ t .Localizer "Disable App" }}</h3>
+            <div class="pxt-api-example">
+                <h3 class="pxt-text-danger">{{ t .Localizer "Disable App" }}</h3>
                 <pre>curl -X PATCH \
   -H "Authorization: Bearer {{ .Device.APIKey }}" \
   -H "Content-Type: application/json" \
@@ -800,7 +764,7 @@
   /v0/devices/{{ .Device.ID }}/installations/{{ .App.Iname }}</pre>
             </div>
             <!-- Pin App -->
-            <div style="margin-bottom: 20px;">
+            <div class="pxt-api-example">
                 <h3>{{ t .Localizer "Pin App" }}</h3>
                 <pre>curl -X PATCH \
   -H "Authorization: Bearer {{ .Device.APIKey }}" \
@@ -809,8 +773,8 @@
   /v0/devices/{{ .Device.ID }}</pre>
             </div>
             <!-- Unpin App -->
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: var(--danger-text);">{{ t .Localizer "Unpin App" }}</h3>
+            <div class="pxt-api-example">
+                <h3 class="pxt-text-danger">{{ t .Localizer "Unpin App" }}</h3>
                 <pre>curl -X PATCH \
   -H "Authorization: Bearer {{ .Device.APIKey }}" \
   -H "Content-Type: application/json" \
@@ -818,7 +782,7 @@
   /v0/devices/{{ .Device.ID }}</pre>
             </div>
             <!-- Set Schedule -->
-            <div style="margin-bottom: 20px;">
+            <div class="pxt-api-example">
                 <h3>{{ t .Localizer "Set Schedule" }}</h3>
                 <pre>curl -X PATCH \
   -H "Authorization: Bearer {{ .Device.APIKey }}" \
@@ -827,8 +791,8 @@
   /v0/devices/{{ .Device.ID }}/installations/{{ .App.Iname }}</pre>
             </div>
             <!-- Clear Schedule -->
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: var(--danger-text);">{{ t .Localizer "Clear Schedule" }}</h3>
+            <div class="pxt-api-example">
+                <h3 class="pxt-text-danger">{{ t .Localizer "Clear Schedule" }}</h3>
                 <pre>curl -X PATCH \
   -H "Authorization: Bearer {{ .Device.APIKey }}" \
   -H "Content-Type: application/json" \
@@ -1254,8 +1218,7 @@
     // and break apps that do config.get("location", DEFAULT).
     const clearButton = document.createElement("button");
     clearButton.type = "button";
-    clearButton.className = "w3-button w3-border w3-round w3-small";
-    clearButton.style.marginTop = "4px";
+    clearButton.className = "btn btn-ghost btn-sm pxt-clear-btn";
     clearButton.textContent = "{{ t .Localizer "Clear location" }}";
     container.appendChild(clearButton);
 
@@ -1804,7 +1767,7 @@ function createImageUploadField(field, config) {
     typeaheadResults.style.listStyleType = "none";
     typeaheadResults.style.padding = "0";
     typeaheadResults.style.margin = "0";
-    typeaheadResults.style.border = "1px solid #ccc";
+    typeaheadResults.style.border = "2px solid var(--ink)";
     typeaheadResults.style.maxHeight = "150px";
     typeaheadResults.style.overflowY = "auto";
     typeaheadResults.style.display = "none";
@@ -1815,8 +1778,7 @@ function createImageUploadField(field, config) {
     // it and the app falls back to its own default -- same as schema.Location.
     const clearButton = document.createElement("button");
     clearButton.type = "button";
-    clearButton.className = "w3-button w3-border w3-round w3-small";
-    clearButton.style.marginTop = "4px";
+    clearButton.className = "btn btn-ghost btn-sm pxt-clear-btn";
     clearButton.textContent = "{{ t .Localizer "Clear" }}";
     inputElement.appendChild(clearButton);
 
@@ -1953,7 +1915,7 @@ function createImageUploadField(field, config) {
             if (!hexColorRegex.test(color)) return;
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'w3-button';
+            btn.className = 'pxt-swatch';
             btn.style.setProperty('--color', color);
             btn.style.backgroundColor = color; // Fallback
             btn.setAttribute('aria-label', color);

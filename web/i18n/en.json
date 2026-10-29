@@ -399,7 +399,85 @@
     "other": "Device already exists. Import skipped."
   },
   "Tronbyt Manager": {
-    "other": "Tronbyt Manager"
+    "other": "Pixeltron"
+  },
+  "lang": {
+    "other": "en"
+  },
+  "Menu": {
+    "other": "Menu"
+  },
+  "Skip to content": {
+    "other": "Skip to content"
+  },
+  "Main": {
+    "other": "Main"
+  },
+  "Apps": {
+    "other": "Apps"
+  },
+  "Lights off": {
+    "other": "Lights off"
+  },
+  "Lights on": {
+    "other": "Lights on"
+  },
+  "by Ten Thousand Pixels": {
+    "other": "by Ten Thousand Pixels"
+  },
+  "Your Pixeltrons": {
+    "other": "Your Pixeltrons"
+  },
+  "New": {
+    "other": "New"
+  },
+  "No Pixeltrons yet": {
+    "other": "No Pixeltrons yet"
+  },
+  "Add your first device to start sending it apps.": {
+    "other": "Add your first device to start sending it apps."
+  },
+  "Sign in to manage your Pixeltrons and the apps they show.": {
+    "other": "Sign in to manage your Pixeltrons and the apps they show."
+  },
+  "Or": {
+    "other": "Or"
+  },
+  "The first account runs this server. You can add more people later.": {
+    "other": "The first account runs this server. You can add more people later."
+  },
+  "Make an account to set up your own Pixeltrons.": {
+    "other": "Make an account to set up your own Pixeltrons."
+  },
+  "Letters and numbers only.": {
+    "other": "Letters and numbers only."
+  },
+  "All devices": {
+    "other": "All devices"
+  },
+  "Every user on this server and the Pixeltrons they run.": {
+    "other": "Every user on this server and the Pixeltrons they run."
+  },
+  "Add your own app to this device's catalog.": {
+    "other": "Add your own app to this device's catalog."
+  },
+  "Appearance": {
+    "other": "Appearance"
+  },
+  "The Lights off button flips between light and dark. Choose System to follow your device instead.": {
+    "other": "The Lights off button flips between light and dark. Choose System to follow your device instead."
+  },
+  "Theme": {
+    "other": "Theme"
+  },
+  "Saved to your account.": {
+    "other": "Saved to your account."
+  },
+  "Name it, pick its type, and tell it where it lives.": {
+    "other": "Name it, pick its type, and tell it where it lives."
+  },
+  "Close": {
+    "other": "Close"
   },
   "Home": {
     "other": "Home"
@@ -915,7 +993,7 @@
     "other": "Manage sign-in with a hardware key, browser, or device passkey."
   },
   "Passkeys only work when Tronbyt is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled.": {
-    "other": "Passkeys only work when Tronbyt is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled."
+    "other": "Passkeys only work when Pixeltron is opened on a secure connection. If passkey setup is unavailable, ask whoever manages your server whether HTTPS is enabled."
   },
   "API Access": {
     "other": "API Access"
@@ -960,7 +1038,7 @@
     "other": "Configure"
   },
   "New Tronbyt": {
-    "other": "New Tronbyt"
+    "other": "New Pixeltron"
   },
   "Delete User?": {
     "other": "Delete User?"
@@ -1368,13 +1446,13 @@
     "other": "Failed"
   },
   "New Tronbyt Device": {
-    "other": "New Tronbyt Device"
+    "other": "New Pixeltron"
   },
   "Basic Information": {
     "other": "Basic Information"
   },
   "Descriptive name for this Tronbyt device": {
-    "other": "Descriptive name for this Tronbyt device"
+    "other": "Descriptive name for this Pixeltron"
   },
   "Leave blank to auto-generate.": {
     "other": "Leave blank to auto-generate."

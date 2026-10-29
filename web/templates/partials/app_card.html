@@ -1,6 +1,6 @@
 {{ define "app_card" }}
 <!-- App Card Component -->
-<div class="w3-card-4 w3-padding app-card"
+<div class="app-card"
      {{ if .App.Enabled }}
      data-status="enabled"
      {{ else }}
@@ -68,21 +68,24 @@
         <div class="app-actions">
             <!-- Primary Actions Row -->
             <div class="app-actions-primary">
-                <a class="action w3-button w3-blue w3-round"
-                   href="/devices/{{ .Device.ID }}/{{ .App.Iname }}/config"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> {{ t .Localizer "Edit" }}</a>
+                <a class="btn btn-sm"
+                   href="/devices/{{ .Device.ID }}/{{ .App.Iname }}/config">{{ t .Localizer "Edit" }}</a>
                 {{ if eq .Device.Info.ProtocolType "WS" }}
-                <button class="action w3-button w3-blue w3-round"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="previewApp('{{ .Device.ID }}', '{{ .App.Iname }}', null, this)">
                     <i class="fa-solid fa-play" aria-hidden="true"></i> {{ t .Localizer "Preview" }}
                 </button>
                 {{ end }}
-                <button class="action w3-button w3-green w3-round"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="duplicateApp('{{ .Device.ID }}', '{{ .App.Iname }}')">
                     <i class="fa-solid fa-copy" aria-hidden="true"></i> {{ t .Localizer "Duplicate" }}
                 </button>
                 {{ if gt (len .Devices) 1 }}
                 <div class="copy-to-dropdown">
-                    <select class="action w3-button w3-indigo w3-round custom-select"
+                    <select class="pxt-copy-select"
+                            aria-label="{{ t .Localizer "Copy to..." }}"
                             onchange="if(this.value) { duplicateAppToDevice('{{ .Device.ID }}', '{{ .App.Iname }}', this.value, null, false); this.selectedIndex=0; }">
                         <option value="" disabled selected>{{ t .Localizer "Copy to..." }}</option>
                         {{ range $target_device := .Devices }}
@@ -94,38 +97,45 @@
                     <i class="fa fa-caret-down custom-select-arrow"></i>
                 </div>
                 {{ end }}
-                <button class="action w3-button w3-red w3-round"
+                <button type="button"
+                        class="btn btn-danger btn-sm"
                         onclick="deleteApp('{{ .Device.ID }}', '{{ .App.Iname }}', false, {{ t .Localizer "Delete App?" | json }})">
                     <i class="fa-solid fa-trash" aria-hidden="true"></i> {{ t .Localizer "Delete" }}
                 </button>
             </div>
             <!-- Secondary Actions Row -->
             <div class="app-actions-secondary">
-                <button class="action w3-button w3-blue w3-round app-btn-no-hover"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="moveApp('{{ .Device.ID }}', '{{ .App.Iname }}', 'top')">
                     <i class="fa-solid fa-angles-up" aria-hidden="true"></i> {{ t .Localizer "Top" }}
                 </button>
-                <button class="action w3-button w3-blue w3-round app-btn-no-hover"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="moveApp('{{ .Device.ID }}', '{{ .App.Iname }}', 'bottom')">
                     <i class="fa-solid fa-angles-down" aria-hidden="true"></i> {{ t .Localizer "Bottom" }}
                 </button>
                 {{ if isPinned .Device .App.Iname }}
-                <button class="action w3-button w3-orange w3-round app-btn-no-hover"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="togglePin('{{ .Device.ID }}', '{{ .App.Iname }}')">
                     <i class="fa-solid fa-thumbtack-slash" aria-hidden="true"></i> {{ t .Localizer "Unpin" }}
                 </button>
             {{ else }}
-                <button class="action w3-button w3-green w3-round app-btn-no-hover"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="togglePin('{{ .Device.ID }}', '{{ .App.Iname }}')">
                     <i class="fa-solid fa-thumbtack" aria-hidden="true"></i> {{ t .Localizer "Pin" }}
                 </button>
                 {{ if .App.Enabled }}
-                <button class="action w3-button w3-orange w3-round app-btn-no-hover"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="toggleEnabled('{{ .Device.ID }}', '{{ .App.Iname }}')">
                     <i class="fa-solid fa-pause" aria-hidden="true"></i> {{ t .Localizer "Disable" }}
                 </button>
             {{ else }}
-                <button class="action w3-button w3-green w3-round app-btn-no-hover"
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
                         onclick="toggleEnabled('{{ .Device.ID }}', '{{ .App.Iname }}')">
                     <i class="fa-solid fa-play" aria-hidden="true"></i> {{ t .Localizer "Enable" }}
                 </button>

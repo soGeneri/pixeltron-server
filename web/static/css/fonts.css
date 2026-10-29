@@ -1,0 +1,9 @@
+/* Self-hosted brand fonts (SIL OFL 1.1, see /static/webfonts/OFL.txt). */
+@font-face { font-family: "Figtree"; font-style: normal; font-weight: 400; font-display: swap; src: url("../webfonts/figtree-400.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-style: normal; font-weight: 700; font-display: swap; src: url("../webfonts/figtree-700.woff2") format("woff2"); }
+@font-face { font-family: "Figtree"; font-style: normal; font-weight: 800; font-display: swap; src: url("../webfonts/figtree-800.woff2") format("woff2"); }
+@font-face { font-family: "DM Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("../webfonts/dm-mono-400.woff2") format("woff2"); }
+@font-face { font-family: "DM Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("../webfonts/dm-mono-500.woff2") format("woff2"); }
+@font-face { font-family: "Silkscreen"; font-style: normal; font-weight: 400; font-display: swap; src: url("../webfonts/silkscreen-400.woff2") format("woff2"); }
+@font-face { font-family: "Newsreader"; font-style: normal; font-weight: 400; font-display: swap; src: url("../webfonts/newsreader-400.woff2") format("woff2"); }
+@font-face { font-family: "Press Start 2P"; font-style: normal; font-weight: 400; font-display: swap; src: url("../webfonts/press-start-2p-400.woff2") format("woff2"); }

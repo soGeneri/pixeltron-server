@@ -74,9 +74,9 @@
 }
 
 .filter-sort-controls {
-  border: 1px solid var(--border-color);
-  background: var(--surface-subtle);
-  border-radius: 14px;
+  border: var(--border-pixel) solid var(--ink);
+  background: var(--surface-raised);
+  border-radius: var(--radius-0);
   padding: 14px;
 }
 
@@ -139,9 +139,9 @@
 }
 
 .app-item {
-  border: 1px solid var(--border-color);
-  background: var(--surface-bg);
-  border-radius: 16px;
+  border: var(--border-pixel) solid var(--ink);
+  background: var(--surface);
+  border-radius: var(--radius-0);
   padding: 14px;
   text-align: left;
   cursor: pointer;
@@ -149,26 +149,26 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  transition: transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step);
 }
 
 .app-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px var(--shadow-color);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 var(--cherry);
 }
 
 .app-item.selected {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 14%, transparent);
+  border-color: var(--ink);
+  box-shadow: 6px 6px 0 0 var(--cherry);
 }
 
 .app-item.installed {
-  border-color: color-mix(in srgb, var(--border-color) 80%, #c58a0b 20%);
+  background: var(--sun-soft);
 }
 
 .app-item.broken-app {
-  border-color: color-mix(in srgb, var(--border-color) 70%, #c63c37 30%);
-  background: color-mix(in srgb, var(--surface-bg) 94%, #c63c37 6%);
+  border-color: var(--signal);
+  background: var(--surface-raised);
   cursor: not-allowed;
 }
 
@@ -257,22 +257,24 @@
   position: absolute;
   top: 10px;
   z-index: 10;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 650;
-  line-height: 1.2;
+  padding: 4px 8px;
+  border-radius: var(--radius-1);
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 
 .installed-badge {
   right: 10px;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #c58a0b 16%);
+  background: var(--sun);
+  color: var(--midnight) !important;
   color: var(--page-text);
 }
 
 .supports-2x-badge {
   left: 10px;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #4a78d8 16%);
+  background: var(--sky-soft);
   color: var(--page-text);
 }
 
@@ -280,14 +282,15 @@
 .supports-64x64-badge {
   left: 10px;
   top: 38px;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #3f9d6b 16%);
+  background: var(--mint-soft);
   color: var(--page-text);
 }
 
 .broken-badge {
   position: static;
   align-self: flex-start;
-  background: color-mix(in srgb, var(--surface-bg) 84%, #c63c37 16%);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--signal);
   color: var(--danger-text);
 }
 
@@ -300,20 +303,20 @@
   gap: 6px;
   margin-top: 2px;
   padding: 0.5rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--input-border);
-  background: var(--button-bg);
-  color: var(--page-text);
+  border-radius: var(--radius-2);
+  border: var(--border-pixel) solid var(--line-strong);
+  background: transparent;
+  color: var(--ink);
   text-decoration: none;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 .delete-upload-btn {
   color: var(--danger-text);
-  border-color: color-mix(in srgb, var(--input-border) 70%, #c63c37 30%);
+  border-color: var(--signal);
 }
 
 .mark-broken-btn,

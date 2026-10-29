@@ -1,0 +1,146 @@
+/* Pixeltron design tokens, copied from the Ten Thousand Pixels design system
+   (10kpx/design-system/4-css-variables.md). Bright maps to data-theme="light"
+   and Night to data-theme="dark", the values theme.js sets on <html>. */
+:root, [data-theme="light"] {
+  --bg: #fff8ef;
+  --surface: #ffffff;
+  --surface-raised: #fff0dc;
+  --line: #f0dcc4;
+  --line-strong: #8a7766;
+  --dot: #f4c8b8;
+  --ink: #1d1530;
+  --ink-muted: #5e5470;
+  --cherry: #ff3d4f;
+  --cherry-deep: #e5213a;
+  --on-cherry: #1d1530;
+  --on-cherry-muted: #4a0710;
+  --accent-text: #d4142b;
+  --action: #d81b33;
+  --action-hover: #b8132a;
+  --signal: #c24e00;
+  --success: #13804a;
+  --focus: #d81b33;
+  --scrim: rgba(29, 21, 48, 0.6);
+  --sun-soft: #fff1b8;
+  --sky: #3fbdf0;
+  --sky-soft: #d9f3fd;
+  --mint: #2fd28c;
+  --mint-soft: #d4f7e6;
+  --grape: #9b5de5;
+  --grape-soft: #eee2fc;
+  --bubble-soft: #ffe0ec;
+  --shadow-pixel: 4px 4px 0 0 #1d1530;
+  --shadow-pixel-sm: 2px 2px 0 0 #1d1530;
+  --shadow-lift: 0 24px 64px rgba(29, 21, 48, 0.18);
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg: #0a0a0b;
+  --surface: #18181a;
+  --surface-raised: #232326;
+  --line: #2c2c30;
+  --line-strong: #77777e;
+  --dot: #2e2e33;
+  --ink: #f2f1ec;
+  --ink-muted: #a0a0a6;
+  --cherry: #ff3d3d;
+  --cherry-deep: #e52222;
+  --on-cherry: #0a0a0b;
+  --on-cherry-muted: #4a0808;
+  --accent-text: #ff6363;
+  --action: #e5202a;
+  --action-hover: #c41019;
+  --signal: #ff8a3d;
+  --success: #4cd18a;
+  --focus: #ff3d3d;
+  --scrim: rgba(10, 10, 11, 0.78);
+  --sun-soft: #2e2610;
+  --sky: #4cc9f0;
+  --sky-soft: #0f2530;
+  --mint: #3ddc97;
+  --mint-soft: #0f2a1e;
+  --grape: #a97bf0;
+  --grape-soft: #22183a;
+  --bubble-soft: #33141f;
+  --shadow-pixel: 4px 4px 0 0 #f2f1ec;
+  --shadow-pixel-sm: 2px 2px 0 0 #f2f1ec;
+  --shadow-lift: 0 24px 64px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+:root {
+  /* the same in every theme */
+  --on-action: #ffffff;
+  --sun: #ffd23f;
+  --bubble: #ff8fb8;
+  --midnight: #1d1530;
+  --cream: #fff8ef;
+  --stage: #14111c;
+  --on-stage-muted: #b8b0cc;
+  --cherry-ink: #d81b33;
+  --grape-ink: #7a3fd1;
+  --sky-ink: #0b86b8;
+  --mint-ink: #0f9a5e;
+  --bubble-ink: #c2185b;
+  --sun-ink: #8a6200;
+  --screen: #0b0a10;
+  --shadow-none: none;
+  /* spacing */
+  --space-half: 4px;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-12: 96px;
+  --space-16: 128px;
+  --space-20: 160px;
+  /* radius */
+  --radius-0: 0;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-3: 8px;
+  --radius-pill: 999px;
+  /* border */
+  --border-hair: 1px;
+  --border-pixel: 2px;
+  --border-bold: 3px;
+  --border-chunky: 4px;
+  /* size */
+  --pixel-grid: 8px;
+  --sprite-cell: 16px;
+  --control-height: 40px;
+  --control-height-sm: 32px;
+  --nav-width: 1120px;
+  --content-text: 640px;
+  --content-max: 960px;
+  --content-product: 1180px;
+  --content-wide: 1200px;
+  /* breakpoint */
+  --bp-phone: 600px;
+  --bp-nav: 760px;
+  --bp-tablet: 900px;
+  /* duration */
+  --dur-instant: 80ms;
+  --dur-fast: 160ms;
+  --dur-base: 240ms;
+  --dur-slow: 480ms;
+  --dur-frame: 125ms;
+  --dur-idle: 2400ms;
+  /* easing */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-step: steps(1, end);
+  --ease-pixel: steps(2, end);
+  /* zIndex */
+  --z-nav: 50;
+  --z-modal: 100;
+  --z-finale: 200;
+  /* type families */
+  --font-dot: "Doto", "DotGothic16", ui-monospace, monospace;
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, Menlo, monospace;
+  --font-pixel: "Silkscreen", ui-monospace, monospace;
+  --font-arcade: "Press Start 2P", "Silkscreen", ui-monospace, monospace;
+}

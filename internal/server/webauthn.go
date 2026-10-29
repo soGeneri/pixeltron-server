@@ -55,7 +55,7 @@ func (s *Server) initWebAuthn(r *http.Request) (*webauthn.WebAuthn, error) {
 	origin := fmt.Sprintf("%s://%s", scheme, r.Host)
 
 	return webauthn.New(&webauthn.Config{
-		RPDisplayName: "Tronbyt Server",
+		RPDisplayName: "Pixeltron",
 		RPID:          strings.Split(r.Host, ":")[0], // Hostname without port
 		RPOrigins:     []string{origin},
 	})
