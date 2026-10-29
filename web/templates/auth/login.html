@@ -87,7 +87,7 @@
 
     async function loginWebAuthn() {
         if (!window.PublicKeyCredential || !navigator.credentials) {
-            alert("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
+            pxtError("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
             return;
         }
         try {
@@ -131,11 +131,14 @@
             if (finishResp.ok) {
                 window.location.href = '/';
             } else {
-                alert("Login failed");
+                pxtError("{{ t .Localizer "Passkey sign-in didn't work. Try again, or sign in with your password." }}");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            // Cancelling the browser's passkey prompt is not an error worth reporting.
+            if (e.name !== 'NotAllowedError') {
+                pxtError("{{ t .Localizer "Passkey sign-in didn't work. Try again, or sign in with your password." }}");
+            }
         }
     }
 </script>

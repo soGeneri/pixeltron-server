@@ -20,7 +20,7 @@
         {{ end }}
     </div>
     <div class="pxt-actions action-buttons">
-        <button type="button" class="btn btn-ghost" id="cancelButtonTop">{{ t .Localizer "Cancel" }}</button>
+        <button type="button" class="btn btn-ghost" id="cancelButtonTop">{{ if .DeleteOnCancel }}{{ t .Localizer "Cancel and remove app" }}{{ else }}{{ t .Localizer "Cancel" }}{{ end }}</button>
         <button type="submit" form="dynamicForm" class="btn btn-primary" id="saveButton">
             {{ t .Localizer "Save" }} {{ pixelIcon "check" }}
         </button>
@@ -712,19 +712,25 @@
     </div>
     <div class="button-container pxt-form-actions">
         <button type="submit" class="btn btn-primary">{{ t .Localizer "Save" }} {{ pixelIcon "check" }}</button>
-        <button type="button" class="btn btn-ghost" id="resetButton">{{ t .Localizer "Reset" }}</button>
         {{ if eq .Device.Info.ProtocolType "WS" }}
         <button type="button" class="btn btn-ghost" id="previewButton">{{ t .Localizer "Preview" }}</button>
         {{ end }}
-        <button type="button" class="btn btn-ghost" onclick="exportConfig()">{{ t .Localizer "Export Config" }}</button>
-        <button type="button"
-                class="btn btn-ghost"
-                onclick="document.getElementById('importConfigInput').click()">{{ t .Localizer "Import Config" }}</button>
-        <button type="button" class="btn btn-ghost" id="cancelButton">{{ t .Localizer "Cancel" }}</button>
+        <button type="button" class="btn btn-ghost" id="cancelButton">{{ if .DeleteOnCancel }}{{ t .Localizer "Cancel and remove app" }}{{ else }}{{ t .Localizer "Cancel" }}{{ end }}</button>
+        <!-- Less frequent actions live in an overflow menu. -->
+        <details class="pxt-more">
+            <summary class="btn btn-ghost">{{ t .Localizer "More" }} {{ pixelIcon "chevron-down" }}</summary>
+            <div class="pxt-more-menu">
+                <button type="button" class="pxt-more-item" id="resetButton">{{ t .Localizer "Reset" }}</button>
+                <button type="button" class="pxt-more-item" onclick="exportConfig()">{{ t .Localizer "Export Config" }}</button>
+                <button type="button"
+                        class="pxt-more-item"
+                        onclick="document.getElementById('importConfigInput').click()">{{ t .Localizer "Import Config" }}</button>
+            </div>
+        </details>
         <button type="button"
                 class="btn btn-danger pxt-push-right"
                 id="deleteButton"
-                onclick="if(confirm('{{ t .Localizer "Delete App?" }}')) deleteApp('{{ .Device.ID }}', '{{ .App.Iname }}', true)">
+                onclick="deleteApp('{{ .Device.ID }}', '{{ .App.Iname }}', false, {{ t .Localizer "DeleteAppConfirm" (dict "AppName" .App.Name) | json }})">
             {{ t .Localizer "Delete" }}
         </button>
     </div>
@@ -2101,7 +2107,7 @@ function createImageUploadField(field, config) {
   function testNotificationSound() {
     const sel = document.getElementById('notification_sound_select');
     if (!sel || sel.value === 'none') {
-      alert("{{ t .Localizer "Please select a sound to test." }}");
+      pxtError("{{ t .Localizer "Please select a sound to test." }}");
       return;
     }
 
@@ -2109,7 +2115,7 @@ function createImageUploadField(field, config) {
       const urlInput = document.getElementById('notification_sound_url');
       const url = urlInput ? urlInput.value.trim() : '';
       if (!url) {
-        alert("{{ t .Localizer "Please enter a valid sound URL." }}");
+        pxtError("{{ t .Localizer "Please enter a valid sound URL." }}");
         return;
       }
       playAudioURL(url);
@@ -2131,7 +2137,7 @@ function createImageUploadField(field, config) {
     const audio = new Audio(url);
     audio.play().catch(e => {
       console.warn("Audio playback failed:", e);
-      alert("{{ t .Localizer "Unable to play audio. Check URL and browser autoplay settings." }}");
+      pxtError("{{ t .Localizer "Unable to play audio. Check URL and browser autoplay settings." }}");
     });
   }
 
@@ -2331,11 +2337,11 @@ function createImageUploadField(field, config) {
               }
 
               updateConfigAndPreview();
-              alert("{{ t .Localizer "Config imported successfully. Click Save to apply changes." }}");
+              pxtToast("{{ t .Localizer "Config imported successfully. Click Save to apply changes." }}");
 
           } catch (err) {
               console.error(err);
-              alert("{{ t .Localizer "Error parsing config file." }}");
+              pxtError("{{ t .Localizer "Error parsing config file." }}");
           }
           // Reset input
           input.value = '';
@@ -2343,15 +2349,21 @@ function createImageUploadField(field, config) {
       reader.readAsText(file);
   }
 
-  function deleteApp(deviceId, iname, deleteOnCancel) {
-      fetch(`/devices/${deviceId}/${iname}/delete`, {
-        method: 'POST'
-      }).then(() => {
-           window.location.href = "/";
-      }).catch(() => {
-        alert("{{ t .Localizer "Error deleting app." }}");
+  // Removes the app and returns to the dashboard. A confirm message asks
+  // first; Cancel on a fresh install skips the question because its label
+  // already says the app will be removed.
+  async function deleteApp(deviceId, iname, _unused, confirmMessage) {
+      if (confirmMessage && !(await pxtConfirm(confirmMessage, { danger: true }))) {
+        return;
+      }
+      try {
+        const response = await fetch(`/devices/${deviceId}/${iname}/delete`, { method: 'POST' });
+        if (!response.ok) throw new Error(response.statusText);
+        if (confirmMessage) pxtToastNext({{ t .Localizer "App deleted" }});
         window.location.href = "/";
-      });
+      } catch (e) {
+        pxtError({{ t .Localizer "Error deleting app." }});
+      }
   }
 
   // Re-render the schema config table from the current `schema` and `config`.
@@ -2411,7 +2423,7 @@ function createImageUploadField(field, config) {
           updateConfigAndPreview();
         } catch (error) {
           console.error("Error refreshing options:", error);
-          alert("{{ t .Localizer "Failed to refresh options. Please try again." }}");
+          pxtError("{{ t .Localizer "Failed to refresh options. Please try again." }}");
         } finally {
           refreshSchemaButton.disabled = false;
           if (refreshLabel) refreshLabel.textContent = originalLabel;
@@ -2430,11 +2442,12 @@ function createImageUploadField(field, config) {
         body: JSON.stringify(settings),
       }).then(response => {
         if (response.ok) {
-          window.location.href = "/";
+          pxtToastNext({{ t .Localizer "Saved" }});
+          window.location.href = "/#device-card-{{ .Device.ID }}";
         } else {
-          alert("Error saving config");
+          pxtError({{ t .Localizer "Error saving config" }});
         }
-      });
+      }).catch(() => pxtError({{ t .Localizer "Error saving config" }}));
     });
 
     // Preview Button logic

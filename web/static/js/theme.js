@@ -1,5 +1,5 @@
 // Theme: Bright (data-theme="light") and Night (data-theme="dark").
-// The floating "Lights off / Lights on" pill flips between the two; the
+// The floating "Dark mode / Light mode" button flips between the two; the
 // Account settings select also offers "system", which follows the OS.
 (function() {
     const THEME_STORAGE_KEY = 'theme_preference';
@@ -17,10 +17,6 @@
             docElement.setAttribute('data-theme', systemPrefersDark ? 'dark' : 'light');
         } else {
             docElement.setAttribute('data-theme', theme);
-        }
-        if (themeToggle) {
-            const night = docElement.getAttribute('data-theme') === 'dark';
-            themeToggle.setAttribute('aria-pressed', night ? 'true' : 'false');
         }
     }
 

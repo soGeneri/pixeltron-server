@@ -1,51 +1,12 @@
-// Global variables for addapp filtering/sorting
-const SORT_TYPE_STORAGE_KEY = 'tronbyt_app_sort_type';
-let isInitialLoad = true;
-let sortType = 'system';
-try {
-  sortType = localStorage.getItem(SORT_TYPE_STORAGE_KEY) || 'system';
-} catch (e) {
-  console.error('Failed to read sort preference from localStorage:', e);
-}
-// Each app group remembers its own sort. System apps keep the original key so
-// existing saved preferences carry over.
-function sortStorageKey(searchId) {
-  return searchId === 'system_search' ? SORT_TYPE_STORAGE_KEY : `${SORT_TYPE_STORAGE_KEY}_${searchId}`;
-}
-let hideInstalled = false;
-let showBroken = false;
-let isProcessing = false;
-
-// Debounce function
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-const debouncedSearch = debounce(() => {
-  applyFilters();
-}, 300);
-
-
-
 // Function to update the numeric display in real-time (on slider move)
 function updateBrightnessValue(deviceId, brightness) {
   document.getElementById(`brightnessValue-${deviceId}`).innerText = brightness;
   // Update active button state
   const buttons = document.querySelectorAll(`#brightness-panel-${deviceId} .brightness-btn`);
   buttons.forEach(btn => {
-    if (parseInt(btn.dataset.brightness) === parseInt(brightness)) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
+    const selected = parseInt(btn.dataset.brightness) === parseInt(brightness);
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
   });
 }
 
@@ -68,12 +29,14 @@ function updateBrightness(deviceId, brightness) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to update brightness');
+        pxtError();
       } else {
-        console.log('Brightness updated successfully to', brightness);
+        pxtSaved();
       }
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
+      pxtError();
     });
 }
 
@@ -83,7 +46,7 @@ function setBrightness(deviceId, brightness) {
   updateBrightness(deviceId, brightness);
 }
 
-// Function to send the value to the server only when the slider is released
+// Sends the cycle time once the slider value is committed (release, arrow keys, touch)
 function updateInterval(deviceId, interval) {
   const formData = new URLSearchParams();
   formData.append('interval', interval);
@@ -98,10 +61,15 @@ function updateInterval(deviceId, interval) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to update interval');
+        pxtError();
       } else {
-        console.log('interval updated successfully to', interval);
+        pxtSaved();
       }
     })
+    .catch((error) => {
+      console.error('Unexpected error:', error);
+      pxtError();
+    });
 }
 
 function updateVolumeValue(deviceId, volume) {
@@ -126,12 +94,14 @@ function updateVolume(deviceId, volume) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to update volume');
+        pxtError();
       } else {
-        console.log('Volume updated successfully to', volume);
+        pxtSaved();
       }
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
+      pxtError();
     });
 }
 
@@ -163,7 +133,7 @@ function setNightModeOverride(deviceId, active, input) {
         input.checked = !active;
         input.disabled = false;
       }
-      alert(error.message || 'Failed to update night mode');
+      pxtError(error.message || 'Failed to update night mode');
     });
 }
 
@@ -195,7 +165,7 @@ function setDimModeOverride(deviceId, active, input) {
         input.checked = !active;
         input.disabled = false;
       }
-      alert(error.message || 'Failed to update dim mode');
+      pxtError(error.message || 'Failed to update dim mode');
     });
 }
 
@@ -227,7 +197,7 @@ function setMute(deviceId, muted, input) {
         input.checked = !muted;
         input.disabled = false;
       }
-      alert(error.message || 'Failed to update mute state');
+      pxtError(error.message || 'Failed to update mute state');
     });
 }
 
@@ -305,7 +275,7 @@ function moveApp(deviceId, iname, direction) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to move app');
-        alert('Failed to move app. Please try again.');
+        pxtError('Failed to move app. Please try again.');
       } else {
         console.log('App moved successfully');
         // Refresh the apps list for this device and highlight the moved app
@@ -314,7 +284,7 @@ function moveApp(deviceId, iname, direction) {
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
-      alert('An error occurred while moving the app. Please try again.');
+      pxtError('An error occurred while moving the app. Please try again.');
     });
 }
 
@@ -390,7 +360,7 @@ function togglePin(deviceId, iname) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to toggle pin');
-        alert('Failed to toggle pin. Please try again.');
+        pxtError('Failed to toggle pin. Please try again.');
       } else {
         console.log('Pin toggled successfully');
         // Refresh the apps list for this device
@@ -399,7 +369,7 @@ function togglePin(deviceId, iname) {
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
-      alert('An error occurred while toggling pin. Please try again.');
+      pxtError('An error occurred while toggling pin. Please try again.');
     });
 }
 
@@ -414,7 +384,7 @@ function toggleEnabled(deviceId, iname) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to toggle enabled status');
-        alert('Failed to toggle enabled status. Please try again.');
+        pxtError('Failed to toggle enabled status. Please try again.');
       } else {
         console.log('Enabled status toggled successfully');
         // Refresh the apps list for this device
@@ -423,7 +393,7 @@ function toggleEnabled(deviceId, iname) {
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
-      alert('An error occurred while toggling enabled status. Please try again.');
+      pxtError('An error occurred while toggling enabled status. Please try again.');
     });
 }
 
@@ -438,7 +408,7 @@ function duplicateApp(deviceId, iname) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to duplicate app');
-        alert('Failed to duplicate app. Please try again.');
+        pxtError('Failed to duplicate app. Please try again.');
       } else {
         console.log('App duplicated successfully');
         // Refresh the apps list for this device
@@ -447,13 +417,13 @@ function duplicateApp(deviceId, iname) {
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
-      alert('An error occurred while duplicating the app. Please try again.');
+      pxtError('An error occurred while duplicating the app. Please try again.');
     });
 }
 
 // AJAX function to delete an app
-function deleteApp(deviceId, iname, redirectAfterDelete = false, confirmMessage = null) {
-  if (!confirm(confirmMessage || 'Delete App?')) {
+async function deleteApp(deviceId, iname, redirectAfterDelete = false, confirmMessage = null) {
+  if (!(await pxtConfirm(confirmMessage || 'Delete App?', { danger: true }))) {
     return;
   }
 
@@ -466,7 +436,7 @@ function deleteApp(deviceId, iname, redirectAfterDelete = false, confirmMessage 
     .then(response => {
       if (!response.ok) {
         console.error('Failed to delete app');
-        alert('Failed to delete app. Please try again.');
+        pxtError('Failed to delete app. Please try again.');
       } else {
         console.log('App deleted successfully');
         if (redirectAfterDelete) {
@@ -478,7 +448,7 @@ function deleteApp(deviceId, iname, redirectAfterDelete = false, confirmMessage 
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
-      alert('An error occurred while deleting the app. Please try again.');
+      pxtError('An error occurred while deleting the app. Please try again.');
     });
 }
 
@@ -506,7 +476,7 @@ function duplicateAppToDevice(sourceDeviceId, iname, targetDeviceId, targetIname
     .then(response => {
       if (!response.ok) {
         console.error('Failed to duplicate app to device');
-        alert('Failed to duplicate app to device. Please try again.');
+        pxtError('Failed to duplicate app to device. Please try again.');
       } else {
         console.log('App duplicated successfully to new device');
         // Refresh the apps list for the TARGET device
@@ -515,7 +485,7 @@ function duplicateAppToDevice(sourceDeviceId, iname, targetDeviceId, targetIname
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
-      alert('An error occurred while duplicating the app. Please try again.');
+      pxtError('An error occurred while duplicating the app. Please try again.');
     });
 }
 
@@ -623,474 +593,6 @@ function saveAllDevicePreferences() {
 }
 
 
-
-// ADDAPP FUNCTIONS START
-
-function preventSubmitOnEnter(event) {
-  if (event.key === "Enter" && !event.isComposing) {
-    event.preventDefault();
-  }
-}
-
-function searchApps(searchId, gridId) {
-  debouncedSearch(searchId);
-}
-
-function toggleInstalledApps(searchId) {
-  const checkbox = document.getElementById('hide_installed_' + searchId);
-  hideInstalled = checkbox ? checkbox.checked : false;
-  applyFilters();
-}
-
-function toggleBrokenApps(searchId) {
-  const checkbox = document.getElementById('show_broken_' + searchId);
-  showBroken = checkbox ? checkbox.checked : false;
-  applyFilters();
-}
-
-function filterByCategory() {
-  applyFilters();
-}
-
-function sortApps(searchId) {
-  sortType = document.getElementById('sort_' + searchId).value;
-  try {
-    localStorage.setItem(sortStorageKey(searchId), sortType);
-  } catch (e) {
-    console.error('Failed to save sort preference to localStorage:', e);
-  }
-  applyFilters();
-}
-
-// Optimized sorting function
-function sortItems(items, sortTypeParam = null) {
-  const currentSortType = sortTypeParam || sortType;
-
-  // Parse date function for newest sort
-  const parseDate = (dateStr) => {
-    if (!dateStr) return new Date(0);
-    // Handle format "YYYY-MM-DD HH:MM"
-    const parts = dateStr.split(' ');
-    if (parts.length === 2) {
-      const [datePart, timePart] = parts;
-      const [year, month, day] = datePart.split('-').map(Number);
-      const [hour, minute] = timePart.split(':').map(Number);
-      return new Date(year, month - 1, day, hour, minute);
-    }
-    return new Date(dateStr);
-  };
-
-  // Create a copy to avoid mutating the original array
-  const itemsCopy = [...items];
-  const sortedItems = itemsCopy.sort((a, b) => {
-    const nameA = (a.getAttribute('data-name') || '').toLowerCase();
-    const nameB = (b.getAttribute('data-name') || '').toLowerCase();
-    const installedA = a.getAttribute('data-installed') === 'true';
-    const installedB = b.getAttribute('data-installed') === 'true';
-    const dateA = a.getAttribute('data-date') || '';
-    const dateB = b.getAttribute('data-date') || '';
-    const publishedA = a.getAttribute('data-published') || '';
-    const publishedB = b.getAttribute('data-published') || '';
-    const updatedA = a.getAttribute('data-updated') || '';
-    const updatedB = b.getAttribute('data-updated') || '';
-
-    switch (currentSortType) {
-      case 'installs': {
-        // Apps without a count sort after every counted app.
-        const installsA = Number(a.getAttribute('data-installs') || -1);
-        const installsB = Number(b.getAttribute('data-installs') || -1);
-        return installsB - installsA || nameA.localeCompare(nameB);
-      }
-      case 'alphabetical':
-        return nameA.localeCompare(nameB);
-      case 'rev-alphabetical':
-        return nameB.localeCompare(nameA);
-      case 'newest':
-        const pubA = parseDate(publishedA || dateA);
-        const pubB = parseDate(publishedB || dateB);
-        const pubComparison = pubB.getTime() - pubA.getTime();
-        return pubComparison === 0 ? nameA.localeCompare(nameB) : pubComparison;
-      case 'last-updated':
-        const updA = parseDate(updatedA || dateA);
-        const updB = parseDate(updatedB || dateB);
-        const updComparison = updB.getTime() - updA.getTime();
-        return updComparison === 0 ? nameA.localeCompare(nameB) : updComparison;
-      case 'system':
-      default:
-        if (installedA && !installedB) return -1;
-        if (!installedA && installedB) return 1;
-        return nameA.localeCompare(nameB);
-    }
-  });
-
-  return sortedItems;
-}
-
-// Function to show all items in a grid
-function showAllItems(grid) {
-  const allItems = Array.from(grid.getElementsByClassName('app-item'));
-  allItems.forEach(item => {
-    item.style.display = 'block';
-  });
-}
-
-// Robust filtering system that handles all combinations
-function applyFilters() {
-  if (isInitialLoad || isProcessing) return;
-
-  isProcessing = true;
-
-  // Use requestAnimationFrame to batch DOM updates and prevent UI blocking
-  requestAnimationFrame(() => {
-    try {
-      const grids = document.querySelectorAll('.app-grid');
-
-      grids.forEach(grid => {
-        if (!grid) return;
-        const searchId = grid.id.replace('_app_grid', '_search');
-
-        // Get current filter values
-        const searchInput = document.getElementById(searchId);
-        const currentSearchFilter = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-        const hideInstalledCheckbox = document.getElementById('hide_installed_' + searchId);
-        const currentHideInstalled = hideInstalledCheckbox ? hideInstalledCheckbox.checked : false;
-
-        const showBrokenCheckbox = document.getElementById('show_broken_' + searchId);
-        const currentShowBroken = showBrokenCheckbox ? showBrokenCheckbox.checked : false;
-
-        const sortSelect = document.getElementById('sort_' + searchId);
-        const currentSortType = sortSelect ? sortSelect.value : 'system';
-
-        const categorySelect = document.getElementById('category_' + searchId);
-        const currentCategory = categorySelect ? categorySelect.value : '';
-
-        // Get all app items from the grid
-        const allItems = Array.from(grid.getElementsByClassName('app-item'));
-
-        // Filter items based on all criteria
-        const filteredItems = allItems.filter(item => {
-          const isInstalled = item.getAttribute('data-installed') === 'true';
-          const isBroken = item.getAttribute('data-broken') === 'true';
-          const name = (item.getAttribute('data-name') || '').toLowerCase();
-          const author = (item.getAttribute('data-author') || '').toLowerCase();
-          const summary = (item.querySelector('p')?.textContent || '').toLowerCase();
-          const tags = (item.getAttribute('data-tags') || '').toLowerCase().split(',');
-          const category = (item.getAttribute('data-category') || '').toLowerCase();
-
-          // Apply search filter (search name, summary, tags, and author if search begins with @)
-          if (currentSearchFilter) {
-            if (currentSearchFilter.startsWith("@")) {
-              if (!author.includes(currentSearchFilter.substring(1))) {
-                return false;
-              }
-            } else {
-              if (!name.includes(currentSearchFilter) && !summary.includes(currentSearchFilter) && !tags.some(tag => tag.includes(currentSearchFilter))) {
-                return false;
-              }
-            }
-          }
-
-          // Apply category filter
-          if (currentCategory && category !== currentCategory) {
-            return false;
-          }
-
-          // Apply hide filters
-          if (currentHideInstalled && isInstalled) return false;
-          if (!currentShowBroken && isBroken) return false;
-
-          return true;
-        });
-
-        // Sort filtered items
-        const sortedItems = sortItems(filteredItems, currentSortType);
-
-        // Use requestAnimationFrame to prevent UI blocking during DOM reordering
-        requestAnimationFrame(() => {
-          // Batch DOM operations for better performance
-          const fragment = document.createDocumentFragment();
-
-          // Add sorted items to fragment
-          sortedItems.forEach((item, index) => {
-            fragment.appendChild(item);
-            item.style.display = 'block';
-          });
-
-          // Append all at once to reduce reflows
-          grid.appendChild(fragment);
-
-          // Hide any remaining items that weren't in the filtered list
-          allItems.forEach(item => {
-            if (!sortedItems.includes(item)) {
-              item.style.display = 'none';
-            }
-          });
-        });
-
-        // Update virtual scrolling state
-        updateVirtualScrolling(grid, sortedItems, currentSearchFilter);
-
-        // Update installed class states
-        updateItemStates(allItems);
-      });
-    } finally {
-      isProcessing = false;
-    }
-  });
-}
-
-// Update virtual scrolling based on current state
-function updateVirtualScrolling(grid, sortedItems, hasSearchFilter) {
-  if (!grid._virtualScrolling) return;
-
-  const ITEMS_PER_PAGE = grid._virtualScrolling.ITEMS_PER_PAGE;
-  const shouldUseVirtualScrolling = sortedItems.length > ITEMS_PER_PAGE && !hasSearchFilter;
-
-  if (shouldUseVirtualScrolling) {
-    // Hide items beyond the first page
-    sortedItems.forEach((item, index) => {
-      if (index >= ITEMS_PER_PAGE) {
-        item.style.display = 'none';
-      }
-    });
-
-    // Update virtual scrolling state
-    grid._virtualScrolling.visibleEnd = Math.min(ITEMS_PER_PAGE, sortedItems.length);
-    grid._virtualScrolling.isLoading = false;
-    grid._virtualScrolling.items = sortedItems;
-  } else {
-    // Show all items
-    grid._virtualScrolling.visibleEnd = sortedItems.length;
-    grid._virtualScrolling.isLoading = false;
-    grid._virtualScrolling.items = sortedItems;
-  }
-}
-
-// Update item states (installed class, etc.)
-function updateItemStates(allItems) {
-  allItems.forEach(item => {
-    if (!item) return;
-    const isInstalled = item.getAttribute('data-installed') === 'true';
-    if (isInstalled) {
-      item.classList.add('installed');
-    } else {
-      item.classList.remove('installed');
-    }
-  });
-}
-
-// Intersection Observer for lazy loading images
-function setupLazyLoading() {
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        if (img.dataset.src) {
-          img.src = img.dataset.src;
-          img.removeAttribute('data-src');
-          // Add loaded class when image loads
-          img.onload = function () {
-            img.classList.add('loaded');
-          };
-          // Also add loaded class immediately for cached images
-          if (img.complete) {
-            img.classList.add('loaded');
-          }
-          observer.unobserve(img);
-        }
-      }
-    });
-  }, {
-    rootMargin: '50px 0px',
-    threshold: 0.1
-  });
-
-  document.querySelectorAll('img[data-src]').forEach(img => {
-    imageObserver.observe(img);
-  });
-}
-
-// Virtual scrolling for large lists (optional optimization)
-function setupVirtualScrolling() {
-  const grids = document.querySelectorAll('.app-grid');
-  const ITEMS_PER_PAGE = 50; // Load 50 items at a time
-
-  grids.forEach(grid => {
-    if (!grid) return;
-    const items = Array.from(grid.getElementsByClassName('app-item'));
-    if (!items || items.length <= ITEMS_PER_PAGE) return; // Skip if list is small
-
-    let visibleStart = 0;
-    let visibleEnd = ITEMS_PER_PAGE;
-    let isLoading = false;
-
-    // Store reference to this grid's virtual scrolling state
-    grid._virtualScrolling = {
-      visibleStart,
-      visibleEnd,
-      isLoading,
-      items,
-      ITEMS_PER_PAGE
-    };
-
-    // Initially hide items beyond the first page only for system sort and large lists
-    if (items && items.length > ITEMS_PER_PAGE) {
-      // Check if we should apply virtual scrolling initially
-      const searchId = grid.id.replace('_app_grid', '_search');
-      const sortSelect = document.getElementById('sort_' + searchId);
-      const searchInput = document.getElementById(searchId);
-      const shouldApplyVirtualScrolling = (sortSelect ? sortSelect.value : 'system') === 'system' ||
-        (searchInput && !searchInput.value.trim());
-
-      if (shouldApplyVirtualScrolling) {
-        items.forEach((item, index) => {
-          if (!item) return;
-          if (index >= ITEMS_PER_PAGE) {
-            item.style.display = 'none';
-          }
-        });
-      }
-    }
-
-    // Function to load more items
-    function loadMoreItems() {
-      if (isLoading || visibleEnd >= items.length) return;
-
-      isLoading = true;
-      const nextStart = visibleEnd;
-      const nextEnd = Math.min(visibleEnd + ITEMS_PER_PAGE, items.length);
-
-      // Use requestAnimationFrame to batch DOM updates and prevent UI blocking
-      requestAnimationFrame(() => {
-        for (let i = nextStart; i < nextEnd; i++) {
-          if (items[i]) {
-            items[i].style.display = 'block';
-          }
-        }
-        visibleEnd = nextEnd;
-        isLoading = false;
-
-        // Update the stored state
-        grid._virtualScrolling.visibleEnd = visibleEnd;
-        grid._virtualScrolling.isLoading = isLoading;
-
-        // Re-observe the new last item
-        updateObserver();
-      });
-    }
-
-    // Function to load more items from filtered results
-    function loadMoreFilteredItems() {
-      if (!grid._virtualScrolling || grid._virtualScrolling.isLoading) return;
-
-      const filteredItems = grid._virtualScrolling.items;
-      const currentVisibleEnd = grid._virtualScrolling.visibleEnd;
-      const ITEMS_PER_PAGE = grid._virtualScrolling.ITEMS_PER_PAGE;
-
-      if (currentVisibleEnd >= filteredItems.length) return;
-
-      grid._virtualScrolling.isLoading = true;
-      const nextStart = currentVisibleEnd;
-      const nextEnd = Math.min(currentVisibleEnd + ITEMS_PER_PAGE, filteredItems.length);
-
-      // Use requestAnimationFrame to batch DOM updates and prevent UI blocking
-      requestAnimationFrame(() => {
-        for (let i = nextStart; i < nextEnd; i++) {
-          if (filteredItems[i]) {
-            filteredItems[i].style.display = 'block';
-          }
-        }
-        grid._virtualScrolling.visibleEnd = nextEnd;
-        grid._virtualScrolling.isLoading = false;
-
-        // Re-observe the new last item
-        updateObserver();
-      });
-    }
-
-    // Function to update the observer
-    function updateObserver() {
-      if (visibleEnd >= items.length) {
-        paginationObserver.disconnect();
-        return;
-      }
-
-      // Observe the last few visible items to ensure we catch scroll events
-      const observeStart = Math.max(0, visibleEnd - 3);
-      const observeEnd = Math.min(visibleEnd, items.length);
-
-      for (let i = observeStart; i < observeEnd; i++) {
-        if (items[i] && items[i].style.display !== 'none') {
-          paginationObserver.observe(items[i]);
-        }
-      }
-    }
-
-    // Set up intersection observer for pagination
-    const paginationObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Check if we have filtered items (filters are active)
-          if (grid._virtualScrolling && grid._virtualScrolling.items && grid._virtualScrolling.items.length > 0) {
-            loadMoreFilteredItems();
-          } else {
-            loadMoreItems();
-          }
-        }
-      });
-    }, {
-      rootMargin: '200px 0px' // Increased margin to trigger earlier
-    });
-
-    // Also observe the grid container for scroll events
-    const gridObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Check if we're near the bottom and need to load more
-          const rect = entry.boundingClientRect;
-          const viewportHeight = window.innerHeight;
-
-          // If the grid is visible and we're near the bottom, load more
-          if (rect.bottom < viewportHeight + 300) {
-            // Check if we have filtered items (filters are active)
-            if (grid._virtualScrolling && grid._virtualScrolling.items && grid._virtualScrolling.items.length > 0) {
-              loadMoreFilteredItems();
-            } else {
-              loadMoreItems();
-            }
-          }
-        }
-      });
-    }, {
-      rootMargin: '300px 0px'
-    });
-
-    // Initial setup
-    updateObserver();
-    gridObserver.observe(grid);
-
-    // Also listen for scroll events as a fallback
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        const rect = grid.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-
-        // If grid is visible and we're near the bottom, load more
-        if (rect.top < viewportHeight && rect.bottom > 0 && rect.bottom < viewportHeight + 500) {
-          // Check if we have filtered items (filters are active)
-          if (grid._virtualScrolling && grid._virtualScrolling.items && grid._virtualScrolling.items.length > 0) {
-            loadMoreFilteredItems();
-          } else {
-            loadMoreItems();
-          }
-        }
-      }, 100);
-    });
-  });
-}
 
 function initializeDragAndDrop() {
   // Find all app cards and make them draggable
@@ -1460,7 +962,7 @@ function reorderApps(deviceId, draggedIname, targetIname, insertAfter) {
     .then(response => {
       if (!response.ok) {
         console.error('Failed to reorder apps');
-        alert('Failed to reorder apps. Please try again.');
+        pxtError('Failed to reorder apps. Please try again.');
       } else {
         console.log('Apps reordered successfully');
         // Refresh the apps list for this device and highlight the moved app
@@ -1469,7 +971,7 @@ function reorderApps(deviceId, draggedIname, targetIname, insertAfter) {
     })
     .catch((error) => {
       console.error('Unexpected error:', error);
-      alert('An error occurred while reordering apps. Please try again.');
+      pxtError('An error occurred while reordering apps. Please try again.');
     });
 }
 
@@ -1588,11 +1090,11 @@ function toggleDeviceInfo(button) {
 }
 
 // Function to mark app as broken (development mode only)
-function markAppAsBroken(appName, packageName, event) {
+async function markAppAsBroken(appName, packageName, event, confirmMessage) {
   event.stopPropagation();
   event.preventDefault();
 
-  if (!confirm("Mark '" + appName + "' as broken? This will add 'broken: true' to its manifest.yaml and prevent it from being installed.")) {
+  if (!(await pxtConfirm(confirmMessage || "Mark '" + appName + "' as broken?"))) {
     return;
   }
 
@@ -1607,24 +1109,23 @@ function markAppAsBroken(appName, packageName, event) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert("App marked as broken successfully!");
         location.reload();
       } else {
-        alert("Error: " + data.message);
+        pxtError(data.message);
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert("Failed to mark app as broken");
+      pxtError("Failed to mark app as broken");
     });
 }
 
 // Function to unmark app as broken (development mode only)
-function unmarkAppAsBroken(appName, packageName, event) {
+async function unmarkAppAsBroken(appName, packageName, event, confirmMessage) {
   event.stopPropagation();
   event.preventDefault();
 
-  if (!confirm("Unmark '" + appName + "' as broken? This will set 'broken: false' in its manifest.yaml and allow it to be installed.")) {
+  if (!(await pxtConfirm(confirmMessage || "Unmark '" + appName + "' as broken?"))) {
     return;
   }
 
@@ -1639,15 +1140,14 @@ function unmarkAppAsBroken(appName, packageName, event) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert("App unmarked successfully!");
         location.reload();
       } else {
-        alert("Error: " + data.message);
+        pxtError(data.message);
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert("Failed to unmark app");
+      pxtError("Failed to unmark app");
     });
 }
 
@@ -1713,6 +1213,15 @@ function restoreDevicePreferences(deviceId) {
     appsList.style.overflow = "visible";
     appsList.style.padding = "";
   }
+  syncViewButtons(deviceId);
+}
+
+// Mirrors the active view button into aria-pressed.
+function syncViewButtons(deviceId) {
+  ['listViewBtn', 'gridViewBtn', 'collapsedViewBtn'].forEach(prefix => {
+    const btn = document.getElementById(`${prefix}-${deviceId}`);
+    if (btn) btn.setAttribute('aria-pressed', btn.classList.contains('active') ? 'true' : 'false');
+  });
 }
 
 function switchToListView(deviceId) {
@@ -1742,6 +1251,7 @@ function switchToListView(deviceId) {
   prefs.viewMode = 'list';
   prefs.collapsed = false;
   saveDevicePreferences(deviceId, prefs);
+  syncViewButtons(deviceId);
 }
 
 function switchToGridView(deviceId) {
@@ -1771,6 +1281,7 @@ function switchToGridView(deviceId) {
   prefs.viewMode = 'grid';
   prefs.collapsed = false;
   saveDevicePreferences(deviceId, prefs);
+  syncViewButtons(deviceId);
 }
 
 function switchToCollapsedView(deviceId) {
@@ -1797,65 +1308,11 @@ function switchToCollapsedView(deviceId) {
   prefs.viewMode = 'collapsed';
   prefs.collapsed = true;
   saveDevicePreferences(deviceId, prefs);
-}
-
-// Populate each category dropdown with the categories of the apps in its own group
-function populateCategoryDropdowns() {
-  const categorySelects = document.querySelectorAll('select[id^="category_"]');
-  if (categorySelects.length === 0) return;
-
-  categorySelects.forEach(select => {
-    // Collect unique categories from this group's app items only
-    const group = select.closest('.app-group') || document;
-    const categories = new Set();
-    group.querySelectorAll('.app-item').forEach(item => {
-      const category = item.getAttribute('data-category');
-      if (category) {
-        categories.add(category);
-      }
-    });
-    const sortedCategories = Array.from(categories).sort();
-
-    // A group with no categorized apps (e.g. custom apps without manifests)
-    // gets no category control at all.
-    const control = select.closest('.category-control');
-    if (control) {
-      control.style.display = sortedCategories.length ? '' : 'none';
-    }
-
-    // Remove existing options except the first one
-    while (select.options.length > 1) {
-      select.remove(1);
-    }
-
-    // Add category options
-    sortedCategories.forEach(category => {
-      const option = document.createElement('option');
-      option.value = category;
-      option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-      select.appendChild(option);
-    });
-  });
+  syncViewButtons(deviceId);
 }
 
 // Initialize drag and drop for all app cards when page loads
 document.addEventListener('DOMContentLoaded', function () {
-  // Initialize each sorting dropdown from its own saved preference
-  try {
-    document.querySelectorAll('select[id^="sort_"]').forEach(select => {
-      const savedSortType = localStorage.getItem(sortStorageKey(select.id.replace('sort_', '')));
-      // Skip values this dropdown doesn't offer (e.g. Popularity on custom apps)
-      if (savedSortType && Array.from(select.options).some(o => o.value === savedSortType)) {
-        select.value = savedSortType;
-      }
-    });
-  } catch (e) {
-    console.error('Failed to read sort preference from localStorage:', e);
-  }
-
-  // Populate category dropdowns from available app categories
-  populateCategoryDropdowns();
-
   // Common initializations
   initializeDragAndDrop();
   initializeViewToggles();
@@ -1954,75 +1411,10 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   dashboardWs.onerror = (error) => { console.error('Dashboard WebSocket error:', error); };
 
-  // Addapp specific initializations (if on addapp page)
-  if (document.getElementById('addapp_page_identifier')) { // A unique ID for the addapp page content
-    setTimeout(() => {
-      document.body.classList.add('content-loaded');
-      const loadingIndicator = document.getElementById('loading-indicator');
-      if (loadingIndicator) loadingIndicator.style.display = 'none';
-      isInitialLoad = false;
-      setupVirtualScrolling();
-      setupLazyLoading();
-      applyFilters();
-    }, 100);
-
-    // Event delegation for clicks on app items
-    document.addEventListener('click', function (e) {
-      const appItem = e.target.closest('.app-item');
-      if (!appItem) return;
-
-      if (e.target.closest('.delete-upload-btn')) return;
-
-      // Don't allow clicking on broken apps
-      if (appItem.classList.contains('broken-app')) {
-        return;
-      }
-
-      document.querySelectorAll('.app-item').forEach(i => i.classList.remove('selected'));
-      appItem.classList.add('selected');
-
-      document.getElementById('selected_app').value = appItem.getAttribute('data-value');
-      document.getElementById('selected_app_path').value = appItem.getAttribute('data-path');
-
-      const recInterval = appItem.getAttribute('data-recommended-interval');
-      if (recInterval) {
-        document.getElementById('uinterval').value = recInterval;
-      } else {
-        document.getElementById('uinterval').value = 10;
-      }
-
-      // Automatically submit the form
-      const form = document.getElementById('main_form');
-      if (form) {
-        form.submit();
-      }
-    });
-
-    // Enhanced image loading with error handling (for addapp page)
-    document.addEventListener('load', function (e) {
-      if (e.target.classList.contains('lazy-image')) {
-        e.target.classList.add('loaded');
-        const skeleton = e.target.parentElement.querySelector('.skeleton-loader');
-        if (skeleton) {
-          skeleton.style.display = 'none';
-        }
-      }
-    }, true);
-
-    document.addEventListener('error', function (e) {
-      if (e.target.classList.contains('lazy-image')) {
-        const skeleton = e.target.parentElement.querySelector('.skeleton-loader');
-        if (skeleton) {
-          skeleton.style.display = 'none';
-        }
-        e.target.style.display = 'none';
-      }
-    }, true);
-  }
 });
 
-function triggerOTA(deviceId, confirmMessage) {
-  if (confirm(confirmMessage)) {
+async function triggerOTA(deviceId, confirmMessage) {
+  if (await pxtConfirm(confirmMessage)) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = `/devices/${deviceId}/ota`;
@@ -2031,8 +1423,8 @@ function triggerOTA(deviceId, confirmMessage) {
   }
 }
 
-function triggerOTAWithVersion(deviceId, confirmMessage) {
-  if (confirm(confirmMessage)) {
+async function triggerOTAWithVersion(deviceId, confirmMessage) {
+  if (await pxtConfirm(confirmMessage)) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = `/devices/${deviceId}/ota`;

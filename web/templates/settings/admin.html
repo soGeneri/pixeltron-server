@@ -340,7 +340,8 @@
                                     <form method="post"
                                           action="/settings/admin/sounds/{{ .Name }}/delete"
                                           style="display: inline"
-                                          onsubmit="return confirm('{{ t $.Localizer "Are you sure you want to delete this sound?" }}');">
+                                          data-confirm="{{ t $.Localizer "Are you sure you want to delete this sound?" }}"
+                  data-confirm-danger>
                                         <button class="btn btn-danger btn-sm" type="submit">
                                             <i class="fa-solid fa-trash" aria-hidden="true"></i> {{ t $.Localizer "Delete" }}
                                         </button>
@@ -500,8 +501,8 @@
         updateOIDCVision();
     });
 
-    function deleteUser(username) {
-        if (!confirm('{{ t .Localizer "Delete User?" }}')) return;
+    async function deleteUser(username) {
+        if (!(await pxtConfirm('{{ t .Localizer "Delete User?" }}', { danger: true }))) return;
 
         fetch('/settings/admin/users/' + username, {
             method: 'DELETE'
@@ -509,11 +510,11 @@
             if (response.ok || response.redirected) {
                 window.location.reload();
             } else {
-                alert('{{ t .Localizer "Failed to delete user" }}');
+                pxtError('{{ t .Localizer "Failed to delete user" }}');
             }
         }).catch(err => {
             console.error(err);
-            alert('{{ t .Localizer "Error deleting user" }}');
+            pxtError('{{ t .Localizer "Error deleting user" }}');
         });
     }
 </script>

@@ -66,7 +66,7 @@
     <section class="settings-card">
         <div class="settings-card-header">
             <h2>{{ t .Localizer "Appearance" }}</h2>
-            <p>{{ t .Localizer "The Lights off button flips between light and dark. Choose System to follow your device instead." }}</p>
+            <p>{{ t .Localizer "The Dark mode button at the bottom of every page flips between light and dark. Choose System to follow your device instead." }}</p>
         </div>
         <div class="settings-field-list">
             <div class="settings-field-row">
@@ -180,7 +180,7 @@
                             </button>
                             <button type="submit"
                                     class="btn btn-primary"
-                                    onclick="return confirm('{{ t .Localizer "Update API key?" }}');">
+                                    data-confirm="{{ t .Localizer "Update API key?" }}">
                                 <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                             </button>
                         </div>
@@ -192,7 +192,7 @@
             <form method="post" action="/auth/generate_api_key">
                 <button type="submit"
                         class="btn"
-                        onclick="return confirm('{{ t .Localizer "Generate a new API key? This will replace your current API key." }}');">
+                        data-confirm="{{ t .Localizer "Generate a new API key? This will replace your current API key." }}">
                     <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> {{ t .Localizer "Generate New" }}
                 </button>
             </form>
@@ -219,7 +219,7 @@
     }
 
     async function deletePasskey(id) {
-        if (!confirm('{{ t .Localizer "Delete this passkey?" }}')) return;
+        if (!(await pxtConfirm('{{ t .Localizer "Delete this passkey?" }}', { danger: true }))) return;
         try {
             const resp = await fetch('/auth/webauthn/delete/' + encodeURIComponent(id), {
                 method: 'POST'
@@ -227,17 +227,17 @@
             if (resp.ok) {
                 location.reload();
             } else {
-                alert("{{ t .Localizer "Failed to delete passkey" }}");
+                pxtError("{{ t .Localizer "Failed to delete passkey" }}");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 
     async function registerPasskey() {
         if (!window.PublicKeyCredential || !navigator.credentials) {
-            alert("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
+            pxtError("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
             return;
         }
         try {
@@ -278,11 +278,11 @@
             if (finishResp.ok) {
                 location.reload();
             } else {
-                alert("Registration failed");
+                pxtError("Registration failed");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 
@@ -300,7 +300,7 @@
             try {
                 document.execCommand('copy');
             } catch (copyError) {
-                alert("{{ t .Localizer "Failed to copy API key" }}");
+                pxtError("{{ t .Localizer "Failed to copy API key" }}");
             }
         }
     }

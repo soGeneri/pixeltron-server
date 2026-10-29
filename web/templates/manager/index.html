@@ -18,7 +18,7 @@
     {{ end }}
 </header>
 {{ if gt (len .Devices) 1 }}
-<nav class="settings-subnav" aria-label="{{ t .Localizer "Devices" }}">
+<nav class="settings-subnav pxt-jump" aria-label="{{ t .Localizer "Devices" }}">
     {{ range .Devices }}
     <a class="settings-subnav-link" href="#device-card-{{ .ID }}">{{ .Name }}</a>
     {{ end }}

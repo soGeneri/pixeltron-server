@@ -79,7 +79,9 @@
         document.getElementById('brightness').value = brightness;
         const buttons = document.querySelectorAll('#brightness-panel .brightness-btn');
         buttons.forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.dataset.brightness) === parseInt(brightness));
+            const selected = parseInt(btn.dataset.brightness) === parseInt(brightness);
+            btn.classList.toggle('active', selected);
+            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
         sendBrightnessToDevice(getBrightnessScaleValues()[brightness]);
     }
@@ -88,7 +90,9 @@
         document.getElementById('night_brightness').value = brightness;
         const buttons = document.querySelectorAll('#night-brightness-panel .brightness-btn');
         buttons.forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.dataset.brightness) === parseInt(brightness));
+            const selected = parseInt(btn.dataset.brightness) === parseInt(brightness);
+            btn.classList.toggle('active', selected);
+            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
     }
 
@@ -96,7 +100,9 @@
         document.getElementById('dim_brightness').value = brightness;
         const buttons = document.querySelectorAll('#dim-brightness-panel .brightness-btn');
         buttons.forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.dataset.brightness) === parseInt(brightness));
+            const selected = parseInt(btn.dataset.brightness) === parseInt(brightness);
+            btn.classList.toggle('active', selected);
+            btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
         });
     }
 </script>
@@ -114,17 +120,9 @@
                 {{ if .Device.Type.SupportsFirmware }}
                 <a href="/devices/{{ .Device.ID }}/firmware" class="btn btn-ghost">{{ t .Localizer "Firmware" }}</a>
                 {{ end }}
-                <button type="button" class="btn btn-primary" onclick="saveDeviceForm()">
-                    {{ t .Localizer "Save" }} {{ pixelIcon "check" }}
-                </button>
-                <button type="button"
-                        class="btn btn-danger"
-                        onclick="if (confirm('{{ t .Localizer "Delete device and ALL apps? This action cannot be undone." }}')) { document.getElementById('device-form').action = '/devices/{{ .Device.ID }}/delete'; document.getElementById('device-form').submit(); }">
-                    {{ t .Localizer "Delete" }}
-                </button>
             </div>
         </header>
-        <nav class="settings-subnav"
+        <nav class="settings-subnav pxt-jump"
              aria-label="{{ t .Localizer "Device Settings" }}">
             <a class="settings-subnav-link" href="#section-core-setup">{{ t .Localizer "Core Device Setup" }}</a>
             <a class="settings-subnav-link" href="#section-display">{{ t .Localizer "Display Behavior" }}</a>
@@ -132,6 +130,7 @@
             <a class="settings-subnav-link" href="#section-regional">{{ t .Localizer "Regional and App Context" }}</a>
             <a class="settings-subnav-link" href="#section-maintenance">{{ t .Localizer "Maintenance" }}</a>
             <a class="settings-subnav-link" href="#section-api">{{ t .Localizer "Advanced Device API" }}</a>
+            <a class="settings-subnav-link" href="#section-danger">{{ t .Localizer "Delete device" }}</a>
         </nav>
         <section class="settings-card" id="section-core-setup">
             <div class="settings-card-header">
@@ -367,6 +366,7 @@
                             {{ range seq 0 5 }}
                             <button type="button"
                                     class="brightness-btn {{ if eq $.BrightnessUI . }}active{{ end }}"
+                                    aria-pressed="{{ if eq $.BrightnessUI . }}true{{ else }}false{{ end }}"
                                     data-brightness="{{ . }}"
                                     onclick="setBrightnessUpdate({{ . }})">{{ . }}</button>
                             {{ end }}
@@ -525,6 +525,7 @@
                                 {{ range seq 0 5 }}
                                 <button type="button"
                                         class="brightness-btn {{ if eq $.NightBrightnessUI . }}active{{ end }}"
+                                    aria-pressed="{{ if eq $.NightBrightnessUI . }}true{{ else }}false{{ end }}"
                                         data-brightness="{{ . }}"
                                         onclick="setNightBrightnessUpdate({{ . }})">{{ . }}</button>
                                 {{ end }}
@@ -659,6 +660,7 @@
                                 {{ range seq 0 5 }}
                                 <button type="button"
                                         class="brightness-btn {{ if eq $.DimBrightnessUI . }}active{{ end }}"
+                                    aria-pressed="{{ if eq $.DimBrightnessUI . }}true{{ else }}false{{ end }}"
                                         data-brightness="{{ . }}"
                                         onclick="setDimBrightnessUpdate({{ . }})">{{ . }}</button>
                                 {{ end }}
@@ -1159,7 +1161,31 @@
             </div>
         </div>
     </section>
+    <section class="settings-card pxt-danger-zone" id="section-danger">
+        <div class="settings-card-header">
+            <h2>{{ t .Localizer "Delete device" }}</h2>
+            <p>{{ t .Localizer "Removes this device and every app installed on it. This can't be undone." }}</p>
+        </div>
+        <div class="settings-actions">
+            <button type="submit"
+                    class="btn btn-danger"
+                    formaction="/devices/{{ .Device.ID }}/delete"
+                    formnovalidate
+                    data-confirm="{{ t .Localizer "DeleteDeviceConfirm" (dict "DeviceName" .Device.Name) }}"
+                    data-confirm-label="{{ t .Localizer "Delete device" }}"
+                    data-confirm-danger>
+                {{ t .Localizer "Delete device" }}
+            </button>
+        </div>
+    </section>
     <input type="hidden" name="notes" value="{{ .Device.Notes }}">
+    <!-- Stays in view while scrolling the form. -->
+    <div class="pxt-savebar">
+        <p class="pxt-help">{{ t .Localizer "Changes on this page apply when you save." }}</p>
+        <button type="button" class="btn btn-primary" onclick="saveDeviceForm()">
+            {{ t .Localizer "Save" }} {{ pixelIcon "check" }}
+        </button>
+    </div>
 </div>
 </form>
 <form action="/devices/{{ .Device.ID }}/import_config"
@@ -1169,7 +1195,7 @@
     <input type="file"
            name="file"
            id="import_config_file"
-           onchange="if(confirm('{{ t .Localizer "This will overwrite all current settings and apps. Continue?" }}')) { this.form.submit(); } else { this.value = ''; }"
+           onchange="const input = this; pxtConfirm({{ t .Localizer "This will overwrite all current settings and apps. Continue?" | json }}, { confirmLabel: {{ t .Localizer "Import" | json }} }).then(yes => { if (yes) { input.form.submit(); } else { input.value = ''; } })"
            accept=".json">
 </form>
 <form action="/devices/{{ .Device.ID }}/ota"
@@ -1179,7 +1205,7 @@
     <input type="file"
            name="firmware_file"
            id="custom_firmware_file"
-           onchange="if(confirm('{{ t .Localizer "Install custom firmware? The device will reboot." }}')) { this.form.submit(); } else { this.value = ''; }"
+           onchange="const input = this; pxtConfirm({{ t .Localizer "Install custom firmware? The device will reboot." | json }}).then(yes => { if (yes) { input.form.submit(); } else { input.value = ''; } })"
            accept=".bin">
 </form>
 <script>
@@ -1291,16 +1317,16 @@
             body: params.toString()
         }).then(response => {
             if (!response.ok) {
-                alert("Failed to update settings");
+                pxtError();
                 throw new Error("Failed to update settings");
             }
             return response;
         });
     }
 
-    function confirmImageURLAndReboot() {
+    async function confirmImageURLAndReboot() {
         const imageUrl = document.getElementById('reported_img_url').value;
-        if (!confirm('{{ t .Localizer "Send the current Image URL to the device and reboot? Continue?" }}')) {
+        if (!(await pxtConfirm('{{ t .Localizer "Send the current Image URL to the device and reboot? Continue?" }}'))) {
             return;
         }
         updateFirmwareSettings({image_url: imageUrl}).then(() => {
@@ -1314,8 +1340,8 @@
         });
     }
 
-    function rebootDevice() {
-        if (confirm('{{ t .Localizer "Are you sure you want to reboot the device?" }}')) {
+    async function rebootDevice() {
+        if (await pxtConfirm('{{ t .Localizer "Are you sure you want to reboot the device?" }}')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/devices/{{ .Device.ID }}/reboot';

@@ -11,7 +11,7 @@
                 {{ if .Item.LastSeen }}· {{ t .Localizer "Last Seen:" }} {{ timeago .Localizer .Item.LastSeen }}{{ end }}
             </p>
             <h2 class="pxt-stage-title" id="device-title-{{ .Item.ID }}">
-                <a href="{{ .Item.ImgURL }}" target="_blank" class="device-link">{{ .Item.Name }}</a>
+                {{ if .ReadOnly }}{{ .Item.Name }}{{ else }}<a href="/devices/{{ .Item.ID }}/update" class="device-link">{{ .Item.Name }}</a>{{ end }}
             </h2>
             {{ $pinnedSet := and .Item.PinnedApp (ne (deref .Item.PinnedApp) "") }}
             {{ if or $pinnedSet .Item.GetNightModeIsActive .Item.GetDimModeIsActive (and .Item.HasSpeaker .Item.IsMuted) }}
@@ -22,7 +22,7 @@
                     {{ $pinned := deref .Item.PinnedApp }}
                     {{ $pinnedName := "" }}
                     {{ range .Item.Apps }}
-                    {{ if eq .Iname $pinned }}{{ $pinnedName = printf "%s-%s" .Name .Iname }}{{ end }}
+                    {{ if eq .Iname $pinned }}{{ $pinnedName = .Name }}{{ end }}
                     {{ end }}
                 {{ if ne $pinnedName "" }}{{ $pinnedName }}{{ else }}{{ $pinned }}{{ end }}
                 </span>
@@ -44,7 +44,10 @@
                 {{ if .Item.Type.SupportsFirmware }}
                 <a class="btn" href="/devices/{{ .Item.ID }}/firmware">{{ t .Localizer "Firmware" }}</a>
                 {{ end }}
-                <a class="btn" href="/devices/{{ .Item.ID }}/tv" target="_blank">{{ t .Localizer "TV Mode" }}</a>
+                <a class="btn"
+                   href="/devices/{{ .Item.ID }}/tv"
+                   target="_blank"
+                   title="{{ t .Localizer "Shows this device's screen full-size in a new tab, for a TV or spare monitor" }}">{{ t .Localizer "Full-screen view" }}</a>
             </div>
             {{ end }}
         </div>
@@ -57,14 +60,14 @@
                      width="128"
                      height="64">
             </div>
-            <p class="pxt-stage-caption">{{ t .Localizer "Currently Displaying App" }}</p>
+            <p class="pxt-stage-caption">{{ t .Localizer "On screen now" }}</p>
         </div>
     </div>
     <div class="pxt-device-panels">
         <!-- Controls -->
         <section class="settings-card" aria-labelledby="controls-title-{{ .Item.ID }}">
             <div class="settings-card-header">
-                <h3 class="pxt-section-title" id="controls-title-{{ .Item.ID }}">{{ t .Localizer "Device Info and Controls" }}</h3>
+                <h3 id="controls-title-{{ .Item.ID }}">{{ t .Localizer "Controls" }}</h3>
             </div>
             <div class="pxt-control">
                 <div class="pxt-control-head">
@@ -76,6 +79,7 @@
                     {{ range $i := seq 0 5 }}
                     <button type="button"
                             class="brightness-btn {{ if eq $.Item.BrightnessUIScale $i }}active{{ end }}"
+                            aria-pressed="{{ if eq $.Item.BrightnessUIScale $i }}true{{ else }}false{{ end }}"
                             data-brightness="{{ $i }}"
                             aria-label="{{ t $.Localizer "Brightness" }} {{ $i }}"
                             onclick="setBrightness('{{ $.Item.ID }}', {{ $i }})">{{ $i }}</button>
@@ -85,7 +89,7 @@
             </div>
             <div class="pxt-control">
                 <div class="pxt-control-head">
-                    <label class="pxt-field-label" for="default_interval-{{ .Item.ID }}">{{ t .Localizer "App Cycle Time (Seconds)" }}</label>
+                    <label class="pxt-field-label" for="default_interval-{{ .Item.ID }}">{{ t .Localizer "Seconds per app" }}</label>
                     <span class="pxt-control-value"><span id="intervalValue-{{ .Item.ID }}">{{ .Item.DefaultInterval }}</span> s</span>
                 </div>
                 <input type="range"
@@ -98,7 +102,7 @@
                        disabled
                        {{ else }}
                        oninput="updateIntervalValue('{{ .Item.ID }}', this.value)"
-                       onmouseup="updateInterval('{{ .Item.ID }}', this.value)"
+                       onchange="updateInterval('{{ .Item.ID }}', this.value)"
                        {{ end }}>
             </div>
             {{ if .Item.NightModeEnabled }}
@@ -209,7 +213,7 @@
                     <dt>{{ t $.Localizer "WiFi SSID:" }}</dt>
                     <dd>{{ .Item.Info.SSID }}</dd>
                     {{ end }}
-                    <dt>{{ t $.Localizer "Protocol Type:" }}</dt>
+                    <dt>{{ t $.Localizer "Connection:" }}</dt>
                     <dd>{{ .Item.Info.ProtocolType }}</dd>
                     {{ if .Item.LastSeen }}
                     <dt>{{ t $.Localizer "Last Seen:" }}</dt>
@@ -222,22 +226,34 @@
     <!-- Apps on this device -->
     <section aria-labelledby="apps-title-{{ .Item.ID }}">
         <h3 class="pxt-section-title" id="apps-title-{{ .Item.ID }}">{{ t .Localizer "Apps" }}</h3>
+        {{ if not .Item.Apps }}
+        <div class="pxt-empty">
+            <p class="pxt-empty-title">{{ t .Localizer "Nothing on this screen yet" }}</p>
+            <p class="pxt-help">{{ t .Localizer "Add an app and it will start showing on the device right away. Add more and the device takes turns showing each one." }}</p>
+            {{ if not .ReadOnly }}
+            <a class="btn btn-primary" href="/devices/{{ .Item.ID }}/addapp">{{ pixelIcon "plus" }} {{ t .Localizer "Add App" }}</a>
+            {{ end }}
+        </div>
+        {{ else }}
         <div class="view-toggle-row settings-view-row">
             <div class="view-toggle-container settings-view-controls">
                 <span class="settings-view-label">{{ t .Localizer "View:" }}</span>
                 <button id="listViewBtn-{{ .Item.ID }}"
                         type="button"
                         class="btn btn-ghost btn-sm view-toggle-btn active"
+                        aria-pressed="true"
                         onclick="switchToListView('{{ .Item.ID }}')"
                         title="{{ t .Localizer "List View" }}">{{ t .Localizer "List" }}</button>
                 <button id="gridViewBtn-{{ .Item.ID }}"
                         type="button"
                         class="btn btn-ghost btn-sm view-toggle-btn"
+                        aria-pressed="false"
                         onclick="switchToGridView('{{ .Item.ID }}')"
                         title="{{ t .Localizer "Grid View" }}">{{ t .Localizer "Grid" }}</button>
                 <button id="collapsedViewBtn-{{ .Item.ID }}"
                         type="button"
                         class="btn btn-ghost btn-sm view-toggle-btn"
+                        aria-pressed="false"
                         onclick="switchToCollapsedView('{{ .Item.ID }}')"
                         title="{{ t .Localizer "Collapsed View" }}">{{ t .Localizer "Collapsed" }}</button>
             </div>
@@ -245,6 +261,7 @@
             <p class="instruction-text pxt-help">{{ t .Localizer "Drag apps to reorder or copy from/to another device" }}</p>
             {{ end }}
         </div>
+        {{ end }}
         <div id="appsList-{{ .Item.ID }}" class="visible apps-list-view">
             {{ range .Item.Apps }}
             {{ template "app_card" (dict "App" . "Device" $.Item "Localizer" $.Localizer "Devices" $.AllDevices "ReadOnly" $.ReadOnly) }}

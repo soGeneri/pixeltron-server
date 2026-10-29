@@ -19,7 +19,7 @@
   --action-hover: #b8132a;
   --signal: #c24e00;
   --success: #13804a;
-  --focus: #d81b33;
+  --focus: #0b74a8;
   --scrim: rgba(29, 21, 48, 0.6);
   --sun-soft: #fff1b8;
   --sky: #3fbdf0;
@@ -52,7 +52,7 @@
   --action-hover: #c41019;
   --signal: #ff8a3d;
   --success: #4cd18a;
-  --focus: #ff3d3d;
+  --focus: #4cc9f0;
   --scrim: rgba(10, 10, 11, 0.78);
   --sun-soft: #2e2610;
   --sky: #4cc9f0;
@@ -62,8 +62,8 @@
   --grape: #a97bf0;
   --grape-soft: #22183a;
   --bubble-soft: #33141f;
-  --shadow-pixel: 4px 4px 0 0 #f2f1ec;
-  --shadow-pixel-sm: 2px 2px 0 0 #f2f1ec;
+  --shadow-pixel: 4px 4px 0 0 #3a3a40;
+  --shadow-pixel-sm: 2px 2px 0 0 #3a3a40;
   --shadow-lift: 0 24px 64px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
@@ -137,10 +137,7 @@
   --z-modal: 100;
   --z-finale: 200;
   /* type families */
-  --font-dot: "Doto", "DotGothic16", ui-monospace, monospace;
-  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
   --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
   --font-mono: "DM Mono", ui-monospace, Menlo, monospace;
   --font-pixel: "Silkscreen", ui-monospace, monospace;
-  --font-arcade: "Press Start 2P", "Silkscreen", ui-monospace, monospace;
 }

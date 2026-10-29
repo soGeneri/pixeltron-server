@@ -211,7 +211,8 @@
             </form>
             <form method="post"
                   action="/set_user_repo"
-                  onsubmit="return confirm('{{ t .Localizer "Remove custom repository? This will delete the repo and break any apps using it." }}');">
+                  data-confirm="{{ t .Localizer "Remove custom repository? This will delete the repo and break any apps using it." }}"
+                  data-confirm-danger>
                 <input type="hidden" name="app_repo_url" value="">
                 <button type="submit"
                         class="btn btn-danger"
@@ -363,7 +364,7 @@
                         style="padding: 8px 16px;
                                font-size: 14px;
                                margin: 0"
-                        onclick="return confirm('{{ t .Localizer "Update API key?" }}');">
+                        data-confirm="{{ t .Localizer "Update API key?" }}">
                     <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ t .Localizer "Save" }}
                 </button>
             </div>
@@ -376,7 +377,7 @@
                     style="padding: 8px 16px;
                            font-size: 14px;
                            margin-left: 0"
-                    onclick="return confirm('{{ t .Localizer "Generate a new API key? This will replace your current API key." }}');">
+                    data-confirm="{{ t .Localizer "Generate a new API key? This will replace your current API key." }}">
                 <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> {{ t .Localizer "Generate New" }}
             </button>
         </form>
@@ -471,7 +472,8 @@
                         <form method="post"
                               action="/auth/oidc/unlink/{{ .ID }}"
                               style="display: inline"
-                              onsubmit="return confirm('{{ t $.Localizer "Are you sure you want to unlink this OIDC identity?" }}');">
+                              data-confirm="{{ t $.Localizer "Are you sure you want to unlink this OIDC identity?" }}"
+                  data-confirm-danger>
                             <button type="submit"
                                     class="btn btn-danger"
                                     style="padding: 4px 8px;
@@ -516,7 +518,7 @@
     }
 
     async function deletePasskey(id) {
-        if (!confirm('{{ t .Localizer "Delete this passkey?" }}')) return;
+        if (!(await pxtConfirm('{{ t .Localizer "Delete this passkey?" }}', { danger: true }))) return;
         try {
             const resp = await fetch('/auth/webauthn/delete/' + encodeURIComponent(id), {
                 method: 'POST'
@@ -524,17 +526,17 @@
             if (resp.ok) {
                 location.reload();
             } else {
-                alert("{{ t .Localizer "Failed to delete passkey" }}");
+                pxtError("{{ t .Localizer "Failed to delete passkey" }}");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 
     async function registerPasskey() {
         if (!window.PublicKeyCredential || !navigator.credentials) {
-            alert("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
+            pxtError("{{ t .Localizer "WebAuthn is not supported in this browser." }}");
             return;
         }
         try {
@@ -577,11 +579,11 @@
             if (finishResp.ok) {
                 location.reload();
             } else {
-                alert("Registration failed");
+                pxtError("Registration failed");
             }
         } catch (e) {
             console.error(e);
-            alert("Error: " + e.message);
+            pxtError("Error: " + e.message);
         }
     }
 </script>

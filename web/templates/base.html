@@ -116,27 +116,8 @@
     </script>
     {{ end }}
     </main>
-    <!-- The page's last band: big arcade links, utility rows and the small print. -->
-    <footer class="pxt-footer ttp-dotgrid{{ if not .User }} pxt-footer-slim{{ end }}">
-        {{ if .User }}
-        <ul class="pxt-footer-big">
-            <li>
-                <a href="/">{{ t .Localizer "Devices" }}</a>
-            </li>
-            <li>
-                <a href="/settings/content">{{ t .Localizer "Apps" }}</a>
-            </li>
-            <li>
-                <a href="/settings/account">{{ t .Localizer "Settings" }}</a>
-            </li>
-            <li>
-                <a href="/settings/content#firmware">{{ t .Localizer "Firmware" }}</a>
-            </li>
-        </ul>
-        <ul class="ttp-menu">
-            {{ template "pxt_menu_rows" . }}
-        </ul>
-        {{ end }}
+    <!-- Small print: version, update notice, credit. -->
+    <footer class="pxt-footer">
         {{ if .UpdateAvailable }}
         <a class="pxt-footer-update"
            href="{{ .LatestReleaseURL }}"
@@ -151,26 +132,31 @@
    title="{{ .CommitHash }}">{{ substr .CommitHash 0 7 }}</a>){{ end }}{{ else if .Branch }} <a href="{{ if .CommitURL }}{{ .CommitURL }}{{ else }}https://github.com/tronbyt/server/tree/{{ .Branch }}{{ end }}"
     target="_blank">{{ if .ShowBranchTag }}[{{ .Branch }}]{{ else }}{{ .Branch }}{{ end }}</a>{{ end }}
 </p>
-            <svg class="pxt-logo-mark"
-                 viewBox="0 0 12 11"
-                 width="15"
-                 height="14"
-                 aria-hidden="true">
-                <path fill="var(--cherry)" d="M2 2h2v1h-2zM7 2h2v1h-2zM1 3h4v1h-4zM6 3h4v1h-4zM1 4h9v1h-9zM1 5h9v1h-9zM2 6h7v1h-7zM3 7h5v1h-5zM4 8h3v1h-3zM5 9h1v1h-1z" />
-                <rect x="2" y="3" width="1" height="1" fill="var(--cream)" />
-                <rect class="pxt-logo-pop" x="10" y="0" width="1.5" height="1.5" fill="var(--sun)" stroke="currentColor" stroke-width="0.3" />
-            </svg>
             <p class="pxt-footer-legal">{{ t .Localizer "Tronbyt Manager" }} · {{ t .Localizer "by Ten Thousand Pixels" }}</p>
+            <!-- Flips between Bright and Night; the label names what a press does. -->
+            <button class="pxt-theme-toggle" id="theme-toggle" type="button">
+                <span class="pxt-when-light">{{ pixelIcon "moon" }} {{ t .Localizer "Dark mode" }}</span>
+                <span class="pxt-when-dark">{{ pixelIcon "sun" }} {{ t .Localizer "Light mode" }}</span>
+            </button>
         </div>
     </footer>
-    <!-- Lights off / Lights on: flips between Bright and Night. -->
-    <button class="pxt-theme-toggle"
-            id="theme-toggle"
-            type="button"
-            aria-pressed="false">
-        <span class="pxt-when-light">{{ pixelIcon "moon" }} {{ t .Localizer "Lights off" }}</span>
-        <span class="pxt-when-dark">{{ pixelIcon "sun" }} {{ t .Localizer "Lights on" }}</span>
-    </button>
+    <!-- Shared confirm dialog and toast (static/js/ui.js). -->
+    <div id="pxt-ui"
+         hidden
+         data-ok="{{ t .Localizer "OK" }}"
+         data-delete="{{ t .Localizer "Delete" }}"
+         data-saved="{{ t .Localizer "Saved" }}"
+         data-error="{{ t .Localizer "Something went wrong. Try again." }}"></div>
+    <dialog id="pxt-confirm"
+            class="settings-dialog pxt-confirm"
+            aria-labelledby="pxt-confirm-message">
+        <p class="pxt-confirm-message" id="pxt-confirm-message" data-confirm-message></p>
+        <div class="settings-dialog-actions">
+            <button class="btn btn-ghost" type="button" data-confirm-cancel>{{ t .Localizer "Cancel" }}</button>
+            <button class="btn btn-danger" type="button" data-confirm-ok>{{ t .Localizer "Delete" }}</button>
+        </div>
+    </dialog>
+    <div id="pxt-toast" class="pxt-toast" role="status" aria-live="polite"></div>
     <script>
   window.pxtLoggedIn = {{ if .User }}true{{ else }}false{{ end }};
   {{ if .User }}
@@ -184,11 +170,10 @@
     var path = location.pathname;
     document.querySelectorAll('.pxt-nav-links a').forEach(function (a) {
       var href = a.getAttribute('href');
-      // Devices covers the dashboard and every /devices/ page, Settings every
-      // settings tab; anything else marks only its own page.
+      // Devices covers the dashboard and every /devices/ page; anything else
+      // marks only its own section.
       var match = href === '/' ? (path === '/' || path.indexOf('/devices/') === 0)
-        : href.indexOf('/settings/') === 0 ? path.indexOf('/settings/') === 0
-        : path === href;
+        : path.indexOf(href) === 0;
       if (match) a.setAttribute('aria-current', 'page');
     });
   })();
@@ -230,12 +215,28 @@
       closeMobileMenu();
     });
     document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape' && isMenuOpen) {
+      if (!isMenuOpen) return;
+      if (event.key === 'Escape') {
         closeMobileMenu();
+        return;
+      }
+      // Keep Tab inside the open drawer.
+      if (event.key === 'Tab') {
+        var focusable = document.getElementById('mobileMenu').querySelectorAll('a[href], button:not([disabled])');
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     });
   });
     </script>
+    <script src="/static/js/ui.js" defer></script>
     <script src="/static/js/manager.js" defer></script>
     <script src="/static/js/theme.js" defer></script>
 </body>
@@ -263,8 +264,16 @@
     <a href="/">{{ t .Localizer "Devices" }}</a>
 </li>
 <li>
-    <a href="/settings/content">{{ t .Localizer "Settings" }}</a>
+    <a href="/settings/content">{{ t .Localizer "Apps & Firmware" }}</a>
 </li>
+<li>
+    <a href="/settings/account">{{ t .Localizer "Account" }}</a>
+</li>
+{{ if .User.IsAdmin }}
+<li>
+    <a href="/settings/admin">{{ t .Localizer "Admin" }}</a>
+</li>
+{{ end }}
 {{ if not .IsAutoLoginActive }}
 <li>
     <a href="/auth/logout">{{ t .Localizer "Log Out" }}</a>
@@ -289,6 +298,9 @@
 </li>
 <li>
     <a class="ttp-menu-row" href="/devices/create">{{ t .Localizer "New Tronbyt" }} {{ pixelIcon "plus" }}</a>
+</li>
+<li>
+    <a class="ttp-menu-row" href="/settings/content">{{ t .Localizer "Apps & Firmware" }} {{ pixelIcon "star" }}</a>
 </li>
 <li>
     <a class="ttp-menu-row" href="/settings/account">{{ t .Localizer "Account" }} {{ pixelIcon "eye" }}</a>
@@ -319,7 +331,7 @@
 <nav class="settings-subnav"
      aria-label="{{ t .Localizer "System Settings" }}">
     <a href="/settings/content"
-       class="settings-subnav-link {{ if eq .SettingsSection "content" }}active{{ end }}">{{ t .Localizer "Content and Firmware" }}</a>
+       class="settings-subnav-link {{ if eq .SettingsSection "content" }}active{{ end }}">{{ t .Localizer "Apps & Firmware" }}</a>
     <a href="/settings/account"
        class="settings-subnav-link {{ if eq .SettingsSection "account" }}active{{ end }}">{{ t .Localizer "Account" }}</a>
     {{ if and .User .User.IsAdmin }}

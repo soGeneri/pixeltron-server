@@ -38,8 +38,8 @@
 </section>
 {{ end }}
 <script>
-    function deleteUser(username) {
-        if (!confirm('{{ t .Localizer "Delete User?" }}')) return;
+    async function deleteUser(username) {
+        if (!(await pxtConfirm('{{ t .Localizer "Delete User?" }}', { danger: true }))) return;
 
         fetch('/admin/users/' + username, {
             method: 'DELETE'
@@ -47,11 +47,11 @@
             if (response.ok || response.redirected) {
                 window.location.reload();
             } else {
-                alert('{{ t .Localizer "Failed to delete user" }}');
+                pxtError('{{ t .Localizer "Failed to delete user" }}');
             }
         }).catch(err => {
             console.error(err);
-            alert('{{ t .Localizer "Error deleting user" }}');
+            pxtError('{{ t .Localizer "Error deleting user" }}');
         });
     }
 </script>

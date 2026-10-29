@@ -1,107 +1,186 @@
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-  text-align: center;
-  color: var(--muted-text);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid color-mix(in srgb, var(--border-color) 75%, transparent);
-  border-top: 3px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.content-loaded .loading-container {
-  display: none;
-}
+/* Add-app catalog: toolbar, tiles with LED-screen previews, and the details
+   panel. Selectors carry .content where style.css resets controls there. */
 
 .addapp-shell {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-3);
 }
 
-.addapp-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+/* catalog.js shows and hides with the hidden attribute; flex and grid rules
+   below must not override it. */
+.addapp-shell [hidden] {
+  display: none !important;
 }
 
-.addapp-config {
+/* ------------------------------------------------------------------ */
+/* Toolbar: search, category chips, sort and toggles                   */
+/* ------------------------------------------------------------------ */
+.catalog-toolbar {
+  position: sticky;
+  top: var(--space-1);
+  z-index: var(--z-nav);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.app-group {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.app-group-header {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.app-group-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
-}
-
-.app-group-meta {
-  font-size: 0.9rem;
-  color: var(--muted-text);
-}
-
-.app-group-meta a {
-  text-decoration: none;
-}
-
-.filter-sort-controls {
-  border: var(--border-pixel) solid var(--ink);
-  background: var(--surface-raised);
-  border-radius: var(--radius-0);
-  padding: 14px;
-}
-
-.filter-sort-controls-inner {
-  display: flex;
   gap: 12px;
+  padding: var(--space-2);
+  background: var(--surface);
+  border: var(--border-pixel) solid var(--ink);
+  box-shadow: var(--shadow-pixel);
+}
+
+.catalog-search {
+  position: relative;
+  display: flex;
   align-items: center;
-  flex-wrap: wrap;
 }
 
-.filter-sort-controls input[type="search"] {
+.catalog-search > .ttp-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.content .catalog-search-input {
+  width: 100%;
+  height: 52px;
   margin: 0;
-  min-width: 220px;
-  max-width: 320px;
+  padding: 0 48px 0 44px;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-2);
+  font: 400 18px/24px var(--font-sans);
 }
 
-.control-label {
+.catalog-search-input::placeholder {
+  color: var(--ink-muted);
+}
+
+/* "/" focuses the search; the hint steps aside once you're typing. */
+.catalog-kbd {
+  position: absolute;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border: var(--border-pixel) solid var(--line-strong);
+  border-radius: var(--radius-1);
+  font: 500 13px/1 var(--font-mono);
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.catalog-search:focus-within .catalog-kbd,
+.catalog-search:has(.catalog-search-input:not(:placeholder-shown)) .catalog-kbd {
+  display: none;
+}
+
+@media (hover: none), (max-width: 600px) {
+  .catalog-kbd {
+    display: none;
+  }
+}
+
+/* Category chips scroll sideways instead of wrapping into a wall. The edges
+   fade where more chips are hidden; catalog.js sets the data flags. */
+.catalog-chips {
+  --fade-start: 0px;
+  --fade-end: 0px;
+  display: flex;
+  gap: 6px;
+  margin: 0 calc(-1 * var(--space-2));
+  padding: 2px var(--space-2) 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent);
+}
+
+.catalog-chips[data-more-start] {
+  --fade-start: 40px;
+}
+
+.catalog-chips[data-more-end] {
+  --fade-end: 56px;
+}
+
+.content .catalog-cat {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: var(--control-height-sm);
+  margin: 0;
+  padding: 0 12px;
+  background: transparent;
+  color: var(--ink);
+  border: var(--border-pixel) solid var(--line-strong);
+  border-radius: var(--radius-2);
+  font: 700 14px/20px var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.content .catalog-cat:hover {
+  border-color: var(--ink);
+}
+
+.content .catalog-cat[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* How many apps each category holds under the current search and toggles. */
+.catalog-cat-count {
+  font: 400 12px/16px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.content .catalog-cat.is-empty:not([aria-pressed="true"]) {
+  border-style: dashed;
+  color: var(--ink-muted);
+}
+
+.catalog-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.content .catalog-option {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--muted-text);
-  font-weight: 500;
+  gap: var(--space-1);
+  margin: 0;
+  font: 400 15px/20px var(--font-sans);
+  color: var(--ink);
+  cursor: pointer;
 }
 
-/* Padded, theme-aware chevron for filter selects. Icon: Heroicons chevron-down (MIT). */
+.content .catalog-option select {
+  height: var(--control-height-sm);
+  padding-top: 0;
+  padding-bottom: 0;
+  font: 400 15px/20px var(--font-sans);
+}
+
+.catalog-count {
+  margin: 0 0 0 auto;
+  font: 400 13px/18px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+/* Padded, theme-aware chevron for the sort select. Icon: Heroicons chevron-down (MIT). */
 .select-wrap {
   position: relative;
   display: inline-flex;
@@ -122,219 +201,490 @@
   width: 1rem;
   height: 1rem;
   pointer-events: none;
-  background-color: var(--muted-text);
+  background-color: var(--ink-muted);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-.control-checkbox,
-.filter-checkbox {
-  margin: 0 !important;
-}
-
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 14px;
-}
-
-.app-item {
-  border: var(--border-pixel) solid var(--ink);
-  background: var(--surface);
-  border-radius: var(--radius-0);
-  padding: 14px;
-  text-align: left;
-  cursor: pointer;
-  position: relative;
+/* ------------------------------------------------------------------ */
+/* Groups                                                              */
+/* ------------------------------------------------------------------ */
+/* The groups flow with the page; the sticky toolbar keeps search in reach.
+   Padding leaves room for the tiles' hover lift and pixel shadow. */
+.catalog-groups {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-6);
+  padding: var(--space-1) var(--space-1) var(--space-2);
+}
+
+.catalog-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.catalog-group[hidden] {
+  display: none;
+}
+
+.catalog-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-half) 12px;
+}
+
+.catalog-group-title {
+  margin: 0;
+  font: 800 24px/30px var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+.catalog-group-count {
+  font: 400 13px/18px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.catalog-group-meta {
+  margin-left: auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 400 13px/18px var(--font-sans);
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.catalog-group-meta:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+.content .catalog-more {
+  align-self: center;
+}
+
+.catalog-more[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tiles                                                               */
+/* ------------------------------------------------------------------ */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-2);
+}
+
+.content .app-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--border-pixel) solid var(--ink);
+  border-radius: var(--radius-0);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  /* Tabbing to a tile never parks it under the sticky toolbar. */
+  scroll-margin-top: var(--catalog-toolbar-h, 0px);
   transition: transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step);
 }
 
-.app-item:hover {
+.content .app-item[hidden] {
+  display: none;
+}
+
+.content .app-item:hover {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 0 var(--cherry);
 }
 
-.app-item.selected {
-  border-color: var(--ink);
-  box-shadow: 6px 6px 0 0 var(--cherry);
+.content .app-item:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }
 
-.app-item.installed {
-  background: var(--sun-soft);
+.catalog-screen-wrap {
+  position: relative;
+  display: block;
 }
 
-.app-item.broken-app {
-  border-color: var(--signal);
-  background: var(--surface-raised);
-  cursor: not-allowed;
+/* Installed / broken status, stuck on the screen's bottom-right edge. */
+.catalog-screen-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  transform: translateY(50%);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  padding: 3px 8px;
 }
 
-.app-item.broken-app:hover {
-  transform: none;
+.catalog-screen-badge.catalog-chip-broken {
+  box-shadow: inset 0 0 0 2px var(--accent-text);
+}
+
+.catalog-screen-wrap:has(.catalog-screen-badge) + .catalog-tile-body {
+  padding-top: 18px;
+}
+
+.catalog-screen-badge .ttp-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* The preview is the device's screen: dark glass, pixel-exact art. */
+.catalog-screen.app-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 2 / 1;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 0;
+  border-bottom: var(--border-pixel) solid var(--ink);
+  background: var(--screen);
+}
+
+.catalog-screen.app-img img,
+.catalog-detail-screen.app-img img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Square panels sit centred in the same 2:1 screen so rows stay even. */
+.catalog-screen.app-img.is-square img {
+  width: auto;
+  height: 100%;
+}
+
+.broken-app .catalog-screen img {
+  opacity: 0.45;
+}
+
+.content .app-item.broken-app {
+  border-style: dashed;
+  border-color: var(--line-strong);
+}
+
+.catalog-tile-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-half);
+  padding: 12px 14px 14px;
 }
 
 .app-item-title {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.35;
-  color: var(--page-text);
+  font: 700 16px/22px var(--font-sans);
+  overflow-wrap: anywhere;
+}
+
+.app-item-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font: 400 14px/20px var(--font-sans);
+  color: var(--ink-muted);
+}
+
+/* One line: author on the left, install count pinned right. */
+.catalog-tile-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: var(--space-1);
 }
 
 .app-item-meta {
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.45;
-  color: var(--muted-text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 400 13px/18px var(--font-sans);
+  color: var(--ink-muted);
 }
 
 /* Install count with download icon. */
 .app-item-installs {
   display: inline-flex;
+  flex: none;
   align-items: center;
-  gap: 0.375rem;
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.45;
+  gap: 4px;
+  margin-left: auto;
+  font: 400 12px/16px var(--font-mono);
   font-variant-numeric: tabular-nums;
-  color: var(--muted-text);
+  color: var(--ink-muted);
 }
 
 .app-item-installs svg {
-  width: 1rem;
-  height: 1rem;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
-  opacity: 0.9;
 }
 
-.app-item-muted {
-  opacity: 0.55;
-}
-
-.app-img {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 2 / 1;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Square panels. The CONTAINER carries the aspect too: sizing only the
-   image leaves it overflowing a 2:1 box with overflow:hidden, which is
-   what clipped square previews into a cut-off rectangle. */
-.app-img.is-square {
-  aspect-ratio: 1 / 1;
-}
-
-.app-img.is-square .lazy-image {
-  width: 128px;
-  height: 128px;
-}
-
-.app-img .lazy-image {
-  position: relative;
-  width: 128px;
-  height: 64px;
-  object-fit: contain;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 2;
-  image-rendering: pixelated;
-}
-
-.lazy-image.loaded {
-  opacity: 1;
-}
-
-.installed-badge,
-.supports-2x-badge,
-.supports-64x64-badge,
-.broken-badge {
-  position: absolute;
-  top: 10px;
-  z-index: 10;
-  padding: 4px 8px;
-  border-radius: var(--radius-1);
-  font: 500 12px/16px var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  box-shadow: inset 0 0 0 1px var(--ink);
-}
-
-.installed-badge {
-  right: 10px;
-  background: var(--sun);
-  color: var(--midnight) !important;
-  color: var(--page-text);
-}
-
-.supports-2x-badge {
-  left: 10px;
-  background: var(--sky-soft);
-  color: var(--page-text);
-}
-
-/* Sits under the 2x badge: an app can legitimately declare both. */
-.supports-64x64-badge {
-  left: 10px;
-  top: 38px;
-  background: var(--mint-soft);
-  color: var(--page-text);
-}
-
-.broken-badge {
-  position: static;
-  align-self: flex-start;
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--signal);
-  color: var(--danger-text);
-}
-
-.delete-upload-btn,
-.mark-broken-btn,
-.unmark-broken-btn {
-  align-self: flex-start;
+.catalog-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-2);
-  border: var(--border-pixel) solid var(--line-strong);
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-1);
+  background: var(--sun-soft);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.catalog-chip-installed {
+  background: var(--sun);
+  color: var(--midnight);
+}
+
+.catalog-chip-broken {
+  background: var(--surface);
+  color: var(--accent-text);
+  box-shadow: inset 0 0 0 1px var(--accent-text);
+}
+
+/* ------------------------------------------------------------------ */
+/* Details panel: a side sheet on wide screens, a bottom sheet on phones */
+/* ------------------------------------------------------------------ */
+.catalog-detail {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(480px, 100vw);
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--ink);
+  border: 0;
+  border-left: var(--border-bold) solid var(--ink);
+}
+
+.catalog-detail[open] {
+  animation: catalog-sheet-in var(--dur-base) var(--ease-out);
+}
+
+.catalog-detail::backdrop {
+  background: var(--scrim);
+}
+
+@keyframes catalog-sheet-in {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+}
+
+.catalog-detail-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.catalog-detail-top {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-1) var(--space-1) 0;
+}
+
+.content .catalog-detail-close {
+  width: 40px;
+  height: 40px;
+  padding: 0;
   background: transparent;
   color: var(--ink);
-  text-decoration: none;
-  font: 500 12px/16px var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
+  border: var(--border-pixel) solid transparent;
+  border-radius: var(--radius-0);
 }
 
-.delete-upload-btn {
-  color: var(--danger-text);
-  border-color: var(--signal);
+.content .catalog-detail-close:hover {
+  background: var(--sun);
+  color: var(--midnight);
+  border-color: var(--ink);
 }
 
-.mark-broken-btn,
-.unmark-broken-btn {
-  border: 1px solid var(--input-border);
+/* The authored moment: the app on a big screen, framed like the dashboard stage. */
+.catalog-detail-screen.app-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 var(--space-3);
+  padding: var(--space-2);
+  aspect-ratio: 2 / 1;
+  box-sizing: border-box;
+  border: var(--border-chunky) solid var(--ink);
+  background: var(--screen);
+  box-shadow: 6px 6px 0 0 var(--cherry);
 }
 
-@media screen and (max-width: 768px) {
-  .filter-sort-controls-inner {
-    align-items: stretch;
+.catalog-detail-screen.app-img.is-square {
+  aspect-ratio: 2 / 1;
+}
+
+.catalog-detail-screen.app-img.is-square img {
+  width: auto;
+  height: 100%;
+}
+
+.catalog-detail-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--space-3);
+}
+
+.catalog-detail-name {
+  margin: 0;
+  font: 800 28px/34px var(--font-sans);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.catalog-detail-summary {
+  margin: 0;
+  font: 400 17px/26px var(--font-sans);
+}
+
+.catalog-detail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.catalog-detail-desc {
+  margin: 0;
+  font: 400 15px/24px var(--font-sans);
+  color: var(--ink-muted);
+  white-space: pre-line;
+}
+
+.catalog-detail-specs {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: var(--border-hair) solid var(--line);
+}
+
+.catalog-detail-note {
+  margin: 0;
+  padding: 12px var(--space-2);
+  background: var(--sun-soft);
+  font: 400 15px/22px var(--font-sans);
+}
+
+.catalog-detail-note-broken {
+  background: var(--surface-raised);
+  color: var(--accent-text);
+  box-shadow: inset 0 0 0 1px var(--accent-text);
+}
+
+.catalog-detail-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border-top: var(--border-pixel) solid var(--ink);
+}
+
+.catalog-detail-actions [data-detail-install] {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.catalog-detail-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: 0 var(--space-3) var(--space-2);
+  background: var(--surface);
+}
+
+.catalog-detail-admin[hidden],
+.catalog-detail-admin [hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Phones                                                              */
+/* ------------------------------------------------------------------ */
+@media (max-width: 760px) {
+  .catalog-toolbar {
+    position: static;
   }
 
-  .filter-sort-controls input[type="search"] {
-    max-width: none;
+  .catalog-count {
+    margin-left: 0;
     width: 100%;
   }
+}
 
+@media (max-width: 600px) {
   .app-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .catalog-tile-body {
+    padding: 10px;
+  }
+
+  .app-item-title {
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .app-item-summary {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .catalog-detail {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: auto;
+    max-height: 92dvh;
+    border-left: 0;
+    border-top: var(--border-bold) solid var(--ink);
+  }
+
+  @keyframes catalog-sheet-in {
+    from {
+      transform: translateY(32px);
+      opacity: 0;
+    }
+  }
+
+  .catalog-detail-screen.app-img {
+    margin: 0 var(--space-2);
+  }
+
+  .catalog-detail-body,
+  .catalog-detail-actions {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
   }
 }

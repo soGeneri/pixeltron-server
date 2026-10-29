@@ -8,7 +8,7 @@
     <header class="settings-page-header">
         <div>
             <p class="settings-eyebrow">{{ t .Localizer "System Settings" }}</p>
-            <h1>{{ t .Localizer "Content and Firmware" }}</h1>
+            <h1>{{ t .Localizer "Apps & Firmware" }}</h1>
             <p class="settings-page-copy">
                 {{ t .Localizer "Manage where apps and firmware come from, and refresh what is available on this server." }}
             </p>
@@ -183,7 +183,8 @@
             </form>
             <form method="post"
                   action="/set_user_repo"
-                  onsubmit="return confirm('{{ t .Localizer "Remove custom repository? This will delete the repo and break any apps using it." }}');">
+                  data-confirm="{{ t .Localizer "Remove custom repository? This will delete the repo and break any apps using it." }}"
+                  data-confirm-danger>
                 <input type="hidden" name="app_repo_url" value="">
                 <button type="submit" class="btn btn-danger">
                     <i class="fa-solid fa-trash" aria-hidden="true"></i> {{ t .Localizer "Remove" }}
@@ -330,8 +331,8 @@
         });
     }
 
-    function clearSystemAppsRepo(form) {
-        if (!confirm('{{ t .Localizer "Delete the downloaded repo from disk? Use Refresh to download it again." }}')) {
+    async function clearSystemAppsRepo(form) {
+        if (!(await pxtConfirm('{{ t .Localizer "Delete the downloaded repo from disk? Use Refresh to download it again." }}', { danger: true }))) {
             return;
         }
 
