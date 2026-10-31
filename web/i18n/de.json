@@ -2677,5 +2677,23 @@
   },
   "Pick an app to see it here.": {
     "other": "Wähle eine App, um sie hier zu sehen."
+  },
+  "On": {
+    "other": "Auf"
+  },
+  "Sections": {
+    "other": "Bereiche"
+  },
+  "Add an app": {
+    "other": "App hinzufügen"
+  },
+  "Sort & filter": {
+    "other": "Sortieren & filtern"
+  },
+  "Most installed": {
+    "other": "Am häufigsten installiert"
+  },
+  "CatalogNothingCalled": {
+    "other": "Nichts namens „{{.Query}}“"
   }
 }

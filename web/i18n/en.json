@@ -2680,5 +2680,23 @@
   },
   "Pick an app to see it here.": {
     "other": "Pick an app to see it here."
+  },
+  "On": {
+    "other": "On"
+  },
+  "Sections": {
+    "other": "Sections"
+  },
+  "Add an app": {
+    "other": "Add an app"
+  },
+  "Sort & filter": {
+    "other": "Sort & filter"
+  },
+  "Most installed": {
+    "other": "Most installed"
+  },
+  "CatalogNothingCalled": {
+    "other": "Nothing called “{{.Query}}”"
   }
 }
