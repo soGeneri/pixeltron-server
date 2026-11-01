@@ -45,3 +45,30 @@ func getMaxAppOrder(db *gorm.DB, deviceID string) (int, error) {
 
 	return currentMax, nil
 }
+
+// makeRoomForApp renumbers a device's apps 0..n in their current order,
+// leaving a gap at position (clamped to the end), and returns that position
+// as the order for the app about to be inserted.
+func makeRoomForApp(ctx context.Context, db *gorm.DB, deviceID string, position int) (int, error) {
+	existing, err := gorm.G[data.App](db).
+		Where("device_id = ?", deviceID).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "order"}}).
+		Find(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to load app order: %w", err)
+	}
+	position = min(position, len(existing))
+	for i, app := range existing {
+		want := i
+		if i >= position {
+			want = i + 1
+		}
+		if app.Order == want {
+			continue
+		}
+		if _, err := gorm.G[data.App](db).Where("id = ?", app.ID).Update(ctx, "order", want); err != nil {
+			return 0, fmt.Errorf("failed to shift app order: %w", err)
+		}
+	}
+	return position, nil
+}

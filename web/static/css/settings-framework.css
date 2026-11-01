@@ -1,27 +1,37 @@
 .settings-subnav {
   display: flex;
-  gap: 12px;
-  margin: 0 0 24px;
-  padding-bottom: 12px;
-  border-bottom: var(--border-hair) solid var(--line-strong);
-  flex-wrap: wrap;
+  gap: var(--space-1);
 }
 
+/* Section tabs are the catalog's chips: mono caps, ink fill when chosen. */
 .settings-subnav-link {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 14px;
   color: var(--ink);
-  font: 700 15px/20px var(--font-sans);
+  background: var(--surface);
+  font: 500 13px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   text-decoration: none;
-  padding: 8px 12px;
-  border: var(--border-pixel) solid transparent;
-  border-radius: var(--radius-0);
+  white-space: nowrap;
+  border: var(--border-pixel) solid var(--line-strong);
+  border-radius: var(--radius-2);
 }
 
-.settings-subnav-link:hover,
-.settings-subnav-link.active {
-  color: var(--midnight);
-  background: var(--sun);
+.settings-subnav-link:hover {
+  color: var(--ink);
   border-color: var(--ink);
-  box-shadow: var(--shadow-pixel-sm);
+}
+
+.settings-subnav-link.active {
+  color: var(--bg);
+  background: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 0 var(--cherry);
 }
 
 /* In-page jump links (device sections, devices on the dashboard) look like
@@ -32,8 +42,13 @@
 }
 
 .pxt-jump .settings-subnav-link {
+  height: auto;
   padding: 4px 0;
+  background: none;
   border: 0;
+  font: 400 15px/20px var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
   font-weight: 400;
   text-decoration: underline;
   text-decoration-color: var(--line-strong);
@@ -146,15 +161,22 @@
   align-items: center;
 }
 
-.settings-repo-url-row {
-  flex-wrap: nowrap;
-}
-
+/* Phones: the URL takes the full row, its buttons go under it. */
 .settings-repo-url-row .settings-repo-url-input {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
   width: auto;
   max-width: none;
+}
+
+@media (min-width: 720px) {
+  .settings-repo-url-row {
+    flex-wrap: nowrap;
+  }
+
+  .settings-repo-url-row .settings-repo-url-input {
+    flex: 1;
+  }
 }
 
 .settings-repo-url-actions {
@@ -174,6 +196,7 @@
   align-items: center;
   justify-content: center;
   height: 100%;
+  min-height: var(--control-height);
 }
 
 .settings-icon-button {

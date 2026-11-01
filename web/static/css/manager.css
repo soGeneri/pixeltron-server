@@ -143,7 +143,7 @@ input:checked + .slider:before {
   margin-bottom: 15px;
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  overflow: hidden;
+  /* No overflow: hidden here: it clips the "More" dropdown menu. */
   background: var(--surface-bg);
   box-shadow: 0 8px 24px var(--shadow-color);
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;

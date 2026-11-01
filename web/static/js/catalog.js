@@ -1,5 +1,6 @@
 // Add-app catalog: one toolbar (search, category chips, sort, toggles) filters
-// every group; choosing a tile opens the details panel, which installs.
+// every group; choosing an app opens the stage (a bottom sheet below 1100px),
+// and "+" on a row installs straight away.
 (function () {
   const root = document.querySelector('[data-catalog]');
   if (!root) return;
@@ -18,16 +19,57 @@
   const chipsEl = root.querySelector('[data-category-chips]');
   const countEl = root.querySelector('[data-result-count]');
   const emptyEl = root.querySelector('[data-catalog-empty]');
+  const emptyTitle = root.querySelector('[data-empty-title]');
+  const toolbarEl = root.querySelector('.catalog-toolbar');
+  const browseOnly = Array.from(root.querySelectorAll('[data-browse-only]'));
+  const filtersEl = root.querySelector('[data-catalog-filters]');
   const groups = Array.from(root.querySelectorAll('[data-catalog-group]')).map((el) => ({
     el,
     grid: el.querySelector('.app-grid'),
+    title: el.querySelector('[data-group-title]'),
     count: el.querySelector('[data-group-count]'),
     more: el.querySelector('[data-show-more]'),
     items: Array.from(el.querySelectorAll('.app-item')),
     limit: PAGE_SIZE,
   }));
 
+  // ---- The featured app ---------------------------------------------------
+  // The most-installed app this device doesn't have yet, shown while browsing.
+  const feature = root.querySelector('[data-catalog-feature]');
+  let featured = null;
+  if (feature) {
+    let best = 0;
+    groups.forEach((g) => g.items.forEach((item) => {
+      const n = Number(item.dataset.installs || 0);
+      if (n > best && item.dataset.installed !== 'true' && item.dataset.broken !== 'true') {
+        best = n;
+        featured = item;
+      }
+    }));
+    if (featured) {
+      const img = document.createElement('img');
+      img.alt = '';
+      img.width = 64;
+      img.height = 32;
+      img.loading = 'lazy';
+      img.src = featured.querySelector('img').src;
+      feature.querySelector('[data-feature-screen]').append(img);
+      feature.querySelector('[data-feature-name]').textContent = featured.dataset.name;
+      feature.querySelector('[data-feature-summary]').textContent = featured.dataset.summary || featured.dataset.author || '';
+    }
+  }
+  function renderFeature(filtering) {
+    if (feature) feature.hidden = !featured || filtering || hideInstalled.checked;
+  }
+
   let category = '';
+  let categoryLabel = '';
+
+  // Sort and toggles start open on wide screens, folded on phones.
+  const wideQuery = window.matchMedia('(min-width: 720px)');
+  const syncFilters = () => { if (wideQuery.matches) filtersEl.open = true; };
+  syncFilters();
+  wideQuery.addEventListener('change', syncFilters);
 
   // ---- Categories become chips, in alphabetical order --------------------
   const categories = new Set();
@@ -68,6 +110,7 @@
     const chip = e.target.closest('.catalog-cat');
     if (!chip) return;
     category = chip.dataset.category;
+    categoryLabel = category ? chip.firstChild.textContent.trim() : '';
     chipsEl.querySelectorAll('.catalog-cat').forEach((c) => c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'));
     resetPaging();
     render();
@@ -158,6 +201,8 @@
       g.more.hidden = left <= 0;
       g.more.textContent = fill(label('showMore'), { __N__: Math.min(left, PAGE_SIZE) });
       g.count.textContent = countText(visible.length);
+      // With one group, the heading names the chosen category.
+      g.title.textContent = groups.length === 1 && categoryLabel && !query ? categoryLabel : g.title.dataset.groupTitle;
       g.el.hidden = visible.length === 0;
       total += visible.length;
       shown += Math.min(g.limit, visible.length);
@@ -171,13 +216,20 @@
     updateChipEdges();
 
     emptyEl.hidden = total > 0;
+    emptyTitle.textContent = query ? fill(label('nothingCalled'), { __Q__: search.value.trim() }) : label('noMatch');
+
+    // Browsing (no search, no category): show the device strip and the pick.
+    const filtering = Boolean(query || category);
+    toolbarEl.toggleAttribute('data-filtering', filtering);
+    browseOnly.forEach((el) => { el.hidden = filtering; });
+    renderFeature(filtering);
     countEl.textContent = shown < total
       ? fill(label('showing'), { __SHOWN__: shown, __N__: total })
       : countText(total);
   }
 
   // Tiles keep clear of the sticky toolbar when scrolled or focused into view.
-  const toolbar = root.querySelector('.catalog-toolbar');
+  const toolbar = toolbarEl;
   const groupsEl = root.querySelector('.catalog-groups');
   function measureToolbar() {
     const sticky = getComputedStyle(toolbar).position === 'sticky';
@@ -229,7 +281,7 @@
     render();
     // Keep keyboard users where the new tiles start.
     const next = Array.from(g.grid.querySelectorAll('.app-item:not([hidden])'))[firstNew];
-    if (next) next.focus();
+    if (next) next.querySelector('.app-item-open').focus();
   }));
 
   root.querySelector('[data-clear-filters]').addEventListener('click', () => {
@@ -245,7 +297,13 @@
   // narrow ones raise the same panel as a bottom sheet.
   const detail = document.getElementById('catalog_detail');
   const scrim = root.querySelector('.catalog-stage-scrim');
-  const sheetQuery = window.matchMedia('(max-width: 1000px)');
+  const sheetQuery = window.matchMedia('(max-width: 1099px)');
+  // The stage is dark beside the grid; the phone sheet follows the page theme.
+  const syncStageTheme = () => {
+    if (sheetQuery.matches) detail.removeAttribute('data-theme');
+    else detail.setAttribute('data-theme', 'dark');
+  };
+  syncStageTheme();
   const sheetOpen = () => detail.hasAttribute('data-open');
   const $ = (sel) => detail.querySelector(sel);
   const install = $('[data-detail-install]');
@@ -270,10 +328,16 @@
     dl.append(dt, dd);
   }
 
+  const openerOf = (item) => item.querySelector('.app-item-open');
+
   function openDetail(item) {
-    if (current) current.setAttribute('aria-pressed', 'false');
+    if (current) {
+      current.classList.remove('is-on-stage');
+      openerOf(current).setAttribute('aria-pressed', 'false');
+    }
     current = item;
-    item.setAttribute('aria-pressed', 'true');
+    item.classList.add('is-on-stage');
+    openerOf(item).setAttribute('aria-pressed', 'true');
     const d = item.dataset;
     const broken = d.broken === 'true';
 
@@ -287,6 +351,9 @@
     screen.replaceChildren(img);
 
     $('[data-detail-name]').textContent = d.name;
+    const author = $('[data-detail-author]');
+    author.textContent = d.author ? label('by') + ' ' + d.author : '';
+    author.hidden = !d.author;
     $('[data-detail-summary]').textContent = d.summary || '';
     $('[data-detail-summary]').hidden = !d.summary;
     // Only show the long description when it says more than the summary.
@@ -302,7 +369,6 @@
 
     const specs = $('[data-detail-specs]');
     specs.replaceChildren();
-    spec(specs, label('by'), d.author);
     spec(specs, label('category'), d.category ? d.category.charAt(0).toUpperCase() + d.category.slice(1) : '');
     spec(specs, label('installs'), d.installsLabel);
     spec(specs, label('updated'), (d.updated || d.date || '').split(/[ T]/)[0]);
@@ -332,6 +398,7 @@
     }
     admin.hidden = !anyAdmin;
 
+    renderLoop();
     detail.classList.add('has-app');
     $('[data-stage-empty]').hidden = true;
     $('[data-stage-content]').hidden = false;
@@ -349,12 +416,17 @@
     if (!sheetOpen()) return;
     detail.removeAttribute('data-open');
     scrim.hidden = true;
-    if (current && document.contains(current)) current.focus();
+    if (current && document.contains(current)) openerOf(current).focus();
   }
 
   root.addEventListener('click', (e) => {
-    const item = e.target.closest('.app-item');
-    if (item && root.contains(item)) openDetail(item);
+    const quick = e.target.closest('[data-quick-install]');
+    if (quick) {
+      installApp(quick.closest('.app-item'), quick);
+      return;
+    }
+    const opener = e.target.closest('.app-item-open');
+    if (opener && root.contains(opener)) openDetail(opener.closest('.app-item'));
   });
 
   root.querySelectorAll('[data-detail-close]').forEach((b) => b.addEventListener('click', closeSheet));
@@ -363,20 +435,30 @@
   });
   // Widening the window turns the sheet back into the side column.
   sheetQuery.addEventListener('change', () => {
+    syncStageTheme();
     if (!sheetQuery.matches) {
       detail.removeAttribute('data-open');
       scrim.hidden = true;
     }
   });
 
-  install.addEventListener('click', () => {
-    if (!current) return;
-    document.getElementById('selected_app').value = current.dataset.value;
-    document.getElementById('selected_app_path').value = current.dataset.path;
-    document.getElementById('uinterval').value = current.dataset.recommendedInterval || 10;
-    install.disabled = true;
+  // Installing posts the form; the next screen configures the new copy.
+  function installApp(item, button) {
+    if (!item || item.dataset.broken === 'true') return;
+    document.getElementById('selected_app').value = item.dataset.value;
+    document.getElementById('selected_app_path').value = item.dataset.path;
+    document.getElementById('uinterval').value = item.dataset.recommendedInterval || 10;
+    document.getElementById('selected_position').value = position;
+    if (button) button.disabled = true;
     document.getElementById('main_form').submit();
-  });
+  }
+
+  install.addEventListener('click', () => installApp(current, install));
+  if (featured) {
+    feature.querySelector('[data-feature-open]').addEventListener('click', () => openDetail(featured));
+    const featureInstall = feature.querySelector('[data-feature-install]');
+    featureInstall.addEventListener('click', () => installApp(featured, featureInstall));
+  }
 
   if (markBtn) {
     const toggleBroken = (fn, key) => (e) => fn(
@@ -386,5 +468,89 @@
     unmarkBtn.addEventListener('click', toggleBroken(window.unmarkAppAsBroken, 'unmarkBrokenConfirm'));
   }
 
+  // ---- The loop strip -----------------------------------------------------
+  // The device's apps in order, with a slot for the new one. The gaps between
+  // apps move the slot; its place is posted as the install position.
+  const loopEl = root.querySelector('[data-catalog-loop]');
+  const loopRow = loopEl.querySelector('[data-loop-row]');
+  const loopApps = Array.from(loopRow.querySelectorAll('[data-loop-app]'));
+  const loopTime = loopEl.querySelector('[data-loop-time]');
+  const loopHint = loopEl.querySelector('[data-loop-hint]');
+  const positionNote = $('[data-detail-position]');
+  const newSeconds = Number(loopEl.dataset.defaultSeconds) || 15;
+  let position = Math.min(Math.max(Number(loopEl.dataset.startAt) || 0, 0), loopApps.length);
+
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text) node.textContent = text;
+    return node;
+  };
+
+  const slot = el('li', 'catalog-loop-new');
+  const slotScreen = el('span', 'catalog-loop-screen');
+  const slotName = el('span', 'catalog-loop-name');
+  const slotMeta = el('span', 'catalog-loop-meta', fill(label('seconds'), { __S__: newSeconds }));
+  slot.append(slotScreen, slotName, slotMeta);
+
+  // One gap before each app and one at the end; gap k puts the app at k.
+  const gaps = [];
+  for (let k = 0; k <= loopApps.length; k += 1) {
+    const li = el('li', 'catalog-loop-gap');
+    const btn = el('button', 'catalog-loop-gap-btn');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', k === 0
+      ? label('putFirst')
+      : fill(label('putAfter'), { __NAME__: loopApps[k - 1].dataset.name }));
+    btn.append(el('span', '', '+'));
+    btn.firstChild.setAttribute('aria-hidden', 'true');
+    btn.addEventListener('click', () => {
+      position = k;
+      renderLoop();
+      slot.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
+    li.append(btn);
+    gaps.push(li);
+  }
+
+  const duration = (s) => (s < 60
+    ? fill(label('seconds'), { __S__: s })
+    : fill(label('minutes'), { __M__: Math.floor(s / 60), __S__: s % 60 }));
+
+  function renderLoop() {
+    const items = [];
+    for (let k = 0; k <= loopApps.length; k += 1) {
+      items.push(k === position ? slot : gaps[k]);
+      if (k < loopApps.length) items.push(loopApps[k]);
+    }
+    loopRow.replaceChildren(...items);
+
+    const hasApp = Boolean(current);
+    slot.classList.toggle('has-app', hasApp);
+    if (hasApp) {
+      const img = el('img');
+      img.alt = '';
+      img.width = 64;
+      img.height = 32;
+      img.src = current.querySelector('img').src;
+      slotScreen.replaceChildren(img);
+    } else {
+      slotScreen.replaceChildren(el('span', 'catalog-loop-plus', '+'));
+    }
+    slotName.textContent = hasApp ? current.dataset.name : label('newApp');
+    loopHint.hidden = hasApp;
+
+    const total = loopApps.reduce((sum, li) => sum + (li.dataset.enabled === 'true' ? Number(li.dataset.seconds) || 0 : 0), 0);
+    loopTime.textContent = hasApp
+      ? fill(label('loopTimeNew'), { __TIME__: duration(total), __NEW__: duration(total + newSeconds) })
+      : fill(label('loopTime'), { __TIME__: duration(total) });
+
+    positionNote.textContent = position === 0
+      ? label('goesFirst')
+      : fill(label('goesAfter'), { __NAME__: loopApps[position - 1].dataset.name });
+    document.getElementById('selected_position').value = position;
+  }
+
+  renderLoop();
   render();
 })();

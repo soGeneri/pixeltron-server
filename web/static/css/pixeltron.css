@@ -70,11 +70,14 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Top band and the cartridge nav bar                                  */
+/* Top band and the cartridge nav bar (mobile first)                   */
 /* ------------------------------------------------------------------ */
+/* Phones: a compact band with the logo and one page action; the four
+   sections live in the tab bar at the bottom. 720px and up: the band grows
+   and the section links move into the cartridge bar. */
 .pxt-top {
   position: relative;
-  padding: var(--space-1) var(--space-2) var(--space-6);
+  padding: 12px var(--space-2) var(--space-3);
   background-color: var(--pc-soft);
 }
 
@@ -82,12 +85,13 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: space-between;
+  gap: 12px;
   width: 100%;
   max-width: var(--nav-width);
-  height: 60px;
+  height: 56px;
   margin: 0 auto;
-  padding: 0 10px 0 14px;
+  padding: 0 8px 0 14px;
   box-sizing: border-box;
   background: var(--surface);
   color: var(--ink);
@@ -101,6 +105,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
   color: var(--ink);
   text-decoration: none;
 }
@@ -123,14 +128,16 @@
 }
 
 .pxt-logo-word {
-  font: 400 16px/1 var(--font-pixel);
+  font: 400 14px/1 var(--font-pixel);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pxt-nav-links {
-  display: flex;
+  display: none;
   gap: var(--space-half);
   margin: 0 0 0 auto;
   padding: 0;
@@ -140,7 +147,8 @@
 .pxt-nav-links a {
   display: block;
   padding: 8px 12px;
-  font: 700 15px/20px var(--font-sans);
+  font: 400 14px/20px var(--font-pixel);
+  text-transform: uppercase;
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
@@ -152,16 +160,27 @@
   background: var(--sun);
   color: var(--midnight);
   border-color: var(--ink);
+}
+
+.pxt-nav-links a:hover {
   box-shadow: var(--shadow-pixel-sm);
   transform: translate(-1px, -1px);
+}
+
+/* The page's one action in the bar (e.g. upload on Add app). */
+.pxt-nav-action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
 }
 
 .pxt-nav-iconbtn {
   all: unset;
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   box-sizing: border-box;
   color: inherit;
   cursor: pointer;
@@ -175,38 +194,112 @@
 }
 
 .pxt-nav-iconbtn:focus-visible,
-.pxt-nav-links a:focus-visible {
+.pxt-nav-links a:focus-visible,
+.pxt-tabs a:focus-visible,
+.pxt-tabs button:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
-.pxt-nav-menu {
-  display: none;
-}
+@media (min-width: 720px) {
+  .pxt-top {
+    padding: var(--space-2) var(--space-3) var(--space-4);
+  }
 
-@media (max-width: 760px) {
   .pxt-nav {
-    height: 56px;
-    padding: 0 8px;
-    justify-content: space-between;
-  }
-
-  .pxt-nav-links {
-    display: none;
-  }
-
-  .pxt-nav-menu {
-    display: grid;
+    height: 60px;
+    gap: var(--space-3);
+    padding: 0 12px 0 16px;
   }
 
   .pxt-logo-word {
-    font-size: 13px;
+    font-size: 16px;
   }
 
-  /* Balances the menu button so the logo sits in the middle. */
-  .pxt-nav::after {
-    content: "";
-    width: 40px;
+  .pxt-nav-links {
+    display: flex;
+  }
+
+  /* On wide screens the action sits after the links. */
+  .pxt-nav-action {
+    order: 3;
+  }
+}
+
+/* Tablets: the heart alone, so every section link fits. */
+@media (min-width: 720px) and (max-width: 999.98px) {
+  .pxt-logo-word {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Bottom tab bar (phones only)                                        */
+/* ------------------------------------------------------------------ */
+.pxt-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-nav);
+  display: grid;
+  grid-template-columns: repeat(var(--tab-count, 4), minmax(0, 1fr));
+  gap: var(--space-half);
+  padding: var(--space-1) var(--space-1) calc(var(--space-1) + env(safe-area-inset-bottom, 0px));
+  background: var(--surface);
+  border-top: var(--border-bold) solid var(--ink);
+}
+
+.pxt-tabs a,
+.pxt-tabs button {
+  all: unset;
+  height: 52px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--ink-muted);
+  font: 400 11px/14px var(--font-pixel);
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  border: var(--border-pixel) solid transparent;
+}
+
+.pxt-tabs span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pxt-tabs a:hover,
+.pxt-tabs button:hover {
+  color: var(--ink);
+}
+
+.pxt-tabs a[aria-current="page"] {
+  background: var(--sun);
+  color: var(--midnight);
+  border-color: var(--ink);
+}
+
+/* Room under the page for the tab bar. */
+.pxt-body {
+  --tabs-h: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: var(--tabs-h);
+}
+
+@media (min-width: 720px) {
+  .pxt-tabs {
+    display: none;
+  }
+
+  .pxt-body {
+    --tabs-h: 0px;
   }
 }
 
@@ -314,36 +407,54 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Main column and the page header                                     */
+/* Main column and the page header (mobile first)                      */
 /* ------------------------------------------------------------------ */
 .pxt-main {
   flex: 1 0 auto;
   width: 100%;
   max-width: var(--nav-width);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-4) var(--space-12);
+  padding: var(--space-3) var(--space-2) var(--space-6);
   box-sizing: border-box;
 }
 
-/* Eyebrow, a big bold title, then a lede. */
+/* A status line (pixel font, optional square), a big bold title, a lede. */
 .settings-page-header,
 .pxt-page-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding: 0;
   margin-bottom: var(--space-2);
 }
 
+.settings-page-header > div,
+.pxt-page-head > div {
+  min-width: 0;
+}
+
 .settings-eyebrow,
 .pxt-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   margin: 0 0 var(--space-1);
-  font: 500 12px/16px var(--font-mono);
-  letter-spacing: 0.08em;
+  font: 400 12px/16px var(--font-pixel);
   text-transform: uppercase;
   color: var(--ink-muted);
+}
+
+.pxt-status-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--mint);
+}
+
+.pxt-status-dot.is-off {
+  background: var(--line-strong);
 }
 
 .settings-page-header h1,
@@ -351,41 +462,61 @@
 .pxt-main > h1,
 .pxt-main .page-title {
   margin: 0;
-  font: 800 48px/52px var(--font-sans);
-  letter-spacing: -0.02em;
+  font: 800 34px/38px var(--font-sans);
+  letter-spacing: -0.03em;
   color: var(--ink);
   text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* Titles end in a cherry full stop. */
+.settings-page-header h1::after,
+.pxt-page-head h1::after,
+.pxt-section-title::after {
+  content: ".";
+  color: var(--cherry);
 }
 
 .settings-page-copy,
 .pxt-lede {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-1) 0 0;
   max-width: var(--content-text);
-  font: 400 20px/30px var(--font-sans);
-  color: var(--ink);
+  font: 400 16px/24px var(--font-sans);
+  color: var(--ink-muted);
 }
 
 .settings-page {
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
-@media (max-width: 900px) {
+@media (min-width: 720px) {
   .pxt-main {
-    padding: var(--space-4) var(--space-2) var(--space-8);
+    padding: var(--space-6) var(--space-4) var(--space-12);
+  }
+
+  .settings-page-header,
+  .pxt-page-head {
+    gap: var(--space-3);
   }
 
   .settings-page-header h1,
   .pxt-page-head h1,
   .pxt-main > h1,
   .pxt-main .page-title {
-    font-size: 36px;
-    line-height: 40px;
+    font-size: 48px;
+    line-height: 52px;
+    letter-spacing: -0.02em;
   }
 
   .settings-page-copy,
   .pxt-lede {
-    font-size: 17px;
-    line-height: 26px;
+    margin-top: var(--space-2);
+    font-size: 19px;
+    line-height: 28px;
+  }
+
+  .settings-page {
+    gap: var(--space-4);
   }
 }
 
@@ -396,14 +527,29 @@
   letter-spacing: -0.01em;
 }
 
-/* The settings tabs */
+/* The settings tabs: a chip row that scrolls sideways on phones. */
 nav.settings-subnav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-1);
-  margin: 0 0 var(--space-4);
-  padding: 0 0 12px;
-  border-bottom: var(--border-hair) solid var(--line-strong);
+  margin: 0 calc(-1 * var(--space-2)) var(--space-3);
+  padding: 0 var(--space-2) var(--space-half);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+nav.settings-subnav::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  nav.settings-subnav {
+    flex-wrap: wrap;
+    margin: 0 0 var(--space-4);
+    padding: 0 0 12px;
+    overflow: visible;
+    border-bottom: var(--border-hair) solid var(--line-strong);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -703,20 +849,21 @@ nav.settings-subnav {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
   scroll-margin-top: var(--space-2);
 }
 
 .pxt-stage {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
   align-items: center;
-  padding: var(--space-4);
+  margin: 0 calc(-1 * var(--space-2));
+  padding: var(--space-3) var(--space-2) 28px;
   background: var(--midnight);
   color: var(--cream);
-  border: var(--border-bold) solid var(--ink);
-  box-shadow: var(--shadow-pixel);
+  border-top: var(--border-bold) solid var(--ink);
+  border-bottom: var(--border-bold) solid var(--ink);
 }
 
 .pxt-stage-copy {
@@ -730,7 +877,7 @@ nav.settings-subnav {
 .pxt-stage-title {
   margin: 0;
   color: var(--cream);
-  font: 800 40px/44px var(--font-sans);
+  font: 800 30px/34px var(--font-sans);
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
@@ -742,6 +889,11 @@ nav.settings-subnav {
 
 .pxt-stage-title a:hover {
   color: var(--sun);
+}
+
+.pxt-stage-title::after {
+  content: ".";
+  color: var(--cherry);
 }
 
 .pxt-stage-meta {
@@ -771,11 +923,14 @@ nav.settings-subnav {
 }
 
 .pxt-stage-art {
+  order: -1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
   min-width: 0;
+  /* Room for the screen's cherry shadow. */
+  padding-right: 8px;
 }
 
 /* The LED screen: pixel art behind screen glass in a chunky frame */
@@ -827,19 +982,54 @@ nav.settings-subnav {
   outline-color: var(--cream);
 }
 
-@media (max-width: 900px) {
-  .pxt-stage {
-    grid-template-columns: 1fr;
-    padding: var(--space-3);
+/* Stage actions fill the width on phones. */
+.pxt-stage .pxt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.pxt-stage .pxt-actions > .btn,
+.pxt-stage .pxt-actions > .pxt-more {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 720px) {
+  .pxt-device {
+    margin-bottom: var(--space-8);
   }
 
-  .pxt-stage-art {
-    order: -1;
+  .pxt-stage {
+    margin: 0;
+    padding: var(--space-4);
+    border: var(--border-bold) solid var(--ink);
+    box-shadow: var(--shadow-pixel);
   }
 
   .pxt-stage-title {
-    font-size: 32px;
-    line-height: 36px;
+    font-size: 40px;
+    line-height: 44px;
+  }
+}
+
+@media (min-width: 900px) {
+  .pxt-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: var(--space-4);
+  }
+
+  .pxt-stage-art {
+    order: 0;
+  }
+
+  .pxt-stage .pxt-actions {
+    width: auto;
+  }
+
+  .pxt-stage .pxt-actions > .btn,
+  .pxt-stage .pxt-actions > .pxt-more {
+    flex: none;
   }
 }
 
@@ -864,14 +1054,14 @@ nav.settings-subnav {
 /* Controls and apps under the stage */
 .pxt-device-panels {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
   align-items: start;
 }
 
-@media (max-width: 900px) {
+@media (min-width: 900px) {
   .pxt-device-panels {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 
@@ -982,10 +1172,20 @@ nav.settings-subnav {
   padding: 0 8px;
 }
 
-@media (max-width: 760px) {
+.app-actions .btn {
+  flex: 1;
+  min-width: 70px;
+}
+
+@media (min-width: 720px) {
   .app-actions .btn {
+    flex: none;
+    min-width: 0;
+  }
+
+  .apps-grid-view .app-actions > .btn {
     flex: 1;
-    min-width: 70px;
+    min-width: 64px;
   }
 }
 
@@ -1603,7 +1803,7 @@ nav.settings-subnav {
   width: 100%;
   max-width: var(--nav-width);
   margin: 0 auto;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-2);
   box-sizing: border-box;
   border-top: var(--border-hair) solid var(--line-strong);
   color: var(--ink);
@@ -1655,9 +1855,9 @@ nav.settings-subnav {
   text-decoration: underline;
 }
 
-@media (max-width: 600px) {
+@media (min-width: 720px) {
   .pxt-footer {
-    padding: var(--space-3) var(--space-2);
+    padding: var(--space-3) var(--space-4);
   }
 }
 
@@ -1744,7 +1944,7 @@ nav.settings-subnav {
 .pxt-toast {
   position: fixed;
   left: 50%;
-  bottom: var(--space-3);
+  bottom: calc(var(--tabs-h, 0px) + var(--space-3));
   z-index: var(--z-modal);
   max-width: min(32rem, calc(100vw - 2rem));
   padding: 10px var(--space-2);
@@ -1883,7 +2083,8 @@ nav.settings-subnav {
 
 .pxt-savebar {
   position: sticky;
-  bottom: 0;
+  /* Clears the phone tab bar (0 from 720px). */
+  bottom: var(--tabs-h, 0px);
   z-index: var(--z-nav);
   display: flex;
   justify-content: flex-end;
@@ -1913,5 +2114,20 @@ nav.settings-subnav {
   .pxt-nav-links a:hover,
   .pxt-theme-toggle:hover  {
     transform: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Show something only on phones, or only from 720px                    */
+/* ------------------------------------------------------------------ */
+@media (max-width: 719.98px) {
+  .pxt-wide-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 720px) {
+  .pxt-phone-only {
+    display: none !important;
   }
 }

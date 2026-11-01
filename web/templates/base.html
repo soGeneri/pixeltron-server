@@ -2,7 +2,7 @@
 <html lang="{{ t .Localizer "lang" }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <script>
     // Inline script to set initial theme and prevent FOUC
     (function () {
@@ -41,17 +41,36 @@
     <!-- The page's tinted band, with the cartridge nav bar floating in it. -->
     <header class="pxt-top ttp-dotgrid">
         <nav class="pxt-nav" aria-label="{{ t .Localizer "Main" }}">
-            <button class="pxt-nav-iconbtn pxt-nav-menu"
-                    id="hamburgerButton"
-                    type="button"
-                    aria-haspopup="dialog"
-                    aria-label="{{ t .Localizer "Menu" }}">{{ pixelIcon "menu" }}</button>
             {{ template "pxt_logo" . }}
             <ul class="pxt-nav-links">
                 {{ template "pxt_nav_links" . }}
             </ul>
+            <div class="pxt-nav-action">
+                {{ block "navaction" . }}{{ end }}
+            </div>
         </nav>
     </header>
+    <!-- Phones: the sections sit in a tab bar along the bottom edge. -->
+    <nav class="pxt-tabs"
+         aria-label="{{ t .Localizer "Sections" }}"
+         style="--tab-count: {{ if .User }}4{{ else }}{{ if .Config.EnableUserRegistration }}2{{ else }}1{{ end }}{{ end }}">
+        {{ if .User }}
+        <a href="/">{{ pixelIcon "pixel" }}<span>{{ t .Localizer "Devices" }}</span></a>
+        <a href="/settings/content">{{ pixelIcon "grid" }}<span>{{ t .Localizer "Apps" }}</span></a>
+        <a href="/settings/account">{{ pixelIcon "eye" }}<span>{{ t .Localizer "Account" }}</span></a>
+        <button type="button"
+                id="hamburgerButton"
+                aria-haspopup="dialog"
+                aria-controls="mobileMenu">
+            {{ pixelIcon "menu" }}<span>{{ t .Localizer "More" }}</span>
+        </button>
+        {{ else }}
+        <a href="/auth/login">{{ pixelIcon "arrow-right" }}<span>{{ t .Localizer "Log In" }}</span></a>
+        {{ if .Config.EnableUserRegistration }}
+        <a href="/auth/register">{{ pixelIcon "plus" }}<span>{{ t .Localizer "Create User" }}</span></a>
+        {{ end }}
+        {{ end }}
+    </nav>
     <!-- Mobile menu drawer -->
     <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
     <div class="mobile-menu"
@@ -168,7 +187,7 @@
   // Mark the nav link for the section we are in.
   (function () {
     var path = location.pathname;
-    document.querySelectorAll('.pxt-nav-links a').forEach(function (a) {
+    document.querySelectorAll('.pxt-nav-links a, .pxt-tabs a').forEach(function (a) {
       var href = a.getAttribute('href');
       // Devices covers the dashboard and every /devices/ page; anything else
       // marks only its own section.
@@ -202,7 +221,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('hamburgerButton').addEventListener('click', function(e) {
+    var hamburger = document.getElementById('hamburgerButton');
+    if (!hamburger) return;
+    hamburger.addEventListener('click', function(e) {
       e.preventDefault();
       isMenuOpen ? closeMobileMenu() : openMobileMenu();
     });

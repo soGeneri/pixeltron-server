@@ -190,8 +190,21 @@ func (s *Server) handleAddAppPost(w http.ResponseWriter, r *http.Request) {
 		Path:        &appPath,
 	}
 
+	// position: where the add-app loop strip put the new app (0 = first).
+	// Absent or invalid falls back to the user's top/bottom preference.
+	position := -1
+	if v, err := strconv.Atoi(r.FormValue("position")); err == nil && v >= 0 {
+		position = v
+	}
+
 	err = s.DB.Transaction(func(tx *gorm.DB) error {
-		if user.AddAppsToTop {
+		if position >= 0 {
+			order, err := makeRoomForApp(r.Context(), tx, device.ID, position)
+			if err != nil {
+				return err
+			}
+			newApp.Order = order
+		} else if user.AddAppsToTop {
 			if _, err := gorm.G[data.App](tx).
 				Where("device_id = ?", device.ID).
 				Update(r.Context(), "order", gorm.Expr("? + 1", clause.Column{Name: "order"})); err != nil {

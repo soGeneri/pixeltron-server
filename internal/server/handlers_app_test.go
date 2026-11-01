@@ -73,6 +73,85 @@ func TestHandleAddAppPost(t *testing.T) {
 	}
 }
 
+func TestHandleAddAppPost_Position(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		position string
+		want     []string // app names in loop order after the install
+	}{
+		{"middle", "1", []string{"A", "Clock", "B", "C"}},
+		{"first", "0", []string{"Clock", "A", "B", "C"}},
+		{"past the end", "9", []string{"A", "B", "C", "Clock"}},
+		{"absent", "", []string{"A", "B", "C", "Clock"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s := newTestServer(t)
+			user := data.User{Username: "testuser"}
+			require.NoError(t, s.DB.Create(&user).Error)
+			device := data.Device{ID: "testdevice", Username: "testuser"}
+			require.NoError(t, s.DB.Create(&device).Error)
+			// Gaps in the existing order must not matter.
+			for i, n := range []string{"A", "B", "C"} {
+				require.NoError(t, s.DB.Create(&data.App{DeviceID: "testdevice", Iname: n, Name: n, Order: i * 5}).Error)
+			}
+
+			form := url.Values{}
+			form.Add("name", "Clock")
+			form.Add("path", "system-apps/apps/clock/clock.star")
+			if tc.position != "" {
+				form.Add("position", tc.position)
+			}
+			req, _ := http.NewRequest(http.MethodPost, "/devices/testdevice/addapp", strings.NewReader(form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			ctx := context.WithValue(req.Context(), userContextKey, &user)
+			ctx = context.WithValue(ctx, deviceContextKey, &device)
+			rr := httptest.NewRecorder()
+			http.HandlerFunc(s.handleAddAppPost).ServeHTTP(rr, req.WithContext(ctx))
+			require.Equal(t, http.StatusSeeOther, rr.Code)
+
+			var got []data.App
+			require.NoError(t, s.DB.Where("device_id = ?", "testdevice").Order(`"order"`).Find(&got).Error)
+			names := make([]string, len(got))
+			for i, a := range got {
+				names[i] = a.Name
+			}
+			assert.Equal(t, tc.want, names)
+		})
+	}
+}
+
+func TestHandleAddAppGet_LoopStrip(t *testing.T) {
+	s := newTestServer(t)
+	user := data.User{Username: "testuser"}
+	require.NoError(t, s.DB.Create(&user).Error)
+	device := data.Device{ID: "testdevice", Username: "testuser", DefaultInterval: 12}
+	require.NoError(t, s.DB.Create(&device).Error)
+	device.Apps = []*data.App{
+		{DeviceID: "testdevice", Iname: "100", Name: "Weather", Enabled: true, Order: 0},
+		{DeviceID: "testdevice", Iname: "101", Name: "Clock", Enabled: false, DisplayTime: 5, Order: 1},
+	}
+	s.systemAppsCache = []apps.AppMetadata{{ID: "Clock", Name: "Clock"}}
+
+	req, _ := http.NewRequest(http.MethodGet, "/devices/testdevice/addapp", nil)
+	ctx := context.WithValue(req.Context(), userContextKey, &user)
+	ctx = context.WithValue(ctx, deviceContextKey, &device)
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(s.handleAddAppGet).ServeHTTP(rr, req.WithContext(ctx))
+	require.Equal(t, http.StatusOK, rr.Code)
+	body := rr.Body.String()
+
+	// The loop lists the device's apps in order with their dwell times, and
+	// the new app's slot starts at the end.
+	assert.Contains(t, body, `data-catalog-loop`)
+	assert.Contains(t, body, `data-start-at="2"`)
+	assert.Contains(t, body, `data-default-seconds="12"`)
+	assert.Less(t, strings.Index(body, `data-name="Weather"`), strings.Index(body, `data-name="Clock"`))
+	assert.Contains(t, body, `data-seconds="12"`)
+	assert.Contains(t, body, `data-seconds="5"`)
+	assert.Contains(t, body, `data-enabled="false"`)
+	assert.Contains(t, body, `name="position"`)
+}
+
 func TestHandleAddAppGet_CustomAppFilters(t *testing.T) {
 	s := newTestServer(t)
 

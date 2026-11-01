@@ -5,7 +5,7 @@
          aria-labelledby="{{ .GridID }}_title"
          data-catalog-group>
     <div class="catalog-group-head">
-        <h2 class="catalog-group-title" id="{{ .GridID }}_title">{{ .Title }}</h2>
+        <h2 class="catalog-group-title" id="{{ .GridID }}_title" data-group-title="{{ .Title }}">{{ .Title }}</h2>
         <span class="catalog-group-count" data-group-count></span>
         {{ if and .ShowVersion .SystemRepoInfo .SystemRepoInfo.CommitHash }}
         <a class="catalog-group-meta"
@@ -21,77 +21,88 @@
         {{ template "app_card_grid_item" (dict "App" . "DeviceID" $.DeviceID "Localizer" $.Localizer "IsCustom" $.IsCustom "ConfigProduction" $.ConfigProduction) }}
         {{ end }}
     </div>
-    <button type="button" class="btn btn-ghost catalog-more" data-show-more hidden></button>
+    <button type="button" class="btn btn-ghost btn-lg catalog-more" data-show-more hidden></button>
 </section>
 {{ end }}
 {{ define "app_card_grid_item" }}
-<!-- A catalog tile. Choosing it puts the app on the stage; installing happens there. -->
-<button type="button"
-        class="app-item{{ if .App.Broken }} broken-app{{ end }}{{ if .App.IsInstalled }} installed{{ end }}"
-        aria-pressed="false"
-        aria-controls="catalog_detail"
-        data-value="{{ .App.ID }}"
-        data-path="{{ .App.Path }}"
-        data-name="{{ .App.Name }}"
-        data-summary="{{ .App.Summary }}"
-        data-desc="{{ .App.Desc }}"
-        data-installed="{{ .App.IsInstalled }}"
-        data-recommended-interval="{{ .App.RecommendedInterval }}"
-        data-date="{{ .App.Date }}"
-        data-broken="{{ .App.Broken }}"
-        data-broken-reason="{{ .App.BrokenReason }}"
-        data-supports-2x="{{ .App.Supports2x }}"
-        data-square="{{ .App.Supports64x64 }}"
-        data-author="{{ .App.Author }}"
-        data-category="{{ .App.Category }}"
-        data-published="{{ .App.Published }}"
-        data-updated="{{ .App.Updated }}"
-        data-installs="{{ with .App.InstallCount }}{{ . }}{{ end }}"
-        data-installs-label="{{ with .App.InstallCount }}{{ installCount . }}{{ end }}"
-        data-tags="{{ range $i, $tag := .App.Tags }}{{ if $i }},{{ end }}{{ $tag }}{{ end }}"
-        data-file-name="{{ .App.FileName }}"
-        data-package-name="{{ .App.PackageName }}"
-        {{ if .IsCustom }}
-        data-delete-url="/devices/{{ .DeviceID }}/uploads/delete/{{ .App.ID }}"
-        {{ end }}>
-    <!-- The status badge sits on the screen's bottom edge, clear of the art. -->
-    <span class="catalog-screen-wrap">
-        <span class="app-img catalog-screen">
-            <img src="/preview/app/{{ .App.ID }}"
-                 loading="lazy"
-                 decoding="async"
-                 alt=""
-                 width="64"
-                 height="32">
-        </span>
-        {{ if .App.Broken }}
-        <span class="catalog-chip catalog-chip-broken catalog-screen-badge">{{ t .Localizer "BROKEN" }}</span>
-        {{ else if .App.IsInstalled }}
-        <span class="catalog-chip catalog-chip-installed catalog-screen-badge">{{ pixelIcon "check" }} {{ t .Localizer "Installed" }}</span>
-        {{ end }}
-    </span>
-    <span class="catalog-tile-body">
-        <span class="app-item-title">{{ .App.Name }}</span>
-        {{ if .App.Summary }}
-        <span class="app-item-summary">{{ .App.Summary }}</span>
-        {{ end }}
-        <span class="catalog-tile-meta">
-            {{ if .App.Author }}
-            <span class="app-item-meta">{{ .App.Author }}</span>
-            {{ end }}
-            <!-- Install count. Icon: Heroicons arrow-down-tray (MIT). -->
-            {{ with .App.InstallCount }}
-            <span class="app-item-installs"
-                  title="{{ t $.Localizer "Number of installs" }}"
-                  aria-label="{{ t $.Localizer "Number of installs" }}: {{ thousands . }}">
-                <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                    <path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z" />
-                    <path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z" />
-                </svg>
-                <span>{{ installCount . }}</span>
+<!-- A catalog entry: a list row on phones, a tile on wider screens. The main
+     button puts the app on the stage; "+" installs it straight away. -->
+<div class="app-item{{ if .App.Broken }} broken-app{{ end }}{{ if .App.IsInstalled }} installed{{ end }}"
+     data-value="{{ .App.ID }}"
+     data-path="{{ .App.Path }}"
+     data-name="{{ .App.Name }}"
+     data-summary="{{ .App.Summary }}"
+     data-desc="{{ .App.Desc }}"
+     data-installed="{{ .App.IsInstalled }}"
+     data-recommended-interval="{{ .App.RecommendedInterval }}"
+     data-date="{{ .App.Date }}"
+     data-broken="{{ .App.Broken }}"
+     data-broken-reason="{{ .App.BrokenReason }}"
+     data-supports-2x="{{ .App.Supports2x }}"
+     data-square="{{ .App.Supports64x64 }}"
+     data-author="{{ .App.Author }}"
+     data-category="{{ .App.Category }}"
+     data-published="{{ .App.Published }}"
+     data-updated="{{ .App.Updated }}"
+     data-installs="{{ with .App.InstallCount }}{{ . }}{{ end }}"
+     data-installs-label="{{ with .App.InstallCount }}{{ installCount . }}{{ end }}"
+     data-tags="{{ range $i, $tag := .App.Tags }}{{ if $i }},{{ end }}{{ $tag }}{{ end }}"
+     data-file-name="{{ .App.FileName }}"
+     data-package-name="{{ .App.PackageName }}"
+     {{ if .IsCustom }}
+     data-delete-url="/devices/{{ .DeviceID }}/uploads/delete/{{ .App.ID }}"
+     {{ end }}>
+    <button type="button"
+            class="app-item-open"
+            aria-pressed="false"
+            aria-controls="catalog_detail">
+        <span class="catalog-screen-wrap">
+            <span class="app-img catalog-screen">
+                <img src="/preview/app/{{ .App.ID }}"
+                     loading="lazy"
+                     decoding="async"
+                     alt=""
+                     width="64"
+                     height="32">
             </span>
-            {{ end }}
         </span>
-    </span>
-</button>
+        <span class="catalog-tile-body">
+            <span class="app-item-title">{{ .App.Name }}</span>
+            {{ if .App.Summary }}
+            <span class="app-item-summary">{{ .App.Summary }}</span>
+            {{ end }}
+            <span class="catalog-tile-meta">
+                {{ if .App.Author }}
+                <span class="app-item-meta">{{ .App.Author }}</span>
+                {{ end }}
+                <!-- Install count. Icon: Heroicons arrow-down-tray (MIT). -->
+                {{ with .App.InstallCount }}
+                <span class="app-item-installs"
+                      title="{{ t $.Localizer "Number of installs" }}"
+                      aria-label="{{ t $.Localizer "Number of installs" }}: {{ thousands . }}">
+                    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                        <path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z" />
+                        <path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z" />
+                    </svg>
+                    <span>{{ installCount . }}</span>
+                </span>
+                {{ end }}
+            </span>
+            {{ if .App.Category }}<span class="app-item-category">{{ .App.Category }}</span>{{ end }}
+        </span>
+    </button>
+    <!-- Status, or a one-tap install. -->
+    {{ if .App.Broken }}
+    <span class="app-item-status is-broken">{{ t .Localizer "BROKEN" }}</span>
+    {{ else if .App.IsInstalled }}
+    <span class="app-item-status is-installed"
+          role="img"
+          aria-label="{{ .App.Name }}: {{ t .Localizer "Installed" }}">{{ pixelIcon "check" }}</span>
+    {{ else }}
+    <button type="button"
+            class="app-item-add"
+            data-quick-install
+            aria-label="{{ t .Localizer "Install" }} {{ .App.Name }}">{{ pixelIcon "plus" }}</button>
+    {{ end }}
+</div>
 {{ end }}

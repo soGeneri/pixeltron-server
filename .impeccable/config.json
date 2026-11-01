@@ -11,6 +11,15 @@
         ],
         "createdAt": "2026-10-29T04:02:08.712Z",
         "reason": "Claude triage: .catalog-toolbar and .catalog-detail-actions are padded with var(--space-2)/var(--space-3) in addapp-simple.css; detector cannot resolve tokens when scanning the template alone"
+      },
+      {
+        "rule": "all-caps-body",
+        "value": "*",
+        "files": [
+          "web/templates/manager/addapp.html"
+        ],
+        "createdAt": "2026-10-31T16:43:30.919Z",
+        "reason": "Claude triage: uppercase in addapp.html is only short TTP design-system labels (status line, chips, stage label, author line), matching the user's mobile-first design artboard"
       }
     ]
   }
