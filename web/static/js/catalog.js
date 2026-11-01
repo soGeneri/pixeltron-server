@@ -398,6 +398,7 @@
     }
     admin.hidden = !anyAdmin;
 
+    renderLoop();
     detail.classList.add('has-app');
     $('[data-stage-empty]').hidden = true;
     $('[data-stage-content]').hidden = false;
@@ -447,6 +448,7 @@
     document.getElementById('selected_app').value = item.dataset.value;
     document.getElementById('selected_app_path').value = item.dataset.path;
     document.getElementById('uinterval').value = item.dataset.recommendedInterval || 10;
+    document.getElementById('selected_position').value = position;
     if (button) button.disabled = true;
     document.getElementById('main_form').submit();
   }
@@ -466,5 +468,89 @@
     unmarkBtn.addEventListener('click', toggleBroken(window.unmarkAppAsBroken, 'unmarkBrokenConfirm'));
   }
 
+  // ---- The loop strip -----------------------------------------------------
+  // The device's apps in order, with a slot for the new one. The gaps between
+  // apps move the slot; its place is posted as the install position.
+  const loopEl = root.querySelector('[data-catalog-loop]');
+  const loopRow = loopEl.querySelector('[data-loop-row]');
+  const loopApps = Array.from(loopRow.querySelectorAll('[data-loop-app]'));
+  const loopTime = loopEl.querySelector('[data-loop-time]');
+  const loopHint = loopEl.querySelector('[data-loop-hint]');
+  const positionNote = $('[data-detail-position]');
+  const newSeconds = Number(loopEl.dataset.defaultSeconds) || 15;
+  let position = Math.min(Math.max(Number(loopEl.dataset.startAt) || 0, 0), loopApps.length);
+
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text) node.textContent = text;
+    return node;
+  };
+
+  const slot = el('li', 'catalog-loop-new');
+  const slotScreen = el('span', 'catalog-loop-screen');
+  const slotName = el('span', 'catalog-loop-name');
+  const slotMeta = el('span', 'catalog-loop-meta', fill(label('seconds'), { __S__: newSeconds }));
+  slot.append(slotScreen, slotName, slotMeta);
+
+  // One gap before each app and one at the end; gap k puts the app at k.
+  const gaps = [];
+  for (let k = 0; k <= loopApps.length; k += 1) {
+    const li = el('li', 'catalog-loop-gap');
+    const btn = el('button', 'catalog-loop-gap-btn');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', k === 0
+      ? label('putFirst')
+      : fill(label('putAfter'), { __NAME__: loopApps[k - 1].dataset.name }));
+    btn.append(el('span', '', '+'));
+    btn.firstChild.setAttribute('aria-hidden', 'true');
+    btn.addEventListener('click', () => {
+      position = k;
+      renderLoop();
+      slot.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
+    li.append(btn);
+    gaps.push(li);
+  }
+
+  const duration = (s) => (s < 60
+    ? fill(label('seconds'), { __S__: s })
+    : fill(label('minutes'), { __M__: Math.floor(s / 60), __S__: s % 60 }));
+
+  function renderLoop() {
+    const items = [];
+    for (let k = 0; k <= loopApps.length; k += 1) {
+      items.push(k === position ? slot : gaps[k]);
+      if (k < loopApps.length) items.push(loopApps[k]);
+    }
+    loopRow.replaceChildren(...items);
+
+    const hasApp = Boolean(current);
+    slot.classList.toggle('has-app', hasApp);
+    if (hasApp) {
+      const img = el('img');
+      img.alt = '';
+      img.width = 64;
+      img.height = 32;
+      img.src = current.querySelector('img').src;
+      slotScreen.replaceChildren(img);
+    } else {
+      slotScreen.replaceChildren(el('span', 'catalog-loop-plus', '+'));
+    }
+    slotName.textContent = hasApp ? current.dataset.name : label('newApp');
+    loopHint.hidden = hasApp;
+
+    const total = loopApps.reduce((sum, li) => sum + (li.dataset.enabled === 'true' ? Number(li.dataset.seconds) || 0 : 0), 0);
+    loopTime.textContent = hasApp
+      ? fill(label('loopTimeNew'), { __TIME__: duration(total), __NEW__: duration(total + newSeconds) })
+      : fill(label('loopTime'), { __TIME__: duration(total) });
+
+    positionNote.textContent = position === 0
+      ? label('goesFirst')
+      : fill(label('goesAfter'), { __NAME__: loopApps[position - 1].dataset.name });
+    document.getElementById('selected_position').value = position;
+  }
+
+  renderLoop();
   render();
 })();

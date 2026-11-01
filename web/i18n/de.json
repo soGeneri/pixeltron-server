@@ -2633,6 +2633,36 @@
   "CatalogShowMore": {
     "other": "{{.Count}} weitere anzeigen"
   },
+  "LoopHint": {
+    "other": "Wähle eine App und dann ihren Platz in der Schleife."
+  },
+  "New app": {
+    "other": "Neue App"
+  },
+  "LoopPutFirst": {
+    "other": "Neue App an den Anfang setzen"
+  },
+  "LoopPutAfter": {
+    "other": "Neue App nach {{.Name}} setzen"
+  },
+  "LoopGoesFirst": {
+    "other": "Kommt an den Anfang der Schleife."
+  },
+  "LoopGoesAfter": {
+    "other": "Kommt in der Schleife nach {{.Name}}."
+  },
+  "LoopTime": {
+    "other": "Schleife: {{.Time}}"
+  },
+  "LoopTimeNew": {
+    "other": "Schleife: {{.Time}} → {{.New}}"
+  },
+  "LoopSeconds": {
+    "other": "{{.S}} s"
+  },
+  "LoopMinutes": {
+    "other": "{{.M}} min {{.S}} s"
+  },
   "Category": {
     "other": "Kategorie"
   },

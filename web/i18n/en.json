@@ -2636,6 +2636,36 @@
   "CatalogShowMore": {
     "other": "Show {{.Count}} more"
   },
+  "LoopHint": {
+    "other": "Pick an app, then choose where it goes in the loop."
+  },
+  "New app": {
+    "other": "New app"
+  },
+  "LoopPutFirst": {
+    "other": "Put the new app first"
+  },
+  "LoopPutAfter": {
+    "other": "Put the new app after {{.Name}}"
+  },
+  "LoopGoesFirst": {
+    "other": "Goes first in the loop."
+  },
+  "LoopGoesAfter": {
+    "other": "Goes after {{.Name}} in the loop."
+  },
+  "LoopTime": {
+    "other": "Loop: {{.Time}}"
+  },
+  "LoopTimeNew": {
+    "other": "Loop: {{.Time}} → {{.New}}"
+  },
+  "LoopSeconds": {
+    "other": "{{.S}} s"
+  },
+  "LoopMinutes": {
+    "other": "{{.M}} min {{.S}} s"
+  },
   "Category": {
     "other": "Category"
   },

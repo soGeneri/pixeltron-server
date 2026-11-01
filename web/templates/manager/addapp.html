@@ -27,6 +27,52 @@
         <a class="btn btn-ghost pxt-wide-only"
            href="/devices/{{ .Device.ID }}/uploadapp">{{ pixelIcon "plus" }} {{ t .Localizer "Upload app" }}</a>
     </header>
+    <!-- The device's loop, in order. catalog.js adds a "new app" slot and the
+         gaps that move it; the slot's place is posted as the install position. -->
+    <section class="catalog-loop"
+             aria-labelledby="catalog_loop_title"
+             data-catalog-loop
+             data-default-seconds="{{ .Device.DefaultInterval }}"
+             data-start-at="{{ if .User.AddAppsToTop }}0{{ else }}{{ len .Device.Apps }}{{ end }}">
+        <div class="catalog-loop-head">
+            <h2 class="catalog-loop-title" id="catalog_loop_title">{{ t .Localizer "On" }} {{ .Device.Name }}</h2>
+            <p class="catalog-loop-time" aria-live="polite" data-loop-time></p>
+        </div>
+        <ol class="catalog-loop-row" data-loop-row>
+            {{ range $a := .Device.Apps }}
+            {{ $name := $a.Name }}
+            {{ if eq $a.Name "pushed" }}{{ $name = installationID $a }}{{ end }}
+            {{ $seconds := $.Device.DefaultInterval }}
+            {{ if gt $a.DisplayTime 0 }}{{ $seconds = $a.DisplayTime }}{{ end }}
+            <li class="catalog-loop-item{{ if not $a.Enabled }} is-off{{ end }}"
+                data-loop-app
+                data-name="{{ $name }}"
+                data-enabled="{{ $a.Enabled }}"
+                data-seconds="{{ $seconds }}">
+                <a class="catalog-loop-link"
+                   href="/devices/{{ $.Device.ID }}/{{ $a.Iname }}/config">
+                    <span class="catalog-loop-screen">
+                        <img src="/devices/{{ $.Device.ID }}/installations/{{ $a.Iname }}/preview"
+                             loading="lazy"
+                             decoding="async"
+                             alt=""
+                             width="64"
+                             height="32">
+                    </span>
+                    <span class="catalog-loop-name">{{ $name }}</span>
+                    {{ if isPinned $.Device $a.Iname }}
+                    <span class="catalog-loop-meta is-pinned">{{ t $.Localizer "Pinned" }}</span>
+                    {{ else if not $a.Enabled }}
+                    <span class="catalog-loop-meta">{{ t $.Localizer "Disabled" }}</span>
+                    {{ else }}
+                    <span class="catalog-loop-meta">{{ t $.Localizer "LoopSeconds" (dict "S" $seconds) }}</span>
+                    {{ end }}
+                </a>
+            </li>
+            {{ end }}
+        </ol>
+        <p class="catalog-loop-hint" data-loop-hint>{{ t .Localizer "LoopHint" }}</p>
+    </section>
     <!-- The catalog on the left; the chosen app plays on the stage beside it
          on wide screens, or in a bottom sheet on narrow ones. -->
     <div class="catalog-layout">
@@ -45,77 +91,48 @@
                            aria-keyshortcuts="/">
                     <kbd class="catalog-kbd" aria-hidden="true">/</kbd>
                 </div>
-                <div class="catalog-chips"
-                     role="group"
-                     aria-label="{{ t .Localizer "Category" }}"
-                     data-category-chips>
-                    <button type="button" class="catalog-cat" aria-pressed="true" data-category="">{{ t .Localizer "All" }}</button>
-                </div>
-                <!-- Sort and toggles: folded away on phones, inline on wider screens. -->
-                <details class="catalog-filters" data-catalog-filters>
-                    <summary class="btn btn-ghost btn-sm catalog-filters-toggle">
-                        {{ pixelIcon "chevron-down" }} {{ t .Localizer "Sort & filter" }}
-                    </summary>
-                    <div class="catalog-options">
-                        <label class="catalog-option">
-                            <span>{{ t .Localizer "Sort" }}</span>
-                            <span class="select-wrap">
-                                <select id="catalog_sort">
-                                    <option value="system">{{ t .Localizer "Default" }}</option>
-                                    <option value="installs">{{ t .Localizer "Popularity" }}</option>
-                                    <option value="newest">{{ t .Localizer "Newest" }}</option>
-                                    <option value="last-updated">{{ t .Localizer "Last Updated" }}</option>
-                                    <option value="alphabetical">{{ t .Localizer "Alphabetical (A-Z)" }}</option>
-                                    <option value="rev-alphabetical">{{ t .Localizer "Alphabetical (Z-A)" }}</option>
-                                </select>
-                            </span>
-                        </label>
-                        <label class="catalog-option">
-                            <input type="checkbox" class="pxt-checkbox" id="catalog_hide_installed">
-                            {{ t .Localizer "Hide installed apps" }}
-                        </label>
-                        <label class="catalog-option">
-                            <input type="checkbox" class="pxt-checkbox" id="catalog_show_broken">
-                            {{ t .Localizer "Show broken apps" }}
-                        </label>
+                <!-- Categories and filters: part of the toolbar below 1280px, a
+                     sticky rail left of the grid from 1280px. -->
+                <div class="catalog-rail">
+                    <p class="catalog-rail-label" aria-hidden="true">{{ t .Localizer "Category" }}</p>
+                    <div class="catalog-chips"
+                         role="group"
+                         aria-label="{{ t .Localizer "Category" }}"
+                         data-category-chips>
+                        <button type="button" class="catalog-cat" aria-pressed="true" data-category="">{{ t .Localizer "All" }}</button>
                     </div>
-                </details>
+                    <!-- Sort and toggles: folded away on phones, inline on wider screens. -->
+                    <details class="catalog-filters" data-catalog-filters>
+                        <summary class="btn btn-ghost btn-sm catalog-filters-toggle">
+                            {{ pixelIcon "chevron-down" }} {{ t .Localizer "Sort & filter" }}
+                        </summary>
+                        <div class="catalog-options">
+                            <label class="catalog-option">
+                                <span>{{ t .Localizer "Sort" }}</span>
+                                <span class="select-wrap">
+                                    <select id="catalog_sort">
+                                        <option value="system">{{ t .Localizer "Default" }}</option>
+                                        <option value="installs">{{ t .Localizer "Popularity" }}</option>
+                                        <option value="newest">{{ t .Localizer "Newest" }}</option>
+                                        <option value="last-updated">{{ t .Localizer "Last Updated" }}</option>
+                                        <option value="alphabetical">{{ t .Localizer "Alphabetical (A-Z)" }}</option>
+                                        <option value="rev-alphabetical">{{ t .Localizer "Alphabetical (Z-A)" }}</option>
+                                    </select>
+                                </span>
+                            </label>
+                            <label class="catalog-option">
+                                <input type="checkbox" class="pxt-checkbox" id="catalog_hide_installed">
+                                {{ t .Localizer "Hide installed apps" }}
+                            </label>
+                            <label class="catalog-option">
+                                <input type="checkbox" class="pxt-checkbox" id="catalog_show_broken">
+                                {{ t .Localizer "Show broken apps" }}
+                            </label>
+                        </div>
+                    </details>
+                </div>
                 <p class="catalog-count" aria-live="polite" data-result-count></p>
             </div>
-            {{ if .Device.Apps }}
-            <!-- What the device already shows. Hidden while filtering. -->
-            <section class="catalog-ondevice"
-                     aria-labelledby="catalog_ondevice_title"
-                     data-browse-only>
-                <div class="catalog-group-head">
-                    <h2 class="catalog-group-title" id="catalog_ondevice_title">{{ t .Localizer "On" }} {{ .Device.Name }}</h2>
-                    <span class="catalog-group-count">{{ len .Device.Apps }}</span>
-                </div>
-                <ul class="catalog-ondevice-row">
-                    {{ range $i, $a := .Device.Apps }}
-                    <li>
-                        <a class="catalog-ondevice-item{{ if not $a.Enabled }} is-off{{ end }}"
-                           href="/devices/{{ $.Device.ID }}/{{ $a.Iname }}/config">
-                            <span class="catalog-ondevice-screen">
-                                <img src="/devices/{{ $.Device.ID }}/installations/{{ $a.Iname }}/preview"
-                                     loading="lazy"
-                                     decoding="async"
-                                     alt=""
-                                     width="64"
-                                     height="32">
-                            </span>
-                            <span class="catalog-ondevice-name">{{ if eq $a.Name "pushed" }}{{ installationID $a }}{{ else }}{{ $a.Name }}{{ end }}</span>
-                            {{ if isPinned $.Device $a.Iname }}
-                            <span class="catalog-ondevice-state is-pinned">{{ t $.Localizer "Pinned" }}</span>
-                            {{ else if not $a.Enabled }}
-                            <span class="catalog-ondevice-state">{{ t $.Localizer "Disabled" }}</span>
-                            {{ end }}
-                        </a>
-                    </li>
-                    {{ end }}
-                </ul>
-            </section>
-            {{ end }}
             <!-- The most-installed app the device doesn't have yet; filled by catalog.js. -->
             <section class="catalog-feature"
                      aria-labelledby="catalog_feature_name"
@@ -165,6 +182,8 @@
                 <input type="hidden" name="path" id="selected_app_path">
                 <!-- Set from the chosen app's recommended interval; adjustable on the next screen. -->
                 <input type="hidden" name="uinterval" id="uinterval" value="-1">
+                <!-- Where the new app goes in the loop; set from the loop strip. -->
+                <input type="hidden" name="position" id="selected_position">
             </form>
         </div>
         <!-- The stage: the chosen app on a big screen, with the install decision.
@@ -208,6 +227,7 @@
                     <button type="button" class="btn btn-primary btn-lg" data-detail-install>
                         {{ t .Localizer "Install on" }} {{ .Device.Name }} {{ pixelIcon "arrow-right" }}
                     </button>
+                    <p class="catalog-detail-position" data-detail-position></p>
                 </div>
                 <div class="catalog-detail-admin" data-detail-admin hidden>
                     <button type="submit"
@@ -244,5 +264,14 @@
      data-category="{{ t .Localizer "Category" }}"
      data-installs="{{ t .Localizer "Installs" }}"
      data-updated="{{ t .Localizer "Last Updated" }}"
-     data-tags="{{ t .Localizer "Tags" }}"></div>
+     data-tags="{{ t .Localizer "Tags" }}"
+     data-new-app="{{ t .Localizer "New app" }}"
+     data-put-first="{{ t .Localizer "LoopPutFirst" }}"
+     data-put-after="{{ t .Localizer "LoopPutAfter" (dict "Name" "__NAME__") }}"
+     data-goes-first="{{ t .Localizer "LoopGoesFirst" }}"
+     data-goes-after="{{ t .Localizer "LoopGoesAfter" (dict "Name" "__NAME__") }}"
+     data-loop-time="{{ t .Localizer "LoopTime" (dict "Time" "__TIME__") }}"
+     data-loop-time-new="{{ t .Localizer "LoopTimeNew" (dict "Time" "__TIME__" "New" "__NEW__") }}"
+     data-seconds="{{ t .Localizer "LoopSeconds" (dict "S" "__S__") }}"
+     data-minutes="{{ t .Localizer "LoopMinutes" (dict "M" "__M__" "S" "__S__") }}"></div>
 {{ end }}

@@ -1,7 +1,9 @@
-/* Add-app catalog, mobile first. Phones: a sticky search + chip bar, the
-   device's apps in a sideways strip, a featured pick, and list rows with a
-   one-tap "+"; the stage is a bottom sheet. 720px: rows become tiles.
-   1100px: the stage returns as a sticky dark column beside the grid.
+/* Add-app catalog, mobile first. Phones: the device's loop as a sideways
+   strip with a slot for the new app, a sticky search + chip bar, a featured
+   pick, and list rows with a one-tap "+"; the stage is a bottom sheet.
+   720px: rows become tiles. 1100px: the stage returns as a sticky dark
+   column beside the grid. 1280px: categories and filters move to a rail on
+   the left and the page widens to 1600px.
    Selectors carry .content where style.css resets controls there. */
 
 .addapp-shell {
@@ -383,94 +385,209 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* On this device: a sideways strip of what it shows                   */
+/* The loop: the device's apps in order, with a slot for the new one    */
 /* ------------------------------------------------------------------ */
-.catalog-ondevice {
+/* Always dark, like the other Pixeltron stages. Full-bleed on phones. */
+.catalog-loop {
   display: flex;
   flex-direction: column;
-}
-
-.catalog-ondevice-row {
-  display: flex;
-  gap: var(--space-2);
+  gap: 12px;
   margin: 0 calc(-1 * var(--space-2));
-  padding: 0 var(--space-2) var(--space-1);
-  overflow-x: auto;
+  padding: var(--space-2);
+  background: var(--stage);
+  color: var(--cream);
+  border-block: var(--border-bold) solid var(--midnight);
+}
+
+.catalog-loop-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-half) var(--space-2);
+}
+
+.content .catalog-loop-title {
+  margin: 0;
+  font: 400 12px/16px var(--font-pixel);
+  text-transform: uppercase;
+  color: var(--on-stage-muted);
+}
+
+.catalog-loop-time {
+  margin: 0;
+  font: 500 12px/16px var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--on-stage-muted);
+}
+
+.catalog-loop-row {
+  display: flex;
+  align-items: flex-start;
+  margin: 0;
+  /* Room for the slot's offset shadow. */
+  padding: 0 6px 8px 0;
   list-style: none;
-  scrollbar-width: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-muted) transparent;
 }
 
-.catalog-ondevice-row::-webkit-scrollbar {
-  display: none;
-}
-
-.catalog-ondevice-row > li {
+.catalog-loop-item,
+.catalog-loop-new {
   flex: none;
-  /* Room for the first screen's pixel shadow. */
-  padding: 0 6px 6px 0;
-}
-
-.catalog-ondevice-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: 140px;
-  color: var(--ink);
+  gap: 6px;
+  width: 136px;
+  min-width: 0;
+}
+
+.catalog-loop-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  color: var(--cream);
   text-decoration: none;
 }
 
-.catalog-ondevice-item:hover {
-  color: var(--ink);
+.catalog-loop-link:hover {
+  color: var(--cream);
 }
 
-.catalog-ondevice-screen {
+.catalog-loop-screen {
   display: grid;
   place-items: center;
-  height: 76px;
+  height: 72px;
   box-sizing: border-box;
-  padding: 4px;
   background: var(--screen);
-  border: var(--border-bold) solid var(--ink);
-  transition: transform var(--dur-instant) var(--ease-step), box-shadow var(--dur-instant) var(--ease-step);
+  border: var(--border-bold) solid var(--ink-muted);
 }
 
-.catalog-ondevice-screen img {
+.catalog-loop-link:hover .catalog-loop-screen {
+  border-color: var(--cream);
+}
+
+.catalog-loop-screen img {
   display: block;
   width: 128px;
   height: 64px;
+  max-width: 100%;
   image-rendering: pixelated;
 }
 
-.catalog-ondevice-row > li:first-child .catalog-ondevice-screen,
-.catalog-ondevice-item:hover .catalog-ondevice-screen {
-  box-shadow: 6px 6px 0 0 var(--cherry);
-}
-
-.catalog-ondevice-item:hover .catalog-ondevice-screen {
-  transform: translate(-2px, -2px);
-}
-
-.catalog-ondevice-item.is-off img {
+.catalog-loop-item.is-off img {
   opacity: 0.4;
 }
 
-.catalog-ondevice-name {
+.catalog-loop-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font: 700 15px/20px var(--font-sans);
+  font: 700 14px/20px var(--font-sans);
 }
 
-.catalog-ondevice-state {
-  margin-top: -6px;
+.catalog-loop-meta {
+  margin-top: -4px;
   font: 500 12px/16px var(--font-mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-muted);
+  color: var(--on-stage-muted);
 }
 
-.catalog-ondevice-state.is-pinned {
-  color: var(--success);
+.catalog-loop-meta.is-pinned {
+  color: var(--mint);
+}
+
+/* The new app's slot: dashed while empty, solid with a cherry offset once
+   an app is on stage. */
+/* The slot stands in for a gap, so it keeps a gap's width of space on both
+   sides to stay in step with the apps around it. */
+.catalog-loop-new {
+  margin-inline: 28px;
+}
+
+.catalog-loop-new .catalog-loop-screen {
+  border: var(--border-bold) dashed var(--cherry);
+}
+
+.catalog-loop-new.has-app .catalog-loop-screen {
+  border-style: solid;
+  box-shadow: 6px 6px 0 0 var(--cherry);
+}
+
+.catalog-loop-plus {
+  font: 400 24px/1 var(--font-pixel);
+  color: var(--cherry);
+}
+
+.catalog-loop-new .catalog-loop-meta {
+  color: var(--cream);
+}
+
+/* Gaps between apps: thin targets that light up and move the slot. */
+.catalog-loop-gap {
+  flex: none;
+  display: flex;
+}
+
+.content .catalog-loop-gap-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 72px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  border: var(--border-pixel) dashed transparent;
+  border-radius: var(--radius-0);
+  font: 400 14px/1 var(--font-pixel);
+  cursor: pointer;
+}
+
+.content .catalog-loop-gap-btn:hover,
+.content .catalog-loop-gap-btn:focus-visible {
+  color: var(--cherry);
+  border-color: var(--cherry);
+}
+
+.content .catalog-loop-gap-btn:focus-visible {
+  outline: var(--border-pixel) solid var(--cream);
+  outline-offset: 2px;
+}
+
+.catalog-loop-hint {
+  margin: 0;
+  font: 400 14px/20px var(--font-sans);
+  color: var(--on-stage-muted);
+}
+
+@media (min-width: 720px) {
+  .catalog-loop {
+    gap: var(--space-2);
+    margin: 0 10px 10px 0;
+    padding: var(--space-3) 28px;
+    border: var(--border-bold) solid var(--midnight);
+    box-shadow: 10px 10px 0 0 var(--cherry);
+  }
+
+  .content .catalog-loop-title {
+    font-size: 14px;
+  }
+
+  .catalog-loop-item,
+  .catalog-loop-new {
+    width: 152px;
+  }
+
+  .catalog-loop-screen,
+  .content .catalog-loop-gap-btn {
+    height: 80px;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -835,12 +952,6 @@
   .content .catalog-more {
     width: auto;
     align-self: center;
-  }
-
-  .catalog-ondevice-row {
-    margin: 0;
-    padding: 0 0 var(--space-1);
-    flex-wrap: wrap;
   }
 
   .app-grid {
@@ -1222,6 +1333,15 @@
   padding: var(--space-3) var(--space-2) var(--space-3);
 }
 
+.catalog-detail-position {
+  margin: 0;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink-muted);
+}
+
 .catalog-detail-actions [data-detail-install] {
   width: 100%;
   min-width: 0;
@@ -1290,6 +1410,7 @@
   }
 
   .content .catalog-stage-label,
+  .catalog-detail-position,
   .catalog-detail-author,
   .catalog-detail-summary,
   .catalog-detail-specs dt {
@@ -1342,6 +1463,145 @@
 
   .catalog-stage-scrim {
     display: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Categories rail: part of the toolbar until 1280px                    */
+/* ------------------------------------------------------------------ */
+.catalog-rail {
+  display: contents;
+}
+
+.catalog-rail-label {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  /* Wide screens: the page runs to 1600px and the catalog becomes three
+     columns: a categories rail, the grid, and the stage. */
+  .pxt-main:has(.addapp-shell) {
+    max-width: 1600px;
+  }
+
+  .catalog-layout {
+    grid-template-columns: minmax(0, 1fr) 416px;
+  }
+
+  /* Rows for the search, count, featured pick and groups; the rail spans
+     them all and stays in view. */
+  .catalog-main {
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    grid-template-rows: repeat(4, auto) 1fr;
+    gap: var(--space-3) var(--space-4);
+    align-items: start;
+  }
+
+  .catalog-main > *,
+  .catalog-search,
+  .catalog-count {
+    grid-column: 2;
+  }
+
+  .catalog-toolbar {
+    display: contents;
+  }
+
+  .catalog-search {
+    position: sticky;
+    top: var(--space-1);
+    z-index: var(--z-nav);
+    box-shadow: var(--shadow-pixel);
+  }
+
+  .content .catalog-search-input {
+    border-width: var(--border-bold);
+  }
+
+  .catalog-count {
+    margin-top: calc(-1 * var(--space-2));
+  }
+
+  .catalog-rail {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    position: sticky;
+    top: var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    max-height: calc(100dvh - var(--space-4));
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .catalog-rail-label {
+    display: block;
+    margin: 0;
+    font: 500 12px/16px var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .catalog-chips {
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .content .catalog-cat {
+    justify-content: space-between;
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    border-color: transparent;
+  }
+
+  .content .catalog-cat:hover {
+    border-color: var(--ink);
+  }
+
+  .content .catalog-cat[aria-pressed="true"] {
+    box-shadow: none;
+  }
+
+  .content .catalog-cat.is-empty:not([aria-pressed="true"]) {
+    border-color: transparent;
+  }
+
+  .catalog-filters {
+    margin-top: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: var(--border-pixel) solid var(--line);
+  }
+
+  .catalog-options {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .content .catalog-option:has(select) {
+    flex-direction: column;
+    align-items: stretch;
+    font: 500 12px/16px var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .content .catalog-option select {
+    width: 100%;
+    height: var(--control-height);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
   }
 }
 
