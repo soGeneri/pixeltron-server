@@ -1,0 +1,15 @@
+---
+id: weathercanvas
+name: Weather Canvas
+summary: Today's weather, painted
+desc: "The current weather painted as a living scene (sun, clouds, rain, snow, storm or fog), with the temperature and today's high and low. Uses Open-Meteo, no key needed."
+author: TenThousandPixels
+fileName: weathercanvas.star
+packageName: weathercanvas
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: weather
+tags:
+  - weather
+  - art

@@ -1,0 +1,16 @@
+---
+id: launchpad
+name: Launch Pad
+summary: Next rocket launch countdown
+desc: "The next orbital launch anywhere on Earth: a rocket venting on a lit tower under a dawn sky, with the mission name, a T-minus countdown and whether it is go. Data from Launch Library 2, no key needed."
+author: TenThousandPixels
+fileName: launchpad.star
+packageName: launchpad
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: news
+tags:
+  - space
+  - rockets
+  - art

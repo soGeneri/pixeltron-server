@@ -1,0 +1,16 @@
+---
+id: nextmeeting
+name: Next Meeting
+summary: Next meeting, arriving by train
+desc: "Your next meeting as a little train pulling into the station: it appears an hour out and rolls in as the start gets closer, then waits at the platform while the meeting runs. Reads the private calendar link (ICS) that Google Calendar, Outlook and iCloud all offer."
+author: TenThousandPixels
+fileName: nextmeeting.star
+packageName: nextmeeting
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: productivity
+tags:
+  - calendar
+  - meetings
+  - art

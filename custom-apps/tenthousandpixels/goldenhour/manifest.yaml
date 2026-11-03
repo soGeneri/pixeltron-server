@@ -1,0 +1,16 @@
+---
+id: goldenhour
+name: Golden Hour
+summary: Live sky with sunrise and sunset
+desc: "A landscape whose sky follows the real sun where you are, with the sun or moon on its arc and a countdown to the next sunrise or sunset."
+author: TenThousandPixels
+fileName: goldenhour.star
+packageName: goldenhour
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: weather
+tags:
+  - sunrise
+  - sunset
+  - art

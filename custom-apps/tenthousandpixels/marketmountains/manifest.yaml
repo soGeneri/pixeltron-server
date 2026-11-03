@@ -1,0 +1,16 @@
+---
+id: marketmountains
+name: Market Mountains
+summary: A coin's day as a mountain range
+desc: "The last 24 hours of a coin's price drawn as a mountain ridge, under a morning sky when it is up and a dusk sky when it is down, with the price and the day's change. Prices from CoinGecko, no key needed."
+author: TenThousandPixels
+fileName: marketmountains.star
+packageName: marketmountains
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: finance
+tags:
+  - crypto
+  - price
+  - art
