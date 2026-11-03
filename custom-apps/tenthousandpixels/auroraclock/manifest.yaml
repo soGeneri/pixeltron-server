@@ -1,0 +1,15 @@
+---
+id: auroraclock
+name: Aurora Clock
+summary: Clock under the northern lights
+desc: "The time and date over animated northern lights, a starry sky and a pine ridge."
+author: TenThousandPixels
+fileName: auroraclock.star
+packageName: auroraclock
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: clocks
+tags:
+  - clock
+  - art

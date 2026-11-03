@@ -1,0 +1,16 @@
+---
+id: monthmosaic
+name: Month Mosaic
+summary: The month as a wall of tiles
+desc: "Today's date beside the whole month drawn as glowing tiles: days gone by in candy colours, today pulsing, the rest of the month waiting in the dark."
+author: TenThousandPixels
+fileName: monthmosaic.star
+packageName: monthmosaic
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: clocks
+tags:
+  - calendar
+  - date
+  - art

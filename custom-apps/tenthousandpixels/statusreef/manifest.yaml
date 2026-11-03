@@ -1,0 +1,16 @@
+---
+id: statusreef
+name: Status Reef
+summary: Service status as a fish reef
+desc: "Up to four services you rely on swim as fish in a reef. Healthy fish swim laps, a fish with a minor incident hovers in place, and a major outage floats belly-up while the water turns red. Reads each service's public status page, no key needed."
+author: TenThousandPixels
+fileName: statusreef.star
+packageName: statusreef
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: productivity
+tags:
+  - status
+  - developer
+  - art

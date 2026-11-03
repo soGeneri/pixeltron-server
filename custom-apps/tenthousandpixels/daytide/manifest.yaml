@@ -1,0 +1,16 @@
+---
+id: daytide
+name: Day Tide
+summary: Your workday as a rising sea
+desc: "A sea that rises through your workday while a little boat sails across, with the percentage done and the time left."
+author: TenThousandPixels
+fileName: daytide.star
+packageName: daytide
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: productivity
+tags:
+  - work
+  - progress
+  - art

@@ -1,0 +1,16 @@
+---
+id: pixelworld
+name: Pixel World
+summary: The 10K Pixels world, live
+desc: "The little world from the tenthousandpixels.com homepage, on your desk: mountains, a windmill, the cottage, the tree, a pond and a little Pixeltron. It follows the same rules as the site: dawn, day and dusk by your clock, the season by the date, the real moon, pumpkins at Halloween and lights at Christmas. Give it your location and it rains, snows or fogs over when it really does where you are."
+author: TenThousandPixels
+fileName: pixelworld.star
+packageName: pixelworld
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: art
+tags:
+  - art
+  - ambient
+  - ten thousand pixels

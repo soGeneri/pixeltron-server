@@ -1,0 +1,17 @@
+---
+id: issoverhead
+name: ISS Overhead
+summary: Where the space station is now
+desc: "The International Space Station crossing a pixel world map, with day and night drawn where they really are, its last 40 minutes and next 50 minutes of orbit, what it is flying over and how far it is from you. Data from wheretheiss.at, no key needed."
+author: TenThousandPixels
+fileName: issoverhead.star
+packageName: issoverhead
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: news
+tags:
+  - space
+  - iss
+  - map
+  - art

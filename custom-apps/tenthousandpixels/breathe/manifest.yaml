@@ -1,0 +1,16 @@
+---
+id: breathe
+name: Breathe
+summary: A guided breath, one per loop
+desc: "A glowing orb that grows as you breathe in, holds, and shrinks as you breathe out. One full breath plays each time the app comes round: box breathing, 4-7-8 or slow coherent breathing."
+author: TenThousandPixels
+fileName: breathe.star
+packageName: breathe
+recommendedInterval: 0
+supports2x: false
+supports64x64: false
+category: health
+tags:
+  - wellbeing
+  - focus
+  - art
