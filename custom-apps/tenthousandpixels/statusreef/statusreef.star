@@ -1,7 +1,7 @@
 """
 Applet: Status Reef
 Summary: Service status as a fish reef
-Description: Up to four services you rely on swim as fish in a reef. Healthy fish swim laps, a fish with a minor incident hovers in place, and a major outage floats belly-up while the water turns red. Reads each service's public status page, no key needed.
+Description: Up to four services you rely on swim as fish in a reef, alongside a turtle, a jellyfish, a seahorse, a crab and a school of minnows. Healthy fish swim laps, a fish with a minor incident hovers in place, and a major outage floats belly-up while the water turns red. Reads each service's public status page, no key needed.
 Author: TenThousandPixels
 """
 
@@ -115,6 +115,103 @@ PERSONAS = [
     (PUFFER, False, 1, 1.0, 1.5),
 ]
 
+# reef life that lives here whatever the status pages say
+CRAB = [
+    ".o...o.",
+    "#.###.#",
+    ".#####.",
+]
+CRAB_LEGS = ["#.#.#.#", ".#.#.#."]
+STAR = [
+    "..#..",
+    "#####",
+    ".###.",
+    ".#.#.",
+]
+JELLY = [
+    ".###.",
+    "#####",
+    "#.#.#",
+]
+SEAHORSE = [
+    "o##.",
+    "###.",
+    "..##",
+    ".##.",
+    "..##",
+    "...#",
+    "..#.",
+]
+TURTLE = [
+    "..s.....s.",
+    "..ssssss..",
+    "o#ssssss#.",
+    "..ssssss..",
+    "..s.....s.",
+]
+
+def stamp(buf, shape, x, y, colors, right = False, alpha = 1.0):
+    w = len(shape[0])
+    for r, line in enumerate(shape):
+        for c, ch in enumerate(line.elems()):
+            if ch == "." or ch not in colors:
+                continue
+            px = x + (w - 1 - c if right else c)
+            py = y + r
+            if px < 0 or px >= W or py < 0 or py >= H:
+                continue
+            buf[py][px] = mix(buf[py][px], colors[ch], alpha)
+
+def reef_life(buf, t, f):
+    # pink coral and an orange starfish on the sand
+    coral = (255, 120, 150)
+    for (cx, cy) in [(33, 25), (33, 26), (33, 27), (33, 28), (32, 27), (31, 26), (31, 25), (34, 26), (35, 25), (35, 24), (36, 23), (34, 24)]:
+        buf[cy][cx] = coral
+    buf[23][36] = (255, 170, 190)
+    stamp(buf, STAR, 45, 26, {"#": (255, 140, 60)})
+
+    # a school of minnows sweeps through once a loop, high in the water
+    sx = W + 6 - int((f / float(FRAMES)) * (W + 30))
+    for j, (dx, dy) in enumerate([(0, 0), (4, 2), (7, -1), (10, 1), (13, 3), (16, 0)]):
+        mx = sx + dx
+        my = 18 + dy + int(math.round(math.sin(t * 3 + j)))
+        for k in range(2):
+            if mx + k >= 0 and mx + k < W:
+                buf[my][mx + k] = mix(buf[my][mx + k], (215, 230, 240), 0.8 if k == 0 else 0.5)
+
+    # a sea turtle glides across slowly, once a loop
+    tx = W + 2 - int((f / float(FRAMES)) * (W + 14))
+    ty = 3 + int(math.round(math.sin(t) * 1.0))
+    flap = (f // 4) % 2
+    turtle = TURTLE if flap == 0 else [TURTLE[0].replace("..s", ".s.", 1), TURTLE[1], TURTLE[2], TURTLE[3], TURTLE[4].replace("..s", ".s.", 1)]
+    stamp(buf, turtle, tx, ty, {"s": (40, 130, 90), "#": (120, 200, 120), "o": MIDNIGHT})
+    for (hx_, hy_) in [(4, 1), (6, 2), (4, 3)]:
+        px = tx + hx_
+        if px >= 0 and px < W:
+            buf[ty + hy_][px] = (70, 160, 100)
+
+    # a jellyfish pulses up and down on the right
+    jy = 9 + int(math.round(math.sin(t) * 4))
+    squeeze = math.sin(t * 4) > 0
+    bell = JELLY if not squeeze else [".###.", "#####", ".#.#."]
+    stamp(buf, bell, 54, jy, {"#": (230, 170, 255)}, alpha = 0.75)
+    for k, tl in enumerate([0, 2, 4]):
+        ln = 3 + (k + int(t * 2)) % 2
+        for d in range(ln):
+            px = 54 + tl + (1 if (d + k) % 2 and d > 1 else 0)
+            py = jy + 3 + d
+            if py < 29 and px < W:
+                buf[py][px] = mix(buf[py][px], (230, 170, 255), 0.45)
+
+    # a seahorse rides the seaweed on the left
+    hy = 18 + int(math.round(math.sin(t * 2) * 1.0))
+    stamp(buf, SEAHORSE, 6, hy, {"#": (255, 170, 60), "o": MIDNIGHT}, right = True)
+
+    # a crab scuttles sideways along the sand
+    cx = 16 + int(math.round(math.sin(t) * 8))
+    stamp(buf, CRAB, cx, 25, {"#": (235, 80, 60), "o": MIDNIGHT})
+    stamp(buf, [CRAB_LEGS[(f // 2) % 2]], cx, 28, {"#": (200, 60, 45)})
+
 def status_of(host):
     resp = http.get("https://%s/api/v2/status.json" % host, ttl_seconds = 120)
     if resp.status_code != 200:
@@ -177,6 +274,8 @@ def frame(fish, t, f, alarm):
         bx = (i * 13 + 5) % W
         by = int(29 - ((f * 0.6 + i * 9) % 29))
         buf[by][bx] = mix(buf[by][bx], CREAM, 0.7)
+
+    reef_life(buf, t, f)
 
     # fish
     for i, fs in enumerate(fish):

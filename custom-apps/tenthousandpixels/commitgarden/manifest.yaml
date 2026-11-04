@@ -1,8 +1,8 @@
 ---
 id: commitgarden
 name: Commit Garden
-summary: Your GitHub activity as flowers
-desc: "The last three weeks of your GitHub contributions grown as a garden: one flower per day, taller and bigger the more you shipped, with today's count and your streak."
+summary: Your GitHub activity as a garden
+desc: "The last three weeks of your GitHub contributions grown in three raised beds, one per week. Busier days grow bigger flowers, from tulips to sunflowers, in a dozen species. The garden follows the seasons and the time of day, a different visitor drops by each hour, and a full week earns its bed a flag."
 author: TenThousandPixels
 fileName: commitgarden.star
 packageName: commitgarden
