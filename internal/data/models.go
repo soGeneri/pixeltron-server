@@ -602,6 +602,9 @@ type User struct {
 	SystemRepoURL   string          `json:"system_repo_url"`
 	AppRepoURL      string          `json:"app_repo_url"`
 	AddAppsToTop    bool            `gorm:"default:false"    json:"add_apps_to_top"`
+	// Pixels app notification choices (offline, updates, ...); unset keys
+	// use the app's defaults.
+	AppNotify JSONMap `gorm:"type:text" json:"app_notify,omitempty"`
 
 	Devices        []Device             `gorm:"foreignKey:Username;references:Username" json:"devices"`
 	Credentials    []WebAuthnCredential `gorm:"foreignKey:UserID;references:Username"   json:"credentials"`

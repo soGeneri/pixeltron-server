@@ -59,6 +59,14 @@ type Settings struct {
 	FeaturedAppsDir string `env:"PIXELS_FEATURED_APPS_DIR" envDefault:"featured-apps"`
 	// Enables /app/_mock/* test hooks. Never enable in production.
 	PixelsDevHooks bool `env:"PIXELS_DEV_HOOKS"`
+
+	// Push notifications to the Pixels app. Each platform is off until set.
+	APNsKeyFile           string `env:"APNS_KEY_FILE"` // AuthKey_XXXX.p8
+	APNsKeyID             string `env:"APNS_KEY_ID"`
+	APNsTeamID            string `env:"APNS_TEAM_ID"`
+	APNsTopic             string `env:"APNS_TOPIC"   envDefault:"com.tenthousandpixels.pixels"`
+	APNsSandbox           bool   `env:"APNS_SANDBOX"` // debug/TestFlight builds from Xcode
+	FCMServiceAccountFile string `env:"FCM_SERVICE_ACCOUNT_FILE"`
 }
 
 func (s *Settings) SystemAppsDir() string {

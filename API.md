@@ -563,7 +563,8 @@ A second API for the Pixels mobile app, mounted at `/app/v0`. It is separate fro
 | `POST /auth/apple`, `/auth/google` | `{id_token, name?}`. The token is verified against Apple or Google. Returns 501 `method_disabled` unless `APPLE_CLIENT_IDS` / `GOOGLE_CLIENT_IDS` is set. |
 | `POST /auth/refresh` | `{refresh_token}`. Returns a new token pair, or 401 `refresh_invalid`. |
 | `POST /auth/logout` | Ends all of the user's app sessions. Returns 204. |
-| `GET /me`, `POST /me/push-tokens` | Push tokens are stored only; no notifications are sent yet. |
+| `GET /me`, `POST /me/push-tokens` | `{token, platform}`, platform `ios` or `android`. |
+| `GET/PUT /me/notifications` | `{offline, updates, household, milestones}` (booleans). PUT merges. The server sends `offline` (a device quiet for 30 min, once per outage) and `updates` (new firmware version). |
 | `GET /products` | Product manifests. `api_base` points back at this server. |
 | `GET /apps?q=&category=` | The catalog: featured apps (`PIXELS_FEATURED_APPS_DIR`, shown as Popular) plus system apps. Each item has an absolute `preview` URL. Short lists include `schema`. |
 | `GET /apps/{id}`, `GET /apps/{id}/preview` | One app with its Pixlet schema. The preview is a 64×32 PNG and needs no auth. |
@@ -582,7 +583,7 @@ A second API for the Pixels mobile app, mounted at `/app/v0`. It is separate fro
 | `POST /app/v0/device/register` | `{mac, product, firmware}` → `{device_id, api_key, claim_code, expires_in, code_word, ws_url}`. The id is `pxt-<code word>`, worked out from the MAC the same way the firmware does. Each call gives a new 30-minute claim code. Returns 409 `already_claimed` if the device has an owner. Rate limited per IP. |
 | `GET /app/v0/device/claim` | Uses the device's key. Returns `{claimed, device_id}`, or 401 `not_linked` once the device is released. |
 
-Once claimed, the device uses the existing `/{id}/ws` with its key. Knob messages (`{"brightness":n}`, `{"button":"next|previous|back"}`) and `{"ota":{"progress":0.4,"done":false}}` become SSE events.
+Once claimed, the device uses the existing `/{id}/ws` with its key. These messages become SSE events: knob turns `{"brightness":n}`, buttons `{"button":"next|previous|back"}`, the reset countdown `{"hold":n}` (seconds held, sent each second after 3 s; `{"hold":0}` when let go before the reset), and update progress `{"ota":{"progress":0.4,"done":false}}`.
 
 ### Test hooks
 

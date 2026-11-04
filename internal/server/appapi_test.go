@@ -18,6 +18,8 @@ import (
 
 	"tronbyt-server/internal/config"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -66,6 +68,11 @@ func newAppTestServer(t *testing.T, opts ...option) *Server {
 		c.EnableUserRegistration = true
 	}}, opts...)
 	s := newTestServer(t, all...)
+	// One connection: with cache=private every new connection is a new, empty
+	// in-memory database, and background work (pushes, renders) would see it.
+	sqlDB, err := s.DB.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
 	writeTestApp(t, s.DataDir, "clock", "Clock", "time", testClockStar)
 	writeTestApp(t, s.DataDir, "aquarium", "Aquarium", "art", testAquariumStar)
 	return s
@@ -443,4 +450,91 @@ func TestAppCategoryAliases(t *testing.T) {
 	assert.True(t, categoryMatches("Money", "Finance"))
 	assert.True(t, categoryMatches("weather", "Weather"))
 	assert.False(t, categoryMatches("Time", "Weather"))
+}
+
+// TestAppAPIDeviceWebsocketEvents connects as the device over the real
+// websocket and checks each knob and update message reaches the app's
+// event stream.
+func TestAppAPIDeviceWebsocketEvents(t *testing.T) {
+	s := newAppTestServer(t)
+	c := &appClient{t: t, s: s}
+	c.signUp("a@b.co")
+	reg := registerDevice(t, s, "24:0a:c4:12:34:56")
+	require.Equal(t, http.StatusCreated, c.do("POST", "/app/v0/claims", map[string]any{"claim_code": reg["claim_code"]}).Code)
+
+	ts := httptest.NewServer(s)
+	defer ts.Close()
+
+	// App: event stream.
+	req, err := http.NewRequest("GET", ts.URL+"/app/v0/devices/pxt-gnu62/events", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
+	lines := make(chan string, 256)
+	go func() {
+		sc := bufio.NewScanner(resp.Body)
+		for sc.Scan() {
+			lines <- sc.Text()
+		}
+		close(lines)
+	}()
+	expect := func(want string) {
+		t.Helper()
+		deadline := time.After(5 * time.Second)
+		for {
+			select {
+			case l, ok := <-lines:
+				require.True(t, ok, "stream closed waiting for %q", want)
+				if strings.Contains(l, want) {
+					return
+				}
+			case <-deadline:
+				t.Fatalf("no %q on the event stream", want)
+			}
+		}
+	}
+	expect(": hello")
+
+	// Device: websocket with its key.
+	wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/pxt-gnu62/ws"
+	hdr := http.Header{"Authorization": {"Bearer " + reg["api_key"].(string)}}
+	conn, wsResp, err := websocket.DefaultDialer.Dial(wsURL, hdr)
+	require.NoError(t, err)
+	_ = wsResp.Body.Close()
+	defer func() { _ = conn.Close() }()
+	expect(`"online":true`)
+
+	send := func(m map[string]any) {
+		t.Helper()
+		require.NoError(t, conn.WriteJSON(m))
+	}
+	send(map[string]any{"client_info": map[string]any{"firmware_version": "1.7.3-pxt.2", "mac": "24:0a:c4:12:34:56"}})
+
+	send(map[string]any{"brightness": 35})
+	expect("event: dial")
+	expect(`"brightness":35`)
+
+	send(map[string]any{"button": "next"})
+	expect(`"action":"press"`)
+
+	// The reset countdown, then letting go.
+	send(map[string]any{"hold": 3})
+	expect(`"action":"hold"`)
+	send(map[string]any{"hold": 4})
+	expect(`"hold":4`)
+	send(map[string]any{"hold": 0})
+	expect(`"action":"release"`)
+
+	send(map[string]any{"ota": map[string]any{"progress": 0.5}})
+	expect("event: ota")
+	expect(`"progress":0.5`)
+
+	// Reconnecting on a new version reports the update as done.
+	send(map[string]any{"client_info": map[string]any{"firmware_version": "1.8.0", "mac": "24:0a:c4:12:34:56"}})
+	expect(`"to":"1.8.0"`)
+
+	_ = conn.Close()
+	expect(`"online":false`)
 }

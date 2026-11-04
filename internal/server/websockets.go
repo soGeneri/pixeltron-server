@@ -15,6 +15,7 @@ import (
 
 	"tronbyt-server/internal/chunker"
 	"tronbyt-server/internal/data"
+	"tronbyt-server/internal/push"
 
 	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
@@ -38,6 +39,9 @@ type WSMessage struct {
 	Button     *string `json:"button"`
 	// Pixeltron OTA progress: {"ota":{"progress":0.4}} ... {"ota":{"done":true}}.
 	OTA *WSOTAProgress `json:"ota"`
+	// Pixeltron reset countdown: seconds held, sent each second once the
+	// knob is held past 3 s; 0 when it is let go before the reset at 10 s.
+	Hold *int `json:"hold"`
 }
 
 // WSOTAProgress is a firmware update report from the device.
@@ -142,6 +146,7 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	defer s.Broadcaster.Unsubscribe(deviceID, ch)
 
 	s.emitDeviceEvent(deviceID, "state", map[string]any{"online": true})
+	s.deviceBackOnline(r.Context(), device)
 	defer s.emitDeviceEvent(deviceID, "state", map[string]any{"online": false})
 
 	ackCh := make(chan WSMessage, 10)
@@ -172,6 +177,13 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 					s.emitDeviceEvent(device.ID, "ota", map[string]any{
 						"from": from, "to": msg.ClientInfo.FirmwareVersion, "progress": 1.0, "done": true,
 					})
+					if device.Product != "" {
+						s.notifyUserAsync(user.Username, "updates", push.Message{
+							Title: deviceDisplayName(device) + " learned something new",
+							Body:  "It updated to " + msg.ClientInfo.FirmwareVersion + ". Nothing to do.",
+							Data:  map[string]string{"device": device.ID},
+						})
+					}
 				}
 				// Update Device Info
 				device.Info.FirmwareVersion = msg.ClientInfo.FirmwareVersion
@@ -278,6 +290,14 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 				case "previous":
 					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "press", "delta": -1})
 				case "back":
+					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "release", "delta": 0})
+				}
+			}
+
+			if msg.Hold != nil {
+				if secs := *msg.Hold; secs > 0 {
+					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "hold", "delta": 0, "hold": secs})
+				} else {
 					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "release", "delta": 0})
 				}
 			}

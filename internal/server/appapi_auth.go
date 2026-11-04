@@ -23,7 +23,8 @@ var appEmailRe = regexp.MustCompile(`^[^@\s]+@[^@\s]+\.[^@\s]+$`)
 
 var errRegistrationClosed = errors.New("registration closed")
 
-const (
+// Identity token issuers. Variables so tests can stand in a local issuer.
+var (
 	appleIssuer  = "https://appleid.apple.com"
 	googleIssuer = "https://accounts.google.com"
 )
@@ -265,10 +266,12 @@ func (s *Server) appIdentitySignIn(w http.ResponseWriter, r *http.Request, metho
 		return nil, nil
 	}
 	var claims struct {
-		Email string `json:"email"`
+		Email         string `json:"email"`
+		EmailVerified any    `json:"email_verified"` // Apple sends "true", Google true
 	}
 	_ = tok.Claims(&claims)
 	email := strings.ToLower(claims.Email)
+	verified := claims.EmailVerified == true || claims.EmailVerified == "true"
 
 	ctx := r.Context()
 	ident, err := gorm.G[data.OIDCIdentity](s.DB).Where("issuer = ? AND subject = ?", issuer, tok.Subject).First(ctx)
@@ -283,16 +286,33 @@ func (s *Server) appIdentitySignIn(w http.ResponseWriter, r *http.Request, metho
 		return nil, err
 	}
 
-	// First sign-in with this identity: link to an account with the same
-	// (provider-verified) email, or make a new one.
+	// First sign-in with this identity. Link it to an account with the same
+	// email only when the provider has verified the address: app email
+	// sign-up doesn't verify addresses, so anyone could have made that
+	// account. The verified owner takes it over, and a password set by
+	// whoever made it stops working, along with its sessions.
 	var user *data.User
-	if email != "" {
+	if email != "" && verified {
 		if u, err := gorm.G[data.User](s.DB).Where("LOWER(email) = ?", email).First(ctx); err == nil {
 			user = &u
+			if u.Password != "" {
+				slog.Warn("Identity sign-in took over a password account with the same verified email; clearing its password", "user", u.Username, "issuer", issuer)
+				if _, err := gorm.G[data.User](s.DB).Where("username = ?", u.Username).Update(ctx, "password", ""); err != nil {
+					return nil, err
+				}
+				if _, err := gorm.G[data.AppSession](s.DB).Where("username = ?", u.Username).Delete(ctx); err != nil {
+					return nil, err
+				}
+			}
 		}
 	}
 	if user == nil {
-		if user, err = s.createAppUser(ctx, email, ""); err != nil {
+		// Keep the email only if it's verified and no other account has it.
+		newEmail := ""
+		if email != "" && verified {
+			newEmail = email
+		}
+		if user, err = s.createAppUser(ctx, newEmail, ""); err != nil {
 			return nil, err
 		}
 	}
@@ -366,9 +386,9 @@ func (s *Server) handleAppPushToken(w http.ResponseWriter, r *http.Request) {
 	existing, err := gorm.G[data.PushToken](s.DB).Where("token = ?", req.Token).First(ctx)
 	if err == nil {
 		_, err = gorm.G[data.PushToken](s.DB).Where("id = ?", existing.ID).
-			Updates(ctx, data.PushToken{Username: user.Username, Platform: req.Platform})
+			Updates(ctx, data.PushToken{Username: user.Username, Platform: normalizePushPlatform(req.Platform)})
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = gorm.G[data.PushToken](s.DB).Create(ctx, &data.PushToken{Username: user.Username, Token: req.Token, Platform: req.Platform})
+		err = gorm.G[data.PushToken](s.DB).Create(ctx, &data.PushToken{Username: user.Username, Token: req.Token, Platform: normalizePushPlatform(req.Platform)})
 	}
 	if err != nil {
 		slog.Error("Failed to save push token", "error", err)

@@ -40,6 +40,8 @@ func (s *Server) SetupAppAPIRoutes() {
 	r.HandleFunc("POST "+p+"/auth/{method}", s.handleAppSignIn)
 	r.HandleFunc("GET "+p+"/me", s.appAuth(s.handleAppMe))
 	r.HandleFunc("POST "+p+"/me/push-tokens", s.appAuth(s.handleAppPushToken))
+	r.HandleFunc("GET "+p+"/me/notifications", s.appAuth(s.handleAppGetNotify))
+	r.HandleFunc("PUT "+p+"/me/notifications", s.appAuth(s.handleAppPutNotify))
 
 	// Catalog
 	r.HandleFunc("GET "+p+"/products", s.handleAppProducts)
@@ -66,6 +68,8 @@ func (s *Server) SetupAppAPIRoutes() {
 	// Device-facing bootstrap (authenticated by the device's own key)
 	r.HandleFunc("POST "+p+"/device/register", s.handleDeviceRegister)
 	r.HandleFunc("GET "+p+"/device/claim", s.handleDeviceClaimStatus)
+
+	s.initPush()
 
 	if s.Config != nil && s.Config.PixelsDevHooks {
 		slog.Warn("PIXELS_DEV_HOOKS is on: /app/_mock/* test hooks are enabled")
