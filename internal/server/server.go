@@ -354,6 +354,7 @@ func (s *Server) routes() {
 	s.Router.HandleFunc("GET /preview/app/{id}", s.RequireLogin(s.handleAppThumbnail))
 
 	s.SetupAPIRoutes()
+	s.SetupAppAPIRoutes()
 	s.SetupAuthRoutes()
 
 	// Device endpoint

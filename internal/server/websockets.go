@@ -36,6 +36,16 @@ type WSMessage struct {
 	// device; Button is "previous" or "back" ("next" is handled on the device).
 	Brightness *int    `json:"brightness"`
 	Button     *string `json:"button"`
+	// Pixeltron OTA progress: {"ota":{"progress":0.4}} ... {"ota":{"done":true}}.
+	OTA *WSOTAProgress `json:"ota"`
+}
+
+// WSOTAProgress is a firmware update report from the device.
+type WSOTAProgress struct {
+	Progress *float64 `json:"progress"`
+	Done     bool     `json:"done"`
+	To       string   `json:"to"`
+	Error    string   `json:"error"`
 }
 
 // maxDisplayHistory bounds the apps remembered per connection for "previous".
@@ -131,6 +141,9 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 	ch := s.Broadcaster.Subscribe(deviceID)
 	defer s.Broadcaster.Unsubscribe(deviceID, ch)
 
+	s.emitDeviceEvent(deviceID, "state", map[string]any{"online": true})
+	defer s.emitDeviceEvent(deviceID, "state", map[string]any{"online": false})
+
 	ackCh := make(chan WSMessage, 10)
 	inputCh := make(chan WSMessage, 4)
 	stopCh := make(chan struct{})
@@ -154,6 +167,12 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 
 			// Handle Message
 			if msg.ClientInfo != nil {
+				// A new version after a reconnect means an update finished.
+				if from := device.Info.FirmwareVersion; from != "" && msg.ClientInfo.FirmwareVersion != "" && from != msg.ClientInfo.FirmwareVersion {
+					s.emitDeviceEvent(device.ID, "ota", map[string]any{
+						"from": from, "to": msg.ClientInfo.FirmwareVersion, "progress": 1.0, "done": true,
+					})
+				}
 				// Update Device Info
 				device.Info.FirmwareVersion = msg.ClientInfo.FirmwareVersion
 				device.Info.FirmwareType = msg.ClientInfo.FirmwareType
@@ -246,7 +265,35 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 				} else {
 					slog.Info("Brightness set on device", "device", deviceID, "brightness", level)
 					s.notifyDashboard(user.Username, WSEvent{Type: "refresh", DeviceID: device.ID})
+					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "turn", "delta": 0, "brightness": level})
+					s.emitDeviceEvent(device.ID, "state", map[string]any{"brightness": level})
 				}
+			}
+
+			if msg.Button != nil {
+				// press = next, double press = previous, hold+release = back
+				switch *msg.Button {
+				case "next":
+					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "press", "delta": 1})
+				case "previous":
+					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "press", "delta": -1})
+				case "back":
+					s.emitDeviceEvent(device.ID, "dial", map[string]any{"action": "release", "delta": 0})
+				}
+			}
+
+			if msg.OTA != nil {
+				ev := map[string]any{"from": device.Info.FirmwareVersion, "done": msg.OTA.Done}
+				if msg.OTA.Progress != nil {
+					ev["progress"] = min(1, max(0, *msg.OTA.Progress))
+				}
+				if msg.OTA.To != "" {
+					ev["to"] = msg.OTA.To
+				}
+				if msg.OTA.Error != "" {
+					ev["error"] = msg.OTA.Error
+				}
+				s.emitDeviceEvent(device.ID, "ota", ev)
 			}
 
 			if msg.Brightness != nil || msg.Button != nil {
@@ -746,6 +793,7 @@ func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialD
 										slog.Error("Failed to update displaying_app", "device", device.ID, "error", err)
 									}
 									history = rememberDisplayed(history, app.Iname)
+									s.emitDeviceEvent(device.ID, "state", map[string]any{"now": app.Iname})
 									if user != nil {
 										s.notifyDashboard(user.Username, WSEvent{Type: "image_updated", DeviceID: device.ID})
 									}
@@ -968,6 +1016,7 @@ func (s *Server) wsWriteLoop(ctx context.Context, conn *websocket.Conn, initialD
 							slog.Error("Failed to update displaying_app", "device", device.ID, "error", err)
 						}
 						history = rememberDisplayed(history, app.Iname)
+						s.emitDeviceEvent(device.ID, "state", map[string]any{"now": app.Iname})
 						// Notify Dashboard
 						s.notifyDashboard(user.Username, WSEvent{Type: "image_updated", DeviceID: device.ID})
 

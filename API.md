@@ -546,3 +546,46 @@ def main(config):
 | `500` | Internal server error |
 
 Error responses are plain text with a brief message.
+
+---
+
+## Pixels App API (`/app/v0`)
+
+A second API for the Pixels mobile app, mounted at `/app/v0`. It is separate from the `/v0` API above, which is unchanged. Its contract is the Pixels mock server (`pixels/tools/mock_server/lib/cloud.dart`) and the tests in `internal/server/appapi_test.go`.
+
+**Auth.** `Authorization: Bearer <token>` with an access token from sign-in. A user API key is also accepted, which is how the app's self-hosted mode works. Access tokens last 1 hour. Refresh tokens are single use and last 90 days.
+
+**Errors** are `{"error": "<message>", "code": "<code>"}`. An unknown token gets 401 `unauthorized`. A device you don't own gets 404 `{"error":"not found"}`.
+
+| Endpoint | Notes |
+|---|---|
+| `POST /auth/email` | `{email, password}`. Signs in, or creates the account if the email is new. Codes: `bad_email`, `weak_password`, `wrong_password`, `registration_closed`. |
+| `POST /auth/apple`, `/auth/google` | `{id_token, name?}`. The token is verified against Apple or Google. Returns 501 `method_disabled` unless `APPLE_CLIENT_IDS` / `GOOGLE_CLIENT_IDS` is set. |
+| `POST /auth/refresh` | `{refresh_token}`. Returns a new token pair, or 401 `refresh_invalid`. |
+| `POST /auth/logout` | Ends all of the user's app sessions. Returns 204. |
+| `GET /me`, `POST /me/push-tokens` | Push tokens are stored only; no notifications are sent yet. |
+| `GET /products` | Product manifests. `api_base` points back at this server. |
+| `GET /apps?q=&category=` | The catalog: featured apps (`PIXELS_FEATURED_APPS_DIR`, shown as Popular) plus system apps. Each item has an absolute `preview` URL. Short lists include `schema`. |
+| `GET /apps/{id}`, `GET /apps/{id}/preview` | One app with its Pixlet schema. The preview is a 64×32 PNG and needs no auth. |
+| `POST /claims` | `{claim_code, name?, room?, timezone?}`. Returns 201 with the device, or 410 `invalid_claim`. |
+| `GET /devices`, `GET/PATCH /devices/{id}` | App device shape (`displayName`, `room`, `settings`, `installations`, `nowShowing`…). PATCH merges `settings` one level deep. |
+| `POST /devices/{id}/release`, `/reboot` | Release removes the device. Its key stops working and the device goes back to setup. |
+| `GET /devices/{id}/frame` | What the device is showing, as a PNG. |
+| `POST/PATCH/DELETE /devices/{id}/installations[/{iname}]`, `PUT …/installations/order` | Each returns the device. |
+| `POST /devices/{id}/push_app` `{installation}`, `/push` `{image (base64 PNG), chime}` | Return 204. |
+| `GET /devices/{id}/events` | SSE events: `dial`, `state` and `ota`. Sends `: ping` every 15 s. |
+
+### Device bootstrap (called by the device)
+
+| Endpoint | Notes |
+|---|---|
+| `POST /app/v0/device/register` | `{mac, product, firmware}` → `{device_id, api_key, claim_code, expires_in, code_word, ws_url}`. The id is `pxt-<code word>`, worked out from the MAC the same way the firmware does. Each call gives a new 30-minute claim code. Returns 409 `already_claimed` if the device has an owner. Rate limited per IP. |
+| `GET /app/v0/device/claim` | Uses the device's key. Returns `{claimed, device_id}`, or 401 `not_linked` once the device is released. |
+
+Once claimed, the device uses the existing `/{id}/ws` with its key. Knob messages (`{"brightness":n}`, `{"button":"next|previous|back"}`) and `{"ota":{"progress":0.4,"done":false}}` become SSE events.
+
+### Test hooks
+
+Only active when `PIXELS_DEV_HOOKS=true`; never set this in production.
+
+`POST /app/_mock/seed {email}`, `/app/_mock/devices/{id}/dial|status|ota`. These match the mock server's `/_mock` hooks, so the app's Developer menu works against this server.

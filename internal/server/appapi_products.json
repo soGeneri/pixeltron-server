@@ -1,0 +1,28 @@
+[
+  {
+    "id": "pixeltron",
+    "name": "Pixeltron",
+    "tagline": "64 × 32 LEDs, dial on top",
+    "display": {"w": 64, "h": 32, "preview_scale": [2, 3, 4]},
+    "pairing": ["hotspot-qr", "claim-link"],
+    "hotspot_prefix": "Pixeltron-",
+    "bands": ["2.4ghz"],
+    "controls": ["brightness", "night_mode", "dim_sunset", "rotation", "push", "sound", "dial"],
+    "apps": "pixlet",
+    "lesson": "dial",
+    "status_codes": ["E1", "E2", "E3", "E4", "E5"],
+    "api_base": "{api_base}",
+    "help": "https://tenthousandpixels.com/e/{code}",
+    "available": true
+  },
+  {
+    "id": "pixeltron-wide",
+    "name": "Pixeltron Wide",
+    "tagline": "128 × 64. Coming later.",
+    "display": {"w": 128, "h": 64, "preview_scale": [2]},
+    "pairing": ["hotspot-qr"],
+    "hotspot_prefix": "PixeltronW-",
+    "api_base": "{api_base}",
+    "available": false
+  }
+]

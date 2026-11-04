@@ -49,6 +49,16 @@ type Settings struct {
 	OIDCAdminGroupClaim  string `env:"OIDC_ADMIN_GROUP_CLAIM" envDefault:"groups"`
 	OIDCAdminGroupValue  string `env:"OIDC_ADMIN_GROUP_VALUE"`
 	OIDCUsernameClaim    string `env:"OIDC_USERNAME_CLAIM"    envDefault:"preferred_username"`
+
+	// Pixels app API (/app/v0)
+	// Comma-separated audiences accepted in Apple/Google identity tokens.
+	// Empty disables that sign-in method.
+	AppleClientIDs  string `env:"APPLE_CLIENT_IDS"`
+	GoogleClientIDs string `env:"GOOGLE_CLIENT_IDS"`
+	// Directory (relative to DataDir) of curated apps shown as "Popular".
+	FeaturedAppsDir string `env:"PIXELS_FEATURED_APPS_DIR" envDefault:"featured-apps"`
+	// Enables /app/_mock/* test hooks. Never enable in production.
+	PixelsDevHooks bool `env:"PIXELS_DEV_HOOKS"`
 }
 
 func (s *Settings) SystemAppsDir() string {
