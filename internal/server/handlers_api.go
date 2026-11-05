@@ -1352,36 +1352,10 @@ func (s *Server) handleDeleteInstallationAPI(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	// Delete the app
-	if _, err := gorm.G[data.App](s.DB).Where("id = ?", app.ID).Delete(r.Context()); err != nil {
+	if err := s.deleteApp(r.Context(), device.ID, &app); err != nil {
 		http.Error(w, "Failed to delete app", http.StatusInternalServerError)
 		return
 	}
-
-	// Clean up files using the actual iname
-	webpDir, err := s.ensureDeviceImageDir(device.ID)
-	if err != nil {
-		slog.Error("Failed to get device webp directory for app delete cleanup", "device_id", device.ID, "error", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	// Clean up pushed app image if applicable
-	if app.Pushed && app.Path != nil && len(*app.Path) > 7 && (*app.Path)[:7] == "pushed:" {
-		pushedID := (*app.Path)[7:]
-		pushedWebpPath := filepath.Join(webpDir, "pushed", pushedID+".webp")
-		if err := os.Remove(pushedWebpPath); err != nil && !os.IsNotExist(err) {
-			slog.Error("Failed to remove pushed webp file", "path", pushedWebpPath, "error", err)
-		}
-	}
-
-	matches, _ := filepath.Glob(filepath.Join(webpDir, fmt.Sprintf("*-%s.webp", app.Iname)))
-	for _, match := range matches {
-		if err := os.Remove(match); err != nil {
-			slog.Error("Failed to remove webp file", "path", match, "error", err)
-		}
-	}
-	s.cleanupAppChunks(device.ID, &app)
-	s.invalidateAppChunks(device.ID, app.Iname)
 
 	// Notify Dashboard
 	user := GetUser(r)
@@ -1391,6 +1365,32 @@ func (s *Server) handleDeleteInstallationAPI(w http.ResponseWriter, r *http.Requ
 	if _, err := w.Write([]byte("App deleted.")); err != nil {
 		slog.Error("Failed to write response", "error", err)
 	}
+}
+
+// deleteApp removes an installation and its rendered and pushed images.
+func (s *Server) deleteApp(ctx context.Context, deviceID string, app *data.App) error {
+	if _, err := gorm.G[data.App](s.DB).Where("id = ?", app.ID).Delete(ctx); err != nil {
+		return err
+	}
+
+	webpDir, err := s.ensureDeviceImageDir(deviceID)
+	if err != nil {
+		slog.Error("Failed to get device webp directory for app delete cleanup", "device_id", deviceID, "error", err)
+		return nil // the app is gone; leftover files are harmless
+	}
+	if app.Pushed && app.Path != nil && strings.HasPrefix(*app.Path, "pushed:") {
+		pushedID := strings.TrimPrefix(*app.Path, "pushed:")
+		if isSafePathComponent(pushedID) {
+			pushedWebpPath := filepath.Join(webpDir, "pushed", pushedID+".webp")
+			if err := os.Remove(pushedWebpPath); err != nil && !os.IsNotExist(err) {
+				slog.Error("Failed to remove pushed webp file", "path", pushedWebpPath, "error", err)
+			}
+		}
+	}
+	s.removeAppRenders(deviceID, app.Iname)
+	s.cleanupAppChunks(deviceID, app)
+	s.invalidateAppChunks(deviceID, app.Iname)
+	return nil
 }
 
 func (s *Server) handleRebootDeviceAPI(w http.ResponseWriter, r *http.Request) {

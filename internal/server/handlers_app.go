@@ -197,35 +197,7 @@ func (s *Server) handleAddAppPost(w http.ResponseWriter, r *http.Request) {
 		position = v
 	}
 
-	err = s.DB.Transaction(func(tx *gorm.DB) error {
-		if position >= 0 {
-			order, err := makeRoomForApp(r.Context(), tx, device.ID, position)
-			if err != nil {
-				return err
-			}
-			newApp.Order = order
-		} else if user.AddAppsToTop {
-			if _, err := gorm.G[data.App](tx).
-				Where("device_id = ?", device.ID).
-				Update(r.Context(), "order", gorm.Expr("? + 1", clause.Column{Name: "order"})); err != nil {
-				return err
-			}
-			newApp.Order = 0
-		} else {
-			maxOrder, err := getMaxAppOrder(tx, device.ID)
-			if err != nil {
-				return err
-			}
-			newApp.Order = maxOrder + 1
-		}
-
-		if err := gorm.G[data.App](tx).Create(r.Context(), &newApp); err != nil {
-			return err
-		}
-		return nil
-	})
-
-	if err != nil {
+	if err := s.insertApp(r.Context(), user, device.ID, &newApp, position); err != nil {
 		slog.Error("Failed to save app", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

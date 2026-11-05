@@ -45,11 +45,14 @@ type AppMetadata struct {
 }
 
 func ListSystemApps(dataDir string) ([]AppMetadata, error) {
-	var apps []AppMetadata
-	var err error
+	return ListAppsInDir(dataDir, filepath.Join("system-apps", "apps"))
+}
 
-	// Always scan the directory
-	apps, err = scanSystemApps(dataDir)
+// ListAppsInDir lists the apps in dataDir/relDir, one per subdirectory, with
+// the same manifest and preview handling as the system apps. Path is set
+// relative to dataDir.
+func ListAppsInDir(dataDir, relDir string) ([]AppMetadata, error) {
+	apps, err := scanAppDirs(filepath.Join(dataDir, relDir))
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +60,7 @@ func ListSystemApps(dataDir string) ([]AppMetadata, error) {
 	// Now, for each app, try to read from its manifest.yaml (overrides or supplements)
 	for i := range apps {
 		dirName := apps[i].ID // Capture directory name (initially set to ID)
-		appDir := filepath.Join(dataDir, "system-apps", "apps", dirName)
+		appDir := filepath.Join(dataDir, relDir, dirName)
 		manifestPath := filepath.Join(appDir, "manifest.yaml")
 
 		loadManifest(manifestPath, &apps[i].Manifest)
@@ -75,7 +78,7 @@ func ListSystemApps(dataDir string) ([]AppMetadata, error) {
 		if apps[i].FileName == "" {
 			apps[i].FileName = apps[i].PackageName + ".star"
 		}
-		apps[i].Path = filepath.Join("system-apps", "apps", dirName)
+		apps[i].Path = filepath.Join(relDir, dirName)
 
 		// Populate Date from Updated field (if set), falling back to file modification time
 		if apps[i].Updated != "" {
@@ -157,8 +160,7 @@ func loadManifest(path string, m *Manifest) {
 	}
 }
 
-func scanSystemApps(dataDir string) ([]AppMetadata, error) {
-	appsDir := filepath.Join(dataDir, "system-apps", "apps")
+func scanAppDirs(appsDir string) ([]AppMetadata, error) {
 	var apps []AppMetadata
 
 	entries, err := os.ReadDir(appsDir)

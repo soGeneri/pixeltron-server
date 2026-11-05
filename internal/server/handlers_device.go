@@ -749,31 +749,7 @@ func (s *Server) handleUpdateDevicePost(w http.ResponseWriter, r *http.Request) 
 func (s *Server) handleDeleteDevice(w http.ResponseWriter, r *http.Request) {
 	device := GetDevice(r)
 
-	// Clean up files
-	deviceWebpDir, err := s.ensureDeviceImageDir(device.ID)
-	if err != nil {
-		slog.Error("Failed to get device webp directory for deletion", "device_id", device.ID, "error", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-	if err := os.RemoveAll(deviceWebpDir); err != nil {
-		slog.Error("Failed to remove device webp directory", "device_id", device.ID, "error", err)
-	}
-
-	// Cascading delete in transaction
-	err = s.DB.Transaction(func(tx *gorm.DB) error {
-		// 1. Delete Apps
-		if _, err := gorm.G[data.App](tx).Where("device_id = ?", device.ID).Delete(r.Context()); err != nil {
-			return err
-		}
-		// 2. Delete Device
-		if _, err := gorm.G[data.Device](tx).Where("id = ?", device.ID).Delete(r.Context()); err != nil {
-			return err
-		}
-		return nil
-	})
-
-	if err != nil {
+	if err := s.deleteDevice(r.Context(), device.ID); err != nil {
 		slog.Error("Failed to delete device", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -1465,4 +1441,23 @@ func (s *Server) handleUpdateFirmwareSettings(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// deleteDevice removes a device, its installations and its images.
+func (s *Server) deleteDevice(ctx context.Context, deviceID string) error {
+	deviceWebpDir, err := s.ensureDeviceImageDir(deviceID)
+	if err != nil {
+		return fmt.Errorf("get device webp directory: %w", err)
+	}
+	if err := os.RemoveAll(deviceWebpDir); err != nil {
+		slog.Error("Failed to remove device webp directory", "device_id", deviceID, "error", err)
+	}
+
+	return s.DB.Transaction(func(tx *gorm.DB) error {
+		if _, err := gorm.G[data.App](tx).Where("device_id = ?", deviceID).Delete(ctx); err != nil {
+			return err
+		}
+		_, err := gorm.G[data.Device](tx).Where("id = ?", deviceID).Delete(ctx)
+		return err
+	})
 }

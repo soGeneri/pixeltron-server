@@ -602,6 +602,9 @@ type User struct {
 	SystemRepoURL   string          `json:"system_repo_url"`
 	AppRepoURL      string          `json:"app_repo_url"`
 	AddAppsToTop    bool            `gorm:"default:false"    json:"add_apps_to_top"`
+	// Pixels app notification choices (offline, updates, ...); unset keys
+	// use the app's defaults.
+	AppNotify JSONMap `gorm:"type:text" json:"app_notify,omitempty"`
 
 	Devices        []Device             `gorm:"foreignKey:Username;references:Username" json:"devices"`
 	Credentials    []WebAuthnCredential `gorm:"foreignKey:UserID;references:Username"   json:"credentials"`
@@ -749,7 +752,50 @@ type Device struct {
 	PendingReboot   bool   `json:"pending_reboot,omitempty"`
 	PendingSound    string `json:"pending_sound,omitempty"`
 
+	// Pixels app fields (/app/v0). Product is the manifest id ("pixeltron");
+	// AppSettings holds the app's free-form settings (dim_sunset, sound, ...).
+	Product     string  `json:"product,omitempty"`
+	Room        string  `json:"room,omitempty"`
+	AppSettings JSONMap `gorm:"type:text" json:"app_settings,omitempty"`
+
 	Apps []*App `gorm:"foreignKey:DeviceID;references:ID" json:"apps"`
+}
+
+// AppSession is a signed-in Pixels app session. Only SHA-256 hashes of the
+// tokens are stored.
+type AppSession struct {
+	ID             uint      `gorm:"primaryKey"`
+	Username       string    `gorm:"index"`
+	AccessHash     string    `gorm:"uniqueIndex"`
+	RefreshHash    string    `gorm:"uniqueIndex"`
+	AccessExpires  time.Time `gorm:"index"`
+	RefreshExpires time.Time
+	CreatedAt      time.Time
+}
+
+// DeviceRegistration is a device that has checked in but no account owns
+// yet. Claiming it with ClaimCode turns it into a Device with the same ID
+// and APIKey.
+type DeviceRegistration struct {
+	ID           string `gorm:"primaryKey"`
+	MAC          string `gorm:"uniqueIndex"`
+	Product      string
+	Firmware     string
+	APIKey       string `gorm:"uniqueIndex"`
+	ClaimCode    string `gorm:"index"`
+	ClaimExpires time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+// PushToken is an APNs/FCM token registered by the Pixels app.
+type PushToken struct {
+	ID        uint   `gorm:"primaryKey"`
+	Username  string `gorm:"index"`
+	Token     string `gorm:"uniqueIndex"`
+	Platform  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (dt DeviceType) Supports2x() bool {
@@ -1219,4 +1265,12 @@ func (d Device) GetDimModeVolume() int {
 		return clampVolume(*d.DimModeVolume)
 	}
 	return d.GetVolume()
+}
+
+// AllModels lists every table the server needs, for AutoMigrate.
+func AllModels() []any {
+	return []any{
+		&User{}, &Device{}, &App{}, &WebAuthnCredential{}, &Setting{}, &OIDCIdentity{},
+		&AppSession{}, &DeviceRegistration{}, &PushToken{},
+	}
 }

@@ -371,7 +371,8 @@ func (w *gzipResponseWriter) WriteHeader(code int) {
 	}
 	contentType = strings.TrimSpace(strings.ToLower(contentType))
 
-	isCompressible := strings.HasPrefix(contentType, "text/") ||
+	// Event streams must reach the client as they are written.
+	isCompressible := (strings.HasPrefix(contentType, "text/") && contentType != "text/event-stream") ||
 		contentType == "application/json" ||
 		contentType == "application/javascript" ||
 		contentType == "application/x-javascript" ||
@@ -435,6 +436,11 @@ func (w *gzipResponseWriter) Close() error {
 		return err
 	}
 	return nil
+}
+
+// Unwrap exposes the underlying writer to http.ResponseController.
+func (w *gzipResponseWriter) Unwrap() http.ResponseWriter {
+	return w.ResponseWriter
 }
 
 func (w *gzipResponseWriter) Flush() {

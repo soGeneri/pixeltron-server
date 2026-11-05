@@ -118,6 +118,10 @@ The server can be configured via environment variables or `.env` file:
 *   `TRONBYT_BRANCH`: Branch name override for footer links (e.g. `feat/custom-branch`, optional).
 *   `TRONBYT_REPO_URL`: Repository URL override for footer links and commit resolution (optional).
 *   `TRONBYT_COMMIT`: Commit hash override for footer display (optional).
+*   `APPLE_CLIENT_IDS` / `GOOGLE_CLIENT_IDS`: Comma-separated audiences accepted for Sign in with Apple / Google in the Pixels app API (`/app/v0`, see API.md). Unset disables that method.
+*   `PIXELS_FEATURED_APPS_DIR`: Directory under `DATA_DIR` whose apps the Pixels app shows as Popular (default: `featured-apps`; copy `custom-apps/tenthousandpixels/*` there).
+*   `APNS_KEY_FILE`, `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_TOPIC` (default `com.tenthousandpixels.pixels`), `APNS_SANDBOX`: Apple push for the Pixels app (token auth with a `.p8` key). `FCM_SERVICE_ACCOUNT_FILE`: Firebase service account JSON for Android push. Each platform is off until set.
+*   `PIXELS_DEV_HOOKS`: Set to `true` to enable the `/app/_mock/*` test hooks used by the Pixels Developer menu and end-to-end tests. Never enable in production.
 
 **HTTPS (TLS):**
 *   Can be achieved by configuring `TRONBYT_SSL_KEYFILE` and `TRONBYT_SSL_CERTFILE`.

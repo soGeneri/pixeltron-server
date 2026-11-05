@@ -72,3 +72,33 @@ func makeRoomForApp(ctx context.Context, db *gorm.DB, deviceID string, position 
 	}
 	return position, nil
 }
+
+// insertApp stores a new installation on a device. position >= 0 puts it at
+// that index; otherwise it goes on top or at the bottom per the user's
+// AddAppsToTop preference. Sets app.Order.
+func (s *Server) insertApp(ctx context.Context, user *data.User, deviceID string, app *data.App, position int) error {
+	return s.DB.Transaction(func(tx *gorm.DB) error {
+		switch {
+		case position >= 0:
+			order, err := makeRoomForApp(ctx, tx, deviceID, position)
+			if err != nil {
+				return err
+			}
+			app.Order = order
+		case user != nil && user.AddAppsToTop:
+			if _, err := gorm.G[data.App](tx).
+				Where("device_id = ?", deviceID).
+				Update(ctx, "order", gorm.Expr("? + 1", clause.Column{Name: "order"})); err != nil {
+				return err
+			}
+			app.Order = 0
+		default:
+			maxOrder, err := getMaxAppOrder(tx, deviceID)
+			if err != nil {
+				return err
+			}
+			app.Order = maxOrder + 1
+		}
+		return gorm.G[data.App](tx).Create(ctx, app)
+	})
+}

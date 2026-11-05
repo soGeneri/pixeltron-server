@@ -24,6 +24,7 @@ import (
 	"tronbyt-server/internal/apps"
 	"tronbyt-server/internal/chunker"
 	"tronbyt-server/internal/config"
+	"tronbyt-server/internal/push"
 	"tronbyt-server/internal/data"
 	syncer "tronbyt-server/internal/sync"
 	"tronbyt-server/internal/version"
@@ -60,6 +61,10 @@ type Server struct {
 	PromGatherer  prometheus.Gatherer
 	metrics       *appMetrics
 	OIDCProvider  *OIDCProvider
+
+	// pushSenders maps a push token platform ("ios", "android") to its
+	// sender. Empty when push isn't configured.
+	pushSenders map[string]push.Sender
 
 	systemAppsCache                      []apps.AppMetadata
 	systemAppsCacheMutex                 sync.RWMutex
@@ -354,6 +359,7 @@ func (s *Server) routes() {
 	s.Router.HandleFunc("GET /preview/app/{id}", s.RequireLogin(s.handleAppThumbnail))
 
 	s.SetupAPIRoutes()
+	s.SetupAppAPIRoutes()
 	s.SetupAuthRoutes()
 
 	// Device endpoint
