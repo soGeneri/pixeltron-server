@@ -34,14 +34,26 @@ func pixeltronCodeWord(mac [6]byte) string {
 	return fmt.Sprintf("%s-%02d", codeWords[h&31], 10+(h>>5)%90)
 }
 
-// pixeltronSetupCode returns the six-character setup code, e.g. "4F2A9K".
+// pixeltronSetupCode returns the eight-character setup code, e.g.
+// "KPFFSUEK". It is also the setup hotspot's WPA2 password (which needs at
+// least 8 characters): 40 bits, six characters from one hash, two from
+// another.
 func pixeltronSetupCode(mac [6]byte) string {
 	h := macHash(mac, 0x5e)
+	h2 := macHash(mac, 0x5f)
 	var b strings.Builder
 	for i := range 6 {
 		b.WriteByte(setupCodeAlphabet[(h>>(i*5))&31])
 	}
+	for i := range 2 {
+		b.WriteByte(setupCodeAlphabet[(h2>>(i*5))&31])
+	}
 	return b.String()
+}
+
+// pixeltronHotspotSSID is the setup hotspot's name, e.g. "Pixeltron-FOX42".
+func pixeltronHotspotSSID(mac [6]byte) string {
+	return "Pixeltron-" + strings.ReplaceAll(pixeltronCodeWord(mac), "-", "")
 }
 
 // parseMAC accepts "aa:bb:cc:dd:ee:ff", "aa-bb-...", or 12 hex digits.

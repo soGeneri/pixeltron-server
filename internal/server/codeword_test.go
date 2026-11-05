@@ -11,11 +11,11 @@ import (
 // two implementations in step.
 func TestPixeltronCodeWordMatchesFirmware(t *testing.T) {
 	vectors := []struct{ mac, word, code string }{
-		{"000000000000", "CAT-69", "DGY3XN"},
-		{"240ac4123456", "GNU-62", "KPFFSU"},
-		{"ffffffffffff", "CROW-81", "X6MX4T"},
-		{"7cdfa100beef", "MOLE-20", "6R5ZPL"},
-		{"010203040506", "MOLE-61", "N7NVL6"},
+		{"000000000000", "CAT-69", "DGY3XNLG"},
+		{"240ac4123456", "GNU-62", "KPFFSUEK"},
+		{"ffffffffffff", "CROW-81", "X6MX4T6N"},
+		{"7cdfa100beef", "MOLE-20", "6R5ZPLFG"},
+		{"010203040506", "MOLE-61", "N7NVL6FD"},
 	}
 	for _, v := range vectors {
 		mac, err := parseMAC(v.mac)
@@ -32,6 +32,7 @@ func TestParseMAC(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, a, b)
 	assert.Equal(t, "pxt-gnu62", pixeltronDeviceID(a))
+	assert.Equal(t, "Pixeltron-GNU62", pixeltronHotspotSSID(a))
 
 	_, err = parseMAC("nope")
 	assert.Error(t, err)
